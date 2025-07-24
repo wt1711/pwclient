@@ -2,6 +2,12 @@ experiment
 dist
 node_modules
 devAssets
+dist-electron
+dist-electron-mac
+dist-electron-win
+dist-electron-linux
+dist-react
+dist
 
 .DS_Store
 .idea
