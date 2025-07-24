@@ -13,6 +13,7 @@ import { useKeyDown } from '../../hooks/useKeyDown';
 import { markAsRead } from '../../../client/action/notifications';
 import { useMatrixClient } from '../../hooks/useMatrixClient';
 import { useRoomMembers } from '../../hooks/useRoomMembers';
+import { AIAssistant } from '../../components/AIAssistant';
 
 export function Room() {
   const { eventId } = useParams();
@@ -20,6 +21,7 @@ export function Room() {
   const mx = useMatrixClient();
 
   const [isDrawer] = useSetting(settingsAtom, 'isPeopleDrawer');
+  const [isAiDrawer] = useSetting(settingsAtom, 'isAiDrawerOpen');
   const [hideActivity] = useSetting(settingsAtom, 'hideActivity');
   const screenSize = useScreenSizeContext();
   const powerLevels = usePowerLevels(room);
@@ -45,6 +47,12 @@ export function Room() {
           <>
             <Line variant="Background" direction="Vertical" size="300" />
             <MembersDrawer key={room.roomId} room={room} members={members} />
+          </>
+        )}
+        {screenSize === ScreenSize.Desktop && isAiDrawer && (
+          <>
+            <Line variant="Background" direction="Vertical" size="300" />
+            <AIAssistant message="" />
           </>
         )}
       </Box>
