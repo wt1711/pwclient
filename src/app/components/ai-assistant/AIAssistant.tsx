@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Avatar, Box, Header, Icon, IconButton, Icons, Input, Scroll, Text, Spinner } from 'folds';
-import { useSetSetting } from '../state/hooks/settings';
-import { settingsAtom } from '../state/settings';
+import { useSetSetting } from '../../state/hooks/settings';
+import { settingsAtom } from '../../state/settings';
 import * as css from './AIAssistant.css';
 
 type ChatMessage = {
@@ -100,7 +100,8 @@ export function AIAssistant({ message }: AIAssistantProps) {
                         style={{
                           padding: '8px 12px',
                           borderRadius: '12px',
-                          backgroundColor: chat.sender === 'user' ? '#e0e0e0' : '#f0f0f0',
+                          color: chat.sender === 'user' ? '#000' : '#fff',
+                          backgroundColor: chat.sender === 'user' ? '#e0e0e0' : '#262626',
                         }}
                       >
                         <Text>{chat.text}</Text>

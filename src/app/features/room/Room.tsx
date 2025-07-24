@@ -13,7 +13,7 @@ import { useKeyDown } from '../../hooks/useKeyDown';
 import { markAsRead } from '../../../client/action/notifications';
 import { useMatrixClient } from '../../hooks/useMatrixClient';
 import { useRoomMembers } from '../../hooks/useRoomMembers';
-import { AIAssistant } from '../../components/AIAssistant';
+import { AIAssistant } from '../../components/ai-assistant/AIAssistant';
 
 export function Room() {
   const { eventId } = useParams();
