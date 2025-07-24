@@ -96,6 +96,7 @@
     "@types/file-saver": "2.0.5",
     "@types/is-hotkey": "0.1.10",
     "@types/node": "18.11.18",
+    "@types/os-utils": "0.0.4",
     "@types/prismjs": "1.26.0",
     "@types/react": "18.2.39",
     "@types/react-dom": "18.2.17",

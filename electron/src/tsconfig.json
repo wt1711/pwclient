@@ -12,5 +12,5 @@
     "skipLibCheck": true,
     "composite": true
   },
-  "files": ["../types.d.ts"]
+  "include": ["./**/*"]
 }
