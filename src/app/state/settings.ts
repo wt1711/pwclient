@@ -18,6 +18,7 @@ export interface Settings {
   twitterEmoji: boolean;
   pageZoom: number;
   hideActivity: boolean;
+  isAiDrawerOpen: boolean;
 
   isPeopleDrawer: boolean;
   memberSortFilterIndex: number;
@@ -49,6 +50,7 @@ const defaultSettings: Settings = {
   pageZoom: 100,
   hideActivity: false,
 
+  isAiDrawerOpen: false,
   isPeopleDrawer: true,
   memberSortFilterIndex: 0,
   enterForNewline: false,

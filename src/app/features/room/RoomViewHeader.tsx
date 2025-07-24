@@ -252,7 +252,7 @@ export function RoomViewHeader() {
   const space = useSpaceOptionally();
   const [menuAnchor, setMenuAnchor] = useState<RectCords>();
   const [pinMenuAnchor, setPinMenuAnchor] = useState<RectCords>();
-  const [aiAssistantOpen, setAIAssistantOpen] = useState(false);
+  const [aiAssistantOpen, setAIAssistantOpen] = useSetting(settingsAtom, 'isAiDrawerOpen');
   const mDirects = useAtomValue(mDirectAtom);
 
   const pinnedEvents = useRoomPinnedEvents(room);
@@ -507,13 +507,6 @@ export function RoomViewHeader() {
           />
         </Box>
       </Box>
-      {aiAssistantOpen && (
-        <Overlay open={aiAssistantOpen} backdrop={<OverlayBackdrop />}>
-          <OverlayCenter>
-            <AIAssistant message="" onClose={() => setAIAssistantOpen(false)} />
-          </OverlayCenter>
-        </Overlay>
-      )}
     </PageHeader>
   );
 }

@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
-import { Box, Button, Dialog, Header, Icon, IconButton, Icons, Input, Text, Spinner } from 'folds';
-
-type AIAssistantProps = {
-  message: string;
-  onClose: () => void;
-};
+import { Box, Button, Header, Icon, IconButton, Icons, Input, Text, Spinner } from 'folds';
+import * as css from './AIAssistant.css';
+import { useSetSetting } from '../state/hooks/settings';
+import { settingsAtom } from '../state/settings';
 
 type ChatMessage = {
   sender: 'user' | 'ai';
@@ -12,10 +10,15 @@ type ChatMessage = {
   timestamp: number;
 };
 
-export function AIAssistant({ message, onClose }: AIAssistantProps) {
+type AIAssistantProps = {
+  message: string;
+};
+
+export function AIAssistant({ message }: AIAssistantProps) {
   const [inputValue, setInputValue] = useState('');
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const setAiDrawer = useSetSetting(settingsAtom, 'isAiDrawerOpen');
 
   const handleSend = () => {
     if (inputValue.trim() === '') return;
@@ -42,12 +45,12 @@ export function AIAssistant({ message, onClose }: AIAssistantProps) {
   };
 
   return (
-    <Dialog variant="Surface" style={{ width: '500px' }}>
+    <Box className={css.AIAssistant} shrink="No" direction="Column">
       <Header variant="Surface" size="500">
         <Box grow="Yes">
           <Text size="H4">AI Assistant</Text>
         </Box>
-        <IconButton size="300" onClick={onClose} radii="300">
+        <IconButton size="300" onClick={() => setAiDrawer(false)} radii="300">
           <Icon src={Icons.Cross} />
         </IconButton>
       </Header>
@@ -98,6 +101,6 @@ export function AIAssistant({ message, onClose }: AIAssistantProps) {
           Send
         </Button>
       </Box>
-    </Dialog>
+    </Box>
   );
 }
