@@ -77,7 +77,8 @@ export function AIAssistant({ message }: AIAssistantProps) {
                         style={{
                           padding: '8px 12px',
                           borderRadius: '12px',
-                          backgroundColor: chat.sender === 'user' ? '#e0e0e0' : '#f0f0f0',
+                          color: chat.sender === 'user' ? '#000' : '#fff',
+                          backgroundColor: chat.sender === 'user' ? '#e0e0e0' : '#262626',
                         }}
                       >
                         <Text>{chat.text}</Text>
