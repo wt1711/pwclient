@@ -6,6 +6,7 @@ import * as css from './AIAssistant.css';
 import { SuggestionBox } from './SuggestionBox';
 import { EmptyState } from './EmptyState';
 import { AIQuestionInput } from './AIQuestionInput';
+import { AIAssistantChatMessage } from './AIAssistantChatMessage';
 
 type ChatMessage = {
   sender: 'user' | 'ai';
@@ -72,18 +73,7 @@ export function AIAssistant({ message }: AIAssistantProps) {
                 <SuggestionBox content={message} />
                 <Box direction="Column" gap="200">
                   {chatHistory.map((chat) => (
-                    <Box key={chat.timestamp} alignSelf={chat.sender === 'user' ? 'End' : 'Start'}>
-                      <Box
-                        style={{
-                          padding: '8px 12px',
-                          borderRadius: '12px',
-                          color: chat.sender === 'user' ? '#000' : '#fff',
-                          backgroundColor: chat.sender === 'user' ? '#e0e0e0' : '#262626',
-                        }}
-                      >
-                        <Text>{chat.text}</Text>
-                      </Box>
-                    </Box>
+                    <AIAssistantChatMessage key={chat.timestamp} chat={chat} />
                   ))}
                   {isLoading && (
                     <Box alignSelf="Start">
