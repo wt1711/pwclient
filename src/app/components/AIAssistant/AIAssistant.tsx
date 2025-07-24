@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Avatar, Box, Header, Icon, IconButton, Icons, Input, Scroll, Text, Spinner } from 'folds';
-import { useSetSetting } from '../state/hooks/settings';
-import { settingsAtom } from '../state/settings';
+import { useSetSetting } from '../../state/hooks/settings';
+import { settingsAtom } from '../../state/settings';
 import * as css from './AIAssistant.css';
 
 type ChatMessage = {
