@@ -3,6 +3,9 @@ import { Avatar, Box, Header, Icon, IconButton, Icons, Input, Scroll, Text, Spin
 import { useSetSetting } from '../../state/hooks/settings';
 import { settingsAtom } from '../../state/settings';
 import * as css from './AIAssistant.css';
+import { SuggestionBox } from './SuggestionBox';
+import { EmptyState } from './EmptyState';
+import { AIQuestionInput } from './AIQuestionInput';
 
 type ChatMessage = {
   sender: 'user' | 'ai';
@@ -13,51 +16,6 @@ type ChatMessage = {
 type AIAssistantProps = {
   message: string;
 };
-
-function SuggestionBox({ content }: { content: string }) {
-  const parts = content.split(':');
-  const sender = parts.length > 1 ? parts[0] : null;
-  const messageText = parts.length > 1 ? parts.slice(1).join(':').trim() : content;
-
-  return (
-    <Box direction="Column" gap="200">
-      <Text size="L400">GỢI Ý CHO TIN NHẮN:</Text>
-      <Box
-        style={{
-          border: '1px solid #e0e0e0',
-          borderRadius: '8px',
-          padding: '12px',
-        }}
-        direction="Column"
-        gap="100"
-      >
-        {sender && <Text style={{ fontWeight: 'bold' }}>{sender}:</Text>}
-        <Text>{messageText}</Text>
-      </Box>
-    </Box>
-  );
-}
-
-function EmptyState() {
-  return (
-    <Box
-      grow="Yes"
-      direction="Column"
-      justifyContent="Center"
-      alignItems="Center"
-      gap="200"
-      style={{ height: '100%' }}
-    >
-      <Avatar size="400">
-        <Icon src={Icons.User} size="400" />
-      </Avatar>
-      <Text size="H4">Hỏi Wingman ngay</Text>
-      <Text align="Center" style={{ maxWidth: '200px' }}>
-        Nhấp vào một tin nhắn để nhận gợi ý, hoặc hỏi Wingman một câu hỏi chung.
-      </Text>
-    </Box>
-  );
-}
 
 export function AIAssistant({ message }: AIAssistantProps) {
   const [inputValue, setInputValue] = useState('');
@@ -137,25 +95,12 @@ export function AIAssistant({ message }: AIAssistantProps) {
           </Box>
         </Scroll>
       </Box>
-      <Box style={{ padding: '16px' }} direction="Row" gap="200" alignItems="Center">
-        <Input
-          variant="Background"
-          value={inputValue}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInputValue(e.target.value)}
-          onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => {
-            if (e.key === 'Enter') handleSend();
-          }}
-          placeholder="Hỏi Wingman ở đây..."
-          style={{ flexGrow: 1 }}
-        />
-        <IconButton
-          variant="Primary"
-          onClick={handleSend}
-          disabled={isLoading || !inputValue.trim()}
-        >
-          <Icon src={Icons.Send} />
-        </IconButton>
-      </Box>
+      <AIQuestionInput
+        inputValue={inputValue}
+        setInputValue={setInputValue}
+        handleSend={handleSend}
+        isLoading={isLoading}
+      />
     </Box>
   );
 }
