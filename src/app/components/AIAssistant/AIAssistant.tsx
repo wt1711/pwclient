@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Avatar, Box, Header, Icon, IconButton, Icons, Input, Scroll, Text, Spinner } from 'folds';
+import { Avatar, Box, Header, Icon, IconButton, Icons, Scroll, Text, Spinner } from 'folds';
 import { useSetSetting } from '../../state/hooks/settings';
 import { settingsAtom } from '../../state/settings';
 import * as css from './AIAssistant.css';
@@ -8,7 +8,7 @@ import { EmptyState } from './EmptyState';
 import { AIQuestionInput } from './AIQuestionInput';
 import { AIAssistantChatMessage } from './AIAssistantChatMessage';
 
-type ChatMessage = {
+export type ChatMessage = {
   sender: 'user' | 'ai';
   text: string;
   timestamp: number;
