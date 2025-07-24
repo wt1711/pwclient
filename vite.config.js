@@ -9,7 +9,6 @@ import topLevelAwait from 'vite-plugin-top-level-await';
 import { VitePWA } from 'vite-plugin-pwa';
 import fs from 'fs';
 import path from 'path';
-import buildConfig from './build.config';
 
 const copyFiles = {
   targets: [
@@ -70,9 +69,9 @@ function serverMatrixSdkCryptoWasm(wasmFilePath) {
 export default defineConfig({
   appType: 'spa',
   publicDir: false,
-  base: buildConfig.base,
+  base: '',
   server: {
-    port: 8080,
+    port: 5173,
     host: true,
     fs: {
       // Allow serving files from one level up to the project root
@@ -121,10 +120,13 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: 'dist',
+    outDir: 'dist-react',
     sourcemap: true,
     copyPublicDir: false,
     rollupOptions: {
+      input: {
+        main: './index.html',
+      },
       plugins: [inject({ Buffer: ['buffer', 'Buffer'] })],
     },
   },
