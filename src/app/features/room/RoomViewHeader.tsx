@@ -67,7 +67,7 @@ import {
 } from '../../hooks/useRoomsNotificationPreferences';
 import { JumpToTime } from './jump-to-time';
 import { useRoomNavigate } from '../../hooks/useRoomNavigate';
-import { AIAssistant } from '../../components/AIAssistant';
+import { AIAssistant } from '../../components/ai-assistant/AIAssistant';
 import { SvgIcon } from '../../components/SvgIcon';
 
 const BulbIcon = SvgIcon;
