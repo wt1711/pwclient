@@ -44,8 +44,8 @@ import * as css from './RoomViewHeader.css';
 import { useRoomUnread } from '../../state/hooks/unread';
 import { usePowerLevelsAPI, usePowerLevelsContext } from '../../hooks/usePowerLevels';
 import { markAsRead } from '../../../client/action/notifications';
+import { openInviteUser } from '../../../client/action/navigation.js';
 import { roomToUnreadAtom } from '../../state/room/roomToUnread';
-import { openInviteUser } from '../../../client/action/navigation';
 import { copyToClipboard } from '../../utils/dom';
 import { LeaveRoomPrompt } from '../../components/leave-room-prompt';
 import { useRoomAvatar, useRoomName, useRoomTopic } from '../../hooks/useRoomMeta';
@@ -67,6 +67,10 @@ import {
 } from '../../hooks/useRoomsNotificationPreferences';
 import { JumpToTime } from './jump-to-time';
 import { useRoomNavigate } from '../../hooks/useRoomNavigate';
+import { AIAssistant } from '../../components/AIAssistant';
+import { SvgIcon } from '../../components/SvgIcon';
+
+const BulbIcon = SvgIcon;
 
 type RoomMenuProps = {
   room: Room;
@@ -248,6 +252,7 @@ export function RoomViewHeader() {
   const space = useSpaceOptionally();
   const [menuAnchor, setMenuAnchor] = useState<RectCords>();
   const [pinMenuAnchor, setPinMenuAnchor] = useState<RectCords>();
+  const [aiAssistantOpen, setAIAssistantOpen] = useState(false);
   const mDirects = useAtomValue(mDirectAtom);
 
   const pinnedEvents = useRoomPinnedEvents(room);
@@ -409,6 +414,25 @@ export function RoomViewHeader() {
               </IconButton>
             )}
           </TooltipProvider>
+          <TooltipProvider
+            position="Bottom"
+            offset={4}
+            tooltip={
+              <Tooltip>
+                <Text>Ask AI</Text>
+              </Tooltip>
+            }
+          >
+            {(triggerRef) => (
+              <IconButton
+                ref={triggerRef}
+                onClick={() => setAIAssistantOpen(true)}
+                aria-pressed={aiAssistantOpen}
+              >
+                <SvgIcon src={BulbIcon} size="24" />
+              </IconButton>
+            )}
+          </TooltipProvider>
           <PopOut
             anchor={pinMenuAnchor}
             position="Bottom"
@@ -483,6 +507,13 @@ export function RoomViewHeader() {
           />
         </Box>
       </Box>
+      {aiAssistantOpen && (
+        <Overlay open={aiAssistantOpen} backdrop={<OverlayBackdrop />}>
+          <OverlayCenter>
+            <AIAssistant message="" onClose={() => setAIAssistantOpen(false)} />
+          </OverlayCenter>
+        </Overlay>
+      )}
     </PageHeader>
   );
 }

@@ -21,6 +21,6 @@
       "~/*": ["./*"]
     }
   },
-  "include": ["src", "vite.config.js", "build.config.ts"],
+  "include": ["src", "vite.config.js", "build.config.ts", "src/app/components/AIAssistant.tsx"],
   "references": [{ "path": "./electron/src" }]
 }
