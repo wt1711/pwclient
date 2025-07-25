@@ -85,7 +85,7 @@ export function AIAssistant({ message }: AIAssistantProps) {
 
     const aiResponseText = await getOpenAISuggestion(
       context,
-      { text: message, sender: 'other', is_from_me: false, timestamp: '' }, // mock selectedMessage
+      context[context.length - 1], // mock selectedMessage
       newUserMessage.text
     );
 
