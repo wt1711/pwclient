@@ -241,7 +241,7 @@ export function Home() {
       ) : (
         <PageNavContent scrollRef={scrollRef}>
           <Box direction="Column" gap="300">
-            <NavCategory>
+            {/* <NavCategory>
               <NavItem variant="Background" radii="400">
                 <NavButton onClick={() => openCreateRoom()}>
                   <NavItemContent>
@@ -290,7 +290,7 @@ export function Home() {
                   </NavItemContent>
                 </NavLink>
               </NavItem>
-            </NavCategory>
+            </NavCategory> */}
             <NavCategory>
               <NavCategoryHeader>
                 <RoomNavCategoryButton

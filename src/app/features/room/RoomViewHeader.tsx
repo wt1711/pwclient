@@ -68,9 +68,7 @@ import {
 import { JumpToTime } from './jump-to-time';
 import { useRoomNavigate } from '../../hooks/useRoomNavigate';
 import { AIAssistant } from '../../components/ai-assistant/AIAssistant';
-import { SvgIcon } from '../../components/SvgIcon';
-
-const BulbIcon = SvgIcon;
+import wingmanPFP from '../../components/ai-assistant/wingman.png';
 
 type RoomMenuProps = {
   room: Room;
@@ -429,7 +427,7 @@ export function RoomViewHeader() {
                 onClick={() => setAIAssistantOpen(true)}
                 aria-pressed={aiAssistantOpen}
               >
-                <SvgIcon src={BulbIcon} size="24" />
+                <img src={wingmanPFP} alt="Wingman" style={{ width: '20px', height: '20px' }} />
               </IconButton>
             )}
           </TooltipProvider>
