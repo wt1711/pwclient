@@ -11,6 +11,7 @@ export function createMenu(mainWindow: BrowserWindow) {
           {
             label: 'Quit',
             click: app.quit,
+            accelerator: 'CmdOrCtrl+Q',
           },
           {
             label: 'DevTools',
