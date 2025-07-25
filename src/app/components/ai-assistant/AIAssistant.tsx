@@ -47,7 +47,7 @@ function EmptyState() {
       </Avatar>
       <Text size="H4">Hỏi Wingman ngay</Text>
       <Text align="Center" style={{ maxWidth: '200px' }}>
-        Nhấp vào một tin nhắn để nhận gợi ý, hoặc hỏi Wingman một câu hỏi chung.
+        Nhận gợi ý hoặc phân tích về cuộc hội thoại từ Wingman
       </Text>
     </Box>
   );
