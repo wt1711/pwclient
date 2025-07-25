@@ -252,7 +252,7 @@ export function RoomNavItem({
         <NavItemContent>
           <Box as="span" grow="Yes" alignItems="Center" gap="200">
             <Avatar size="200" radii="400">
-              {showAvatar ? (
+              {!showAvatar ? (
                 <RoomAvatar
                   roomId={room.roomId}
                   src={
