@@ -3,6 +3,7 @@ import { Avatar, Box, Header, Icon, IconButton, Icons, Input, Scroll, Text, Spin
 import { useSetSetting } from '../../state/hooks/settings';
 import { settingsAtom } from '../../state/settings';
 import * as css from './AIAssistant.css';
+import { getOpenAISuggestion } from './ai';
 
 type ChatMessage = {
   sender: 'user' | 'ai';
@@ -41,7 +42,7 @@ export function AIAssistant({ message }: AIAssistantProps) {
   const [isLoading, setIsLoading] = useState(false);
   const setAiDrawer = useSetSetting(settingsAtom, 'isAiDrawerOpen');
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (inputValue.trim() === '') return;
 
     const newUserMessage: ChatMessage = {
@@ -53,16 +54,19 @@ export function AIAssistant({ message }: AIAssistantProps) {
     setInputValue('');
     setIsLoading(true);
 
-    // Simulate AI response
-    setTimeout(() => {
-      const aiResponse: ChatMessage = {
-        sender: 'ai',
-        text: `This is a simulated response to: "${inputValue}" for the message: "${message}"`,
-        timestamp: Date.now(),
-      };
-      setChatHistory((prev) => [...prev, aiResponse]);
-      setIsLoading(false);
-    }, 1500);
+    const aiResponseText = await getOpenAISuggestion(
+      [], // mock context
+      { text: message, sender: 'other', is_from_me: false, timestamp: '' }, // mock selectedMessage
+      newUserMessage.text
+    );
+
+    const aiResponse: ChatMessage = {
+      sender: 'ai',
+      text: aiResponseText,
+      timestamp: Date.now(),
+    };
+    setChatHistory((prev) => [...prev, aiResponse]);
+    setIsLoading(false);
   };
 
   const showEmptyState = chatHistory.length === 0 && !message;
