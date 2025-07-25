@@ -3,8 +3,26 @@ import { Avatar, Box, Header, Icon, IconButton, Icons, Input, Scroll, Text, Spin
 import { useSetSetting } from '../../state/hooks/settings';
 import { settingsAtom } from '../../state/settings';
 import * as css from './AIAssistant.css';
+import { getOpenAISuggestion } from './ai';
+import { useRoom } from '../../hooks/useRoom';
+import { useMatrixClient } from '../../hooks/useMatrixClient';
 
-type ChatMessage = {
+const userFacebookIds = ['100079978062886', '100008370333450'];
+const checkIfUserIsMe = (currentUserId: string, userId: string | null) => {
+  if (!currentUserId) return false;
+  if (currentUserId === userId) return true;
+  // Regex to find and extract the numeric ID from a Facebook bridge user ID
+  const fbIdRegex = /@meta_(\d+)/;
+  const match = currentUserId.match(fbIdRegex);
+
+  if (match && match[1]) {
+    const extractedId = match[1];
+    return userFacebookIds.includes(extractedId);
+  }
+  return false;
+};
+
+type ChatWithAIAssistantMessage = {
   sender: 'user' | 'ai';
   text: string;
   timestamp: number;
@@ -29,7 +47,7 @@ function EmptyState() {
       </Avatar>
       <Text size="H4">Hỏi Wingman ngay</Text>
       <Text align="Center" style={{ maxWidth: '200px' }}>
-        Nhấp vào một tin nhắn để nhận gợi ý, hoặc hỏi Wingman một câu hỏi chung.
+        Nhận gợi ý hoặc phân tích về cuộc hội thoại từ Wingman
       </Text>
     </Box>
   );
@@ -37,14 +55,26 @@ function EmptyState() {
 
 export function AIAssistant({ message }: AIAssistantProps) {
   const [inputValue, setInputValue] = useState('');
-  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+  const [chatHistory, setChatHistory] = useState<ChatWithAIAssistantMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const setAiDrawer = useSetSetting(settingsAtom, 'isAiDrawerOpen');
+  const room = useRoom();
+  const mx = useMatrixClient();
+  const timeline = room.getLiveTimeline().getEvents();
 
-  const handleSend = () => {
+  const context = timeline
+    .filter((event) => event.getSender() && event.getContent().body)
+    .map((event) => ({
+      sender: event.getSender() as string,
+      text: event.getContent().body as string,
+      timestamp: new Date(event.getTs()).toISOString(),
+      is_from_me: checkIfUserIsMe(event.getSender() as string, mx.getUserId()),
+    }));
+
+  const handleSend = async () => {
     if (inputValue.trim() === '') return;
 
-    const newUserMessage: ChatMessage = {
+    const newUserMessage: ChatWithAIAssistantMessage = {
       sender: 'user',
       text: inputValue,
       timestamp: Date.now(),
@@ -53,16 +83,19 @@ export function AIAssistant({ message }: AIAssistantProps) {
     setInputValue('');
     setIsLoading(true);
 
-    // Simulate AI response
-    setTimeout(() => {
-      const aiResponse: ChatMessage = {
-        sender: 'ai',
-        text: `This is a simulated response to: "${inputValue}" for the message: "${message}"`,
-        timestamp: Date.now(),
-      };
-      setChatHistory((prev) => [...prev, aiResponse]);
-      setIsLoading(false);
-    }, 1500);
+    const aiResponseText = await getOpenAISuggestion(
+      context,
+      context[context.length - 1], // mock selectedMessage
+      newUserMessage.text
+    );
+
+    const aiResponse: ChatWithAIAssistantMessage = {
+      sender: 'ai',
+      text: aiResponseText,
+      timestamp: Date.now(),
+    };
+    setChatHistory((prev) => [...prev, aiResponse]);
+    setIsLoading(false);
   };
 
   const showEmptyState = chatHistory.length === 0 && !message;
