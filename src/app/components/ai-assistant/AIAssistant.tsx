@@ -7,12 +7,12 @@ import { getOpenAISuggestion } from './ai';
 import { useMatrixClient } from '../../hooks/useMatrixClient';
 import { useRoom } from '../../hooks/useRoom';
 
-type Message = {
-  sender: string;
-  text: string;
-  timestamp: string;
-  is_from_me: boolean;
-};
+// type Message = {
+//   sender: string;
+//   text: string;
+//   timestamp: string;
+//   is_from_me: boolean;
+// };
 
 type ChatMessage = {
   sender: 'user' | 'ai';
@@ -22,7 +22,6 @@ type ChatMessage = {
 
 type AIAssistantProps = {
   message: string;
-  context: Message[];
 };
 
 function EmptyState() {
