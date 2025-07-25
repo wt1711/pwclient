@@ -1,8 +1,8 @@
 {
-  "appId": "com.cinny.app",
+  "appId": "com.pwclient.app",
   "files": ["dist-electron", "dist-react"],
-  "extraResources": ["electron/dist/preload.cjs", "src/assets/**"],
-  "icon": "electron/desktopIcon.png",
+  "extraResources": ["dist-electron/preload.cjs", "src/assets/**"],
+  "icon": "src/assets/desktopIcon.png",
   "mac": {
     "target": "dmg"
   },

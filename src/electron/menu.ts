@@ -11,6 +11,7 @@ export function createMenu(mainWindow: BrowserWindow) {
           {
             label: 'Quit',
             click: app.quit,
+            accelerator: 'CmdOrCtrl+Q',
           },
           {
             label: 'DevTools',
@@ -25,22 +26,30 @@ export function createMenu(mainWindow: BrowserWindow) {
         submenu: [
           {
             label: 'CPU',
-            click: () =>
-              ipcWebContentsSend('changeView', mainWindow.webContents, 'CPU'),
+            click: () => {
+              if (mainWindow)
+                if (isDev()) {
+                  ipcWebContentsSend(mainWindow.webContents, 'changeView', 'CPU');
+                }
+            },
           },
           {
             label: 'RAM',
-            click: () =>
-              ipcWebContentsSend('changeView', mainWindow.webContents, 'RAM'),
+            click: () => {
+              if (mainWindow)
+                if (isDev()) {
+                  ipcWebContentsSend(mainWindow.webContents, 'changeView', 'RAM');
+                }
+            },
           },
           {
-            label: 'STORAGE',
-            click: () =>
-              ipcWebContentsSend(
-                'changeView',
-                mainWindow.webContents,
-                'STORAGE'
-              ),
+            label: 'Disk',
+            click: () => {
+              if (mainWindow)
+                if (isDev()) {
+                  ipcWebContentsSend(mainWindow.webContents, 'changeView', 'Disk');
+                }
+            },
           },
         ],
       },

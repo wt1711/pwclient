@@ -22,5 +22,5 @@
     }
   },
   "include": ["src", "vite.config.js", "build.config.ts"],
-  "references": [{ "path": "./electron/src" }]
+  "references": [{ "path": "./src/electron/tsconfig.json" }]
 }

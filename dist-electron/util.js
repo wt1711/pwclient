@@ -1,29 +1,46 @@
 import { ipcMain } from 'electron';
-import { getUIPath } from './pathResolver.js';
 import { pathToFileURL } from 'url';
-export function isDev() {
-    return process.env.NODE_ENV === 'development';
+import { getUIPath } from './pathResolver.js';
+function validateEventFrame(frame) {
+    if (!frame ||
+        !frame.url ||
+        !(frame.url.startsWith('file://') || frame.url.startsWith('http://localhost'))) {
+        throw new Error('Invalid event frame');
+    }
 }
-export function ipcMainHandle(key, handler) {
+// TODO: fix this
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function ipcMainHandle(key, 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+handler) {
     ipcMain.handle(key, (event) => {
         validateEventFrame(event.senderFrame);
         return handler();
     });
 }
-export function ipcMainOn(key, handler) {
+// TODO: fix this
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function ipcMainOn(key, 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+handler) {
     ipcMain.on(key, (event, payload) => {
         validateEventFrame(event.senderFrame);
-        return handler(payload);
+        handler(payload);
     });
 }
-export function ipcWebContentsSend(key, webContents, payload) {
+// TODO: fix this
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function ipcWebContentsSend(webContents, key, 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+payload) {
     webContents.send(key, payload);
 }
-export function validateEventFrame(frame) {
-    if (isDev() && new URL(frame.url).host === 'localhost:5123') {
-        return;
-    }
-    if (frame.url !== pathToFileURL(getUIPath()).toString()) {
-        throw new Error('Malicious event');
-    }
+export function isDev() {
+    return process.env.NODE_ENV === 'development';
+}
+export function getUrl(path) {
+    if (isDev())
+        return `http://localhost:5173/${path}`;
+    const uiPath = getUIPath();
+    return `${pathToFileURL(`${uiPath}/index.html`).href}#/${path}`;
 }
