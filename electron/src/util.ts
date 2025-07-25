@@ -53,7 +53,7 @@ export function isDev() {
 }
 
 export function getUrl(path: string) {
-  if (isDev()) return `http://localhost:5123/${path}`;
+  if (isDev()) return `http://localhost:5173/${path}`;
   const uiPath = getUIPath();
   return `${pathToFileURL(`${uiPath}/index.html`).href}#/${path}`;
 }
