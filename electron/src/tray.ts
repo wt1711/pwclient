@@ -1,6 +1,6 @@
 import { BrowserWindow, Menu, Tray, app } from 'electron';
-import { getAssetPath } from './pathResolver.js';
 import path from 'path';
+import { getAssetPath } from './pathResolver.js';
 
 export function createTray(mainWindow: BrowserWindow) {
   const tray = new Tray(
@@ -24,6 +24,7 @@ export function createTray(mainWindow: BrowserWindow) {
       {
         label: 'Quit',
         click: () => app.quit(),
+        accelerator: 'CmdOrCtrl+Q',
       },
     ])
   );
