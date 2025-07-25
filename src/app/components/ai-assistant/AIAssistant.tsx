@@ -6,6 +6,7 @@ import * as css from './AIAssistant.css';
 import { getOpenAISuggestion } from './ai';
 import { useRoom } from '../../hooks/useRoom';
 import { useMatrixClient } from '../../hooks/useMatrixClient';
+import wingmanPFP from './wingman.png';
 
 const userFacebookIds = ['100079978062886', '100008370333450'];
 const checkIfUserIsMe = (currentUserId: string, userId: string | null) => {
@@ -42,11 +43,11 @@ function EmptyState() {
       gap="200"
       style={{ height: '100%' }}
     >
-      <Avatar size="400">
-        <Icon src={Icons.User} size="400" />
+      <Avatar size="500">
+        <img src={wingmanPFP} alt="Wingman" style={{ width: '100%', height: '100%' }} />
       </Avatar>
       <Text size="H4">Hỏi Wingman ngay</Text>
-      <Text align="Center" style={{ maxWidth: '200px' }}>
+      <Text align="Center" style={{ maxWidth: '300px' }}>
         Nhận gợi ý hoặc phân tích về cuộc hội thoại từ Wingman
       </Text>
     </Box>
@@ -105,7 +106,11 @@ export function AIAssistant({ message }: AIAssistantProps) {
       <Header variant="Surface" size="600">
         <Box grow="Yes" alignItems="Center" gap="200">
           <Avatar size="200">
-            <Icon src={Icons.User} />
+            <img
+              src={wingmanPFP}
+              alt="Wingman"
+              style={{ width: '100%', height: '100%', marginLeft: '10px' }}
+            />
           </Avatar>
           <Text size="T400">Wingman AI</Text>
         </Box>
