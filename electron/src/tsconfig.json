@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ESNext",
+    "module": "NodeNext",
+    "outDir": "../dist",
+    "skipLibCheck": true,
+    "composite": true
+  },
+  "include": ["./**/*"]
+} 

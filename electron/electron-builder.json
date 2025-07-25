@@ -1,0 +1,29 @@
+{
+  "appId": "com.cinny.app",
+  "files": [
+    "dist-electron",
+    "dist-react",
+    "electron/dist"
+  ],
+  "extraResources": [
+    {
+      "from": "src/assets",
+      "to": "assets"
+    },
+    {
+      "from": "electron/dist/preload.cjs",
+      "to": "preload.cjs"
+    }
+  ],
+  "icon": "electron/desktopIcon.png",
+  "mac": {
+    "target": "dmg"
+  },
+  "linux": {
+    "target": "AppImage",
+    "category": "Utility"
+  },
+  "win": {
+    "target": ["portable", "msi"]
+  }
+} 
