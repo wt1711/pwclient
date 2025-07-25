@@ -16,7 +16,9 @@ app.on('ready', () => {
   if (isDev()) {
     mainWindow.loadURL('http://localhost:5173');
   } else {
-    mainWindow.loadFile(getUIPath());
+    mainWindow.loadURL('http://localhost:5173');
+    // Temporary until figure out how to load the dist-react/index.html file
+    // mainWindow.loadFile(getUIPath());
   }
 
   createTray(mainWindow);
