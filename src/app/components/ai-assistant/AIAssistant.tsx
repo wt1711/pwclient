@@ -4,17 +4,25 @@ import { useSetSetting } from '../../state/hooks/settings';
 import { settingsAtom } from '../../state/settings';
 import * as css from './AIAssistant.css';
 import { getOpenAISuggestion } from './ai';
-import { useMatrixClient } from '../../hooks/useMatrixClient';
 import { useRoom } from '../../hooks/useRoom';
+import { useMatrixClient } from '../../hooks/useMatrixClient';
 
-// type Message = {
-//   sender: string;
-//   text: string;
-//   timestamp: string;
-//   is_from_me: boolean;
-// };
+const userFacebookIds = ['100079978062886', '100008370333450'];
+const checkIfUserIsMe = (currentUserId: string, userId: string | null) => {
+  if (!currentUserId) return false;
+  if (currentUserId === userId) return true;
+  // Regex to find and extract the numeric ID from a Facebook bridge user ID
+  const fbIdRegex = /@meta_(\d+)/;
+  const match = currentUserId.match(fbIdRegex);
 
-type ChatMessage = {
+  if (match && match[1]) {
+    const extractedId = match[1];
+    return userFacebookIds.includes(extractedId);
+  }
+  return false;
+};
+
+type ChatWithAIAssistantMessage = {
   sender: 'user' | 'ai';
   text: string;
   timestamp: number;
@@ -47,11 +55,11 @@ function EmptyState() {
 
 export function AIAssistant({ message }: AIAssistantProps) {
   const [inputValue, setInputValue] = useState('');
-  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+  const [chatHistory, setChatHistory] = useState<ChatWithAIAssistantMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const setAiDrawer = useSetSetting(settingsAtom, 'isAiDrawerOpen');
-  const mx = useMatrixClient();
   const room = useRoom();
+  const mx = useMatrixClient();
   const timeline = room.getLiveTimeline().getEvents();
 
   const context = timeline
@@ -60,13 +68,13 @@ export function AIAssistant({ message }: AIAssistantProps) {
       sender: event.getSender() as string,
       text: event.getContent().body as string,
       timestamp: new Date(event.getTs()).toISOString(),
-      is_from_me: event.getSender() === mx.getUserId(),
+      is_from_me: checkIfUserIsMe(event.getSender() as string, mx.getUserId()),
     }));
 
   const handleSend = async () => {
     if (inputValue.trim() === '') return;
 
-    const newUserMessage: ChatMessage = {
+    const newUserMessage: ChatWithAIAssistantMessage = {
       sender: 'user',
       text: inputValue,
       timestamp: Date.now(),
@@ -81,7 +89,7 @@ export function AIAssistant({ message }: AIAssistantProps) {
       newUserMessage.text
     );
 
-    const aiResponse: ChatMessage = {
+    const aiResponse: ChatWithAIAssistantMessage = {
       sender: 'ai',
       text: aiResponseText,
       timestamp: Date.now(),

@@ -1,29 +1,8 @@
-type Message = {
+export type Message = {
   sender: string;
   text: string;
   timestamp: string;
   is_from_me: boolean;
-};
-
-function formatMessagesForPrompt(messages: Message[]): string {
-  return messages.map((m) => `${m.sender}: ${m.text}`).join('\n');
-}
-
-export const createComprehensivePrompt = (
-  context: Message[],
-  selectedMessage: Message,
-  question?: string
-): string => {
-  const formattedContext = formatMessagesForPrompt(context);
-  const formattedSelectedMessage = `${selectedMessage.sender}: "${selectedMessage.text}"`;
-
-  let prompt = `Bạn là Wingman AI, một trợ lý hữu ích chuyên đưa ra lời khuyên hẹn hò và gợi ý câu trả lời trong các cuộc trò chuyện. Các lời khuyên của bạn cần hữu ích, tôn trọng và mang tính khích lệ. Tôi có một cuộc trò chuyện như thế này:\n\n${formattedContext}\n\nVà tôi có một câu hỏi về tin nhắn này: ${formattedSelectedMessage}.`;
-
-  if (question) {
-    prompt += `\nCâu hỏi là: "${question}"`;
-  }
-
-  return prompt;
 };
 
 export async function getOpenAISuggestion(
