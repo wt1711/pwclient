@@ -1,8 +1,8 @@
 {
-  "name": "cinny",
-  "version": "4.8.1",
-  "description": "Yet another matrix client",
-  "main": "electron/dist/main.js",
+  "name": "pocket-wingman",
+  "version": "1.0.0",
+  "description": "Pocket Wingman",
+  "main": "dist-electron/main.js",
   "type": "module",
   "engines": {
     "node": ">=16.0.0"
@@ -12,10 +12,10 @@
     "build": "vite build",
     "dev:electron": "npm-run-all --parallel start dev:electron-app",
     "dev:electron-app": "npm run build:electron && cross-env NODE_ENV=development electron .",
-    "build:electron": "tsc --project electron/src/tsconfig.json",
-    "dist:mac": "npm run build:electron && npm run build && electron-builder --mac --arm64 -c electron/electron-builder.json",
-    "dist:win": "npm run build:electron && npm run build && electron-builder --win --x64 -c electron/electron-builder.json",
-    "dist:linux": "npm run build:electron && npm run build && electron-builder --linux --x64 -c electron/electron-builder.json",
+    "build:electron": "tsc --project src/electron/tsconfig.json",
+    "dist:mac": "npm run build:electron && npm run build && electron-builder --mac --arm64 -c src/electron/electron-builder.json",
+    "dist:win": "npm run build:electron && npm run build && electron-builder --win --x64 -c src/electron/electron-builder.json",
+    "dist:linux": "npm run build:electron && npm run build && electron-builder --linux --x64 -c src/electron/electron-builder.json",
     "lint": "yarn check:eslint && yarn check:prettier",
     "check:eslint": "eslint src/*",
     "check:prettier": "prettier --check .",
@@ -23,7 +23,7 @@
     "typecheck": "tsc --noEmit"
   },
   "keywords": [],
-  "author": "Ajay Bura",
+  "author": "Wingman",
   "license": "AGPL-3.0-only",
   "dependencies": {
     "@atlaskit/pragmatic-drag-and-drop": "1.1.6",

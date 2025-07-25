@@ -7,7 +7,7 @@ export function getPreloadPath() {
 }
 
 export function getUIPath() {
-  return path.join(app.getAppPath(), '..', 'dist-react/index.html');
+  return path.join(app.getAppPath(), 'dist-react/index.html');
 }
 
 export function getAssetPath() {

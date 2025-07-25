@@ -1,8 +1,8 @@
 import { Menu, Tray, app } from 'electron';
-import { getAssetPath } from './pathResolver.js';
 import path from 'path';
+import { getAssetPath } from './pathResolver.js';
 export function createTray(mainWindow) {
-    const tray = new Tray(path.join(getAssetPath(), process.platform === 'darwin' ? 'trayIconTemplate.png' : 'trayIcon.png'));
+    const tray = new Tray(path.join(getAssetPath(), process.platform === 'darwin' ? 'trayIconTemplate.png' : 'desktopIcon.png'));
     tray.setContextMenu(Menu.buildFromTemplate([
         {
             label: 'Show',
@@ -16,6 +16,7 @@ export function createTray(mainWindow) {
         {
             label: 'Quit',
             click: () => app.quit(),
+            accelerator: 'CmdOrCtrl+Q',
         },
     ]));
 }
