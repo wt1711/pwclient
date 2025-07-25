@@ -4,6 +4,15 @@ import { useSetSetting } from '../../state/hooks/settings';
 import { settingsAtom } from '../../state/settings';
 import * as css from './AIAssistant.css';
 import { getOpenAISuggestion } from './ai';
+import { useMatrixClient } from '../../hooks/useMatrixClient';
+import { useRoom } from '../../hooks/useRoom';
+
+type Message = {
+  sender: string;
+  text: string;
+  timestamp: string;
+  is_from_me: boolean;
+};
 
 type ChatMessage = {
   sender: 'user' | 'ai';
@@ -13,6 +22,7 @@ type ChatMessage = {
 
 type AIAssistantProps = {
   message: string;
+  context: Message[];
 };
 
 function EmptyState() {
@@ -41,6 +51,18 @@ export function AIAssistant({ message }: AIAssistantProps) {
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const setAiDrawer = useSetSetting(settingsAtom, 'isAiDrawerOpen');
+  const mx = useMatrixClient();
+  const room = useRoom();
+  const timeline = room.getLiveTimeline().getEvents();
+
+  const context = timeline
+    .filter((event) => event.getSender() && event.getContent().body)
+    .map((event) => ({
+      sender: event.getSender() as string,
+      text: event.getContent().body as string,
+      timestamp: new Date(event.getTs()).toISOString(),
+      is_from_me: event.getSender() === mx.getUserId(),
+    }));
 
   const handleSend = async () => {
     if (inputValue.trim() === '') return;
@@ -55,7 +77,7 @@ export function AIAssistant({ message }: AIAssistantProps) {
     setIsLoading(true);
 
     const aiResponseText = await getOpenAISuggestion(
-      [], // mock context
+      context,
       { text: message, sender: 'other', is_from_me: false, timestamp: '' }, // mock selectedMessage
       newUserMessage.text
     );
