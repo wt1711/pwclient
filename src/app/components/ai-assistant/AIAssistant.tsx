@@ -8,10 +8,6 @@ import { GeneratedResponseBox } from './GeneratedResponseBox';
 import { ChatHistory } from './ChatHistory';
 import { AIAssistantProvider, useAIAssistant } from './AIAssistantContext';
 
-type AIAssistantProps = {
-  message: string;
-};
-
 function EmptyState() {
   return (
     <Box
@@ -96,9 +92,9 @@ function AIAssistantContent() {
   );
 }
 
-export function AIAssistant({ message }: AIAssistantProps) {
+export function AIAssistant() {
   return (
-    <AIAssistantProvider message={message}>
+    <AIAssistantProvider>
       <AIAssistantContent />
     </AIAssistantProvider>
   );

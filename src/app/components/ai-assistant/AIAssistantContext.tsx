@@ -108,7 +108,7 @@ export function AIAssistantProvider({ children }: AIAssistantProviderProps) {
       setChatHistory((prev) => [...prev, aiResponse]);
       setIsLoading(false);
     }, 1500);
-  };
+  }, [inputValue]);
 
   const clearChatHistory = () => {
     setChatHistory([]);
