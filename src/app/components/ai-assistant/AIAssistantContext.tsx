@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useMemo, useCallback } from 'react';
 
 type ChatWithAIAssistantMessage = {
   sender: 'user' | 'ai';
@@ -26,10 +26,9 @@ const AIAssistantContext = createContext<AIAssistantContextType | undefined>(und
 
 type AIAssistantProviderProps = {
   children: ReactNode;
-  message: string;
 };
 
-export function AIAssistantProvider({ children, message }: AIAssistantProviderProps) {
+export function AIAssistantProvider({ children }: AIAssistantProviderProps) {
   const [inputValue, setInputValue] = useState('');
   const [chatHistory, setChatHistory] = useState<ChatWithAIAssistantMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -62,7 +61,7 @@ export function AIAssistantProvider({ children, message }: AIAssistantProviderPr
     // TODO: Implement actual insertion into main chat input
   };
 
-  const handleSend = async () => {
+  const handleSend = useCallback(async () => {
     if (inputValue.trim() === '') return;
 
     const newUserMessage: ChatWithAIAssistantMessage = {
@@ -115,21 +114,24 @@ export function AIAssistantProvider({ children, message }: AIAssistantProviderPr
     setChatHistory([]);
   };
 
-  const value: AIAssistantContextType = {
-    // State
-    inputValue,
-    chatHistory,
-    isLoading,
-    generatedResponse,
-    isGeneratingResponse,
+  const value: AIAssistantContextType = useMemo(
+    () => ({
+      // State
+      inputValue,
+      chatHistory,
+      isLoading,
+      generatedResponse,
+      isGeneratingResponse,
 
-    // Actions
-    setInputValue,
-    handleSend,
-    generateNewResponse,
-    useSuggestion,
-    clearChatHistory,
-  };
+      // Actions
+      setInputValue,
+      handleSend,
+      generateNewResponse,
+      useSuggestion,
+      clearChatHistory,
+    }),
+    [inputValue, chatHistory, isLoading, generatedResponse, isGeneratingResponse, handleSend]
+  );
 
   return <AIAssistantContext.Provider value={value}>{children}</AIAssistantContext.Provider>;
 }
