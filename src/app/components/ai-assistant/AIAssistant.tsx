@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Avatar, Box, Header, Icon, IconButton, Icons, Input, Scroll, Text, Spinner } from 'folds';
+import { Avatar, Box, Header, Icon, IconButton, Icons, Input, Scroll, Text } from 'folds';
 import { useSetSetting } from '../../state/hooks/settings';
 import { settingsAtom } from '../../state/settings';
 import * as css from './AIAssistant.css';
 import wingmanPFP from './wingman.png';
 import { GeneratedResponseBox } from './GeneratedResponseBox';
+import { ChatHistory } from './ChatHistory';
 
 type ChatWithAIAssistantMessage = {
   sender: 'user' | 'ai';
@@ -137,35 +138,7 @@ export function AIAssistant({ message }: AIAssistantProps) {
                 <GeneratedResponseBox onUseSuggestion={handleUseSuggestion} />
 
                 {/* Chat History */}
-                {chatHistory.length > 0 && (
-                  <Box direction="Column" gap="200">
-                    <Text size="L400" style={{ fontWeight: 'bold' }}>
-                      Lịch sử trò chuyện:
-                    </Text>
-                    {chatHistory.map((chat) => (
-                      <Box
-                        key={chat.timestamp}
-                        alignSelf={chat.sender === 'user' ? 'End' : 'Start'}
-                      >
-                        <Box
-                          style={{
-                            padding: '8px 12px',
-                            borderRadius: '12px',
-                            color: chat.sender === 'user' ? '#000' : '#fff',
-                            backgroundColor: chat.sender === 'user' ? '#e0e0e0' : '#262626',
-                          }}
-                        >
-                          <Text>{chat.text}</Text>
-                        </Box>
-                      </Box>
-                    ))}
-                    {isLoading && (
-                      <Box alignSelf="Start">
-                        <Spinner size="200" />
-                      </Box>
-                    )}
-                  </Box>
-                )}
+                <ChatHistory chatHistory={chatHistory} isLoading={isLoading} />
               </>
             )}
           </Box>
