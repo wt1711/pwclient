@@ -30,6 +30,7 @@ import {
 } from 'folds';
 
 import { useMatrixClient } from '../../hooks/useMatrixClient';
+import { useRoomEditor } from './RoomEditorContext';
 import {
   CustomEditor,
   Toolbar,
@@ -93,6 +94,7 @@ import { safeFile } from '../../utils/mimeTypes';
 import { fulfilledPromiseSettledResult } from '../../utils/common';
 import { useSetting } from '../../state/hooks/settings';
 import { settingsAtom } from '../../state/settings';
+
 import {
   getAudioMsgContent,
   getFileMsgContent,
@@ -134,6 +136,7 @@ export const RoomInput = forwardRef<HTMLDivElement, RoomInputProps>(
     const emojiBtnRef = useRef<HTMLButtonElement>(null);
     const roomToParents = useAtomValue(roomToParentsAtom);
     const powerLevels = usePowerLevelsContext();
+    const { setEditor: setRoomEditor } = useRoomEditor();
 
     const [msgDraft, setMsgDraft] = useAtom(roomIdToMsgDraftAtomFamily(roomId));
     const [replyDraft, setReplyDraft] = useAtom(roomIdToReplyDraftAtomFamily(roomId));
@@ -161,6 +164,11 @@ export const RoomInput = forwardRef<HTMLDivElement, RoomInputProps>(
       useState<AutocompleteQuery<AutocompletePrefix>>();
 
     const sendTypingStatus = useTypingStatusUpdater(mx, roomId);
+
+    // Set the editor in AI Assistant context
+    useEffect(() => {
+      setRoomEditor(editor);
+    }, [editor, setRoomEditor]);
 
     const handleFiles = useCallback(
       async (files: File[]) => {
