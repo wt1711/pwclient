@@ -120,6 +120,9 @@ import { useIgnoredUsers } from '../../hooks/useIgnoredUsers';
 import { useImagePackRooms } from '../../hooks/useImagePackRooms';
 import { GetPowerLevelTag } from '../../hooks/usePowerLevelTags';
 import { useIsDirectRoom } from '../../hooks/useRoom';
+import { useRoomMessage } from './RoomMessageContext';
+import { Message as MessageType } from '../../components/ai-assistant/ai';
+import { isFromMe } from '../../components/ai-assistant/AIAssistantContext';
 
 const TimelineFloat = as<'div', css.TimelineFloatVariants>(
   ({ position, className, ...props }, ref) => (
@@ -469,6 +472,7 @@ export function RoomTimeline({
   const { navigateRoom } = useRoomNavigate();
   const mentionClickHandler = useMentionClickHandler(room.roomId);
   const spoilerClickHandler = useSpoilerClickHandler();
+  const { setSelectedMessage } = useRoomMessage();
 
   const imagePackRooms: Room[] = useImagePackRooms(room.roomId, roomToParents);
 
@@ -985,6 +989,36 @@ export function RoomTimeline({
     },
     [mx, room]
   );
+
+  const handleMessageClick: MouseEventHandler<HTMLDivElement> = useCallback(
+    (evt) => {
+      const messageElement = evt.currentTarget;
+      const messageText = messageElement.textContent?.trim();
+      if (messageText) {
+        // Create a Message object from the clicked message
+        const messageEvent = evt.currentTarget.closest('[data-message-id]');
+        if (messageEvent) {
+          const eventId = messageEvent.getAttribute('data-message-id');
+          const roomEvent = room.findEventById(eventId || '');
+          if (roomEvent) {
+            const sender = roomEvent.getSender() || '';
+            const content = roomEvent.getContent();
+            const body = content.body || messageText;
+
+            const message: MessageType = {
+              sender,
+              text: body,
+              timestamp: new Date(roomEvent.getTs()).toISOString(),
+              is_from_me: isFromMe(sender, mx.getUserId() as string),
+            };
+
+            setSelectedMessage(message);
+          }
+        }
+      }
+    },
+    [setSelectedMessage, room, mx]
+  );
   const handleEdit = useCallback(
     (editEvtId?: string) => {
       if (editEvtId) {
@@ -1040,6 +1074,7 @@ export function RoomTimeline({
             onReplyClick={handleReplyClick}
             onReactionToggle={handleReactionToggle}
             onEditId={handleEdit}
+            onClick={handleMessageClick}
             reply={
               replyEventId && (
                 <Reply

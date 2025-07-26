@@ -15,6 +15,7 @@ import { useMatrixClient } from '../../hooks/useMatrixClient';
 import { useRoomMembers } from '../../hooks/useRoomMembers';
 import { AIAssistant } from '../../components/ai-assistant/AIAssistant';
 import { RoomEditorProvider } from './RoomEditorContext';
+import { RoomMessageProvider } from './RoomMessageContext';
 
 export function Room() {
   const { eventId } = useParams();
@@ -23,7 +24,7 @@ export function Room() {
   const room = useRoom();
   const { roomId } = room;
   const screenSize = useScreenSizeContext();
-  const [isDrawer] = useSetting(settingsAtom, 'isDrawerOpen');
+  const [isDrawer] = useSetting(settingsAtom, 'isPeopleDrawer');
   const [isAiDrawer] = useSetting(settingsAtom, 'isAiDrawerOpen');
   const [hideActivity] = useSetting(settingsAtom, 'hideActivity');
   const powerLevels = usePowerLevels(room);
@@ -52,21 +53,23 @@ export function Room() {
   return (
     <PowerLevelsContextProvider value={powerLevels}>
       <RoomEditorProvider>
-        <Box grow="Yes">
-          <RoomView room={room} eventId={eventId} />
-          {screenSize === ScreenSize.Desktop && isDrawer && (
-            <>
-              <Line variant="Background" direction="Vertical" size="300" />
-              <MembersDrawer key={room.roomId} room={room} members={members} />
-            </>
-          )}
-          {screenSize === ScreenSize.Desktop && isAiDrawer && (
-            <>
-              <Line variant="Background" direction="Vertical" size="300" />
-              <AIAssistant />
-            </>
-          )}
-        </Box>
+        <RoomMessageProvider>
+          <Box grow="Yes">
+            <RoomView room={room} eventId={eventId} />
+            {screenSize === ScreenSize.Desktop && isDrawer && (
+              <>
+                <Line variant="Background" direction="Vertical" size="300" />
+                <MembersDrawer key={room.roomId} room={room} members={members} />
+              </>
+            )}
+            {screenSize === ScreenSize.Desktop && isAiDrawer && (
+              <>
+                <Line variant="Background" direction="Vertical" size="300" />
+                <AIAssistant />
+              </>
+            )}
+          </Box>
+        </RoomMessageProvider>
       </RoomEditorProvider>
     </PowerLevelsContextProvider>
   );
