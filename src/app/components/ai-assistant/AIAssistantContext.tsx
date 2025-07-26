@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useMemo, useCallback } from 'react';
-import { generateResponse } from './ai';
+import { generateResponse, getOpenAIConsultation } from './ai';
 import { useRoom } from '../../hooks/useRoom';
 import { useMatrixClient } from '../../hooks/useMatrixClient';
 import { useRoomEditor } from '../../features/room/RoomEditorContext';
@@ -109,42 +109,51 @@ export function AIAssistantProvider({ children }: AIAssistantProviderProps) {
     setInputValue('');
     setIsLoading(true);
 
-    // Mock AI response generation
-    setTimeout(() => {
-      let mockResponse = '';
+    try {
+      // Get the actual room conversation from timeline
+      const timeline = room.getLiveTimeline().getEvents();
+      const roomContext = timeline
+        .filter((event) => event.getSender() && event.getContent().body)
+        .map((event) => ({
+          sender: event.getSender() as string,
+          text: event.getContent().body as string,
+          timestamp: new Date(event.getTs()).toISOString(),
+          is_from_me: isFromMe(event.getSender() as string, mx.getUserId() as string),
+        }));
 
-      // Generate contextually relevant mock responses
-      if (
-        inputValue.toLowerCase().includes('gợi ý') ||
-        inputValue.toLowerCase().includes('suggestion')
-      ) {
-        mockResponse =
-          'Dạ vâng, chị cứ đến nhé! Em rất mong được gặp chị. Đường về hơi kẹt một chút, nhưng em sẽ ở nhà chờ chị.';
-      } else if (
-        inputValue.toLowerCase().includes('cảm ơn') ||
-        inputValue.toLowerCase().includes('thank')
-      ) {
-        mockResponse =
-          'Không có gì ạ! Em rất vui được giúp đỡ chị. Nếu chị cần gì thêm, cứ nhắn em nhé!';
-      } else if (
-        inputValue.toLowerCase().includes('thời gian') ||
-        inputValue.toLowerCase().includes('time')
-      ) {
-        mockResponse =
-          'Em nghĩ chị nên đi lúc 7 giờ tối sẽ phù hợp nhất. Lúc đó đường cũng bớt kẹt hơn.';
-      } else {
-        mockResponse = `Cảm ơn chị đã hỏi! Dựa trên cuộc hội thoại, em nghĩ chị có thể trả lời: "Dạ vâng, em hiểu rồi ạ. Em sẽ chuẩn bị sẵn sàng cho chị."`;
-      }
+      // Find the last message in the room conversation that is not from the current user
+      const lastNonUserMsg = [...roomContext].reverse().find((msg) => !msg.is_from_me);
+      const selectedMessage = lastNonUserMsg || {
+        sender: 'system',
+        text: 'Nói gì cũng được',
+        timestamp: new Date().toISOString(),
+        is_from_me: false,
+      };
+
+      const response = await getOpenAIConsultation({
+        context: roomContext,
+        selectedMessage,
+        question: inputValue,
+      });
 
       const aiResponse: ChatWithAIAssistantMessage = {
         sender: 'ai',
-        text: mockResponse,
+        text: response,
         timestamp: Date.now(),
       };
       setChatHistory((prev) => [...prev, aiResponse]);
+    } catch (error) {
+      console.error('Error getting AI consultation:', error);
+      const errorResponse: ChatWithAIAssistantMessage = {
+        sender: 'ai',
+        text: 'Xin lỗi, đã có lỗi khi xử lý yêu cầu của bạn.',
+        timestamp: Date.now(),
+      };
+      setChatHistory((prev) => [...prev, errorResponse]);
+    } finally {
       setIsLoading(false);
-    }, 1500);
-  }, [inputValue]);
+    }
+  }, [inputValue, room, mx]);
 
   const clearChatHistory = () => {
     setChatHistory([]);
