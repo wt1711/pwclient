@@ -31,6 +31,17 @@ type AIAssistantProviderProps = {
   children: ReactNode;
 };
 
+const isFromMe = (sender: string, userId: string) => {
+  const userList = ['100008370333450', '100079978062886', 'u004', 'u005'];
+  // [FB: Khanh ta, Fb: Wayne Tr, ig: lovefish49, ig: vedup.1711, ig: dtran1004]
+  const match = sender.match(/\d+/);
+  const extractedSender = match ? match[0] : '';
+  if (sender === userId || userList.includes(extractedSender as string)) {
+    return true;
+  }
+  return false;
+};
+
 export function AIAssistantProvider({ children }: AIAssistantProviderProps) {
   const [inputValue, setInputValue] = useState('');
   const [chatHistory, setChatHistory] = useState<ChatWithAIAssistantMessage[]>([]);
@@ -52,12 +63,12 @@ export function AIAssistantProvider({ children }: AIAssistantProviderProps) {
           sender: event.getSender() as string,
           text: event.getContent().body as string,
           timestamp: new Date(event.getTs()).toISOString(),
-          is_from_me: event.getSender() === mx.getUserId(),
+          is_from_me: isFromMe(event.getSender() as string, mx.getUserId() as string),
         }));
 
       // Find the last message in the room conversation that is not from the current user
       const lastNonUserMsg = [...roomContext].reverse().find((msg) => !msg.is_from_me);
-      const message = lastNonUserMsg ? lastNonUserMsg.text : '';
+      const message = lastNonUserMsg ? lastNonUserMsg.text : 'Nói gì cũng được';
 
       const response = await generateResponse({ message, context: roomContext });
       setGeneratedResponse(response);
