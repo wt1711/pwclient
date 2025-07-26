@@ -31,7 +31,7 @@ export function GeneratedResponseBox() {
         <Box direction="Column" gap="300">
           <Box
             style={{
-              padding: '16px',
+              padding: '32px 16px',
               backgroundColor: '#2a2a2a',
               borderRadius: '8px',
               border: '1px solid #404040',
