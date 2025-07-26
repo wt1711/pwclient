@@ -6,6 +6,7 @@ import { GeneratedResponseBox } from './GeneratedResponseBox';
 import { ChatHistory } from './ChatHistory';
 import { ChatInput } from './ChatInput';
 import { AIAssistantHeader } from './AIAssistantHeader';
+import { SelectedMessageBox } from './SelectedMessageBox';
 import { AIAssistantProvider, useAIAssistant } from './AIAssistantContext';
 
 function EmptyState() {
@@ -42,6 +43,8 @@ function AIAssistantContent() {
         <GeneratedResponseBox />
         <Scroll variant="Background" visibility="Hover">
           <Box direction="Column" gap="400" style={{ padding: '16px', minHeight: '100%' }}>
+            {/* Selected Message Box */}
+            <SelectedMessageBox />
             {showEmptyState ? (
               <EmptyState />
             ) : (

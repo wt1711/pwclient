@@ -1,12 +1,4 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  ReactNode,
-  useMemo,
-  useCallback,
-  useEffect,
-} from 'react';
+import React, { createContext, useContext, useState, ReactNode, useMemo, useCallback } from 'react';
 import { generateResponse, getOpenAIConsultation } from './ai';
 import { useRoom } from '../../hooks/useRoom';
 import { useMatrixClient } from '../../hooks/useMatrixClient';
@@ -89,12 +81,6 @@ export function AIAssistantProvider({ children }: AIAssistantProviderProps) {
   );
   const { selectedMessage } = useRoomMessage();
   const msgToGetConsultation = selectedMessage || msgToGetResponse;
-
-  useEffect(() => {
-    if (selectedMessage?.text) {
-      setInputValue(selectedMessage.text);
-    }
-  }, [selectedMessage]);
 
   const generateNewResponse = useCallback(async () => {
     setIsGeneratingResponse(true);
