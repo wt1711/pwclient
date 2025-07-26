@@ -90,6 +90,12 @@ export function AIAssistantProvider({ children }: AIAssistantProviderProps) {
   const { selectedMessage } = useRoomMessage();
   const msgToGetConsultation = selectedMessage || msgToGetResponse;
 
+  useEffect(() => {
+    if (selectedMessage?.text) {
+      setInputValue(selectedMessage.text);
+    }
+  }, [selectedMessage]);
+
   const generateNewResponse = useCallback(async () => {
     setIsGeneratingResponse(true);
 
