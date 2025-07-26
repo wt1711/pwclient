@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, ReactNode, useMemo, useCall
 import { generateResponse } from './ai';
 import { useRoom } from '../../hooks/useRoom';
 import { useMatrixClient } from '../../hooks/useMatrixClient';
+import { useRoomEditor } from '../../features/room/RoomEditorContext';
 
 type ChatWithAIAssistantMessage = {
   sender: 'user' | 'ai';
@@ -50,6 +51,7 @@ export function AIAssistantProvider({ children }: AIAssistantProviderProps) {
   const [isGeneratingResponse, setIsGeneratingResponse] = useState(false);
   const room = useRoom();
   const mx = useMatrixClient();
+  const { insertText } = useRoomEditor();
 
   const generateNewResponse = useCallback(async () => {
     setIsGeneratingResponse(true);
@@ -80,11 +82,14 @@ export function AIAssistantProvider({ children }: AIAssistantProviderProps) {
     }
   }, [room, mx]);
 
-  const handleUseSuggestion = (response: string) => {
-    // Mock: Insert generated response into main chat input
-    console.log('Using suggestion:', response);
-    // TODO: Implement actual insertion into main chat input
-  };
+  const handleUseSuggestion = useCallback(
+    (response: string) => {
+      if (response) {
+        insertText(response);
+      }
+    },
+    [insertText]
+  );
 
   const handleSend = useCallback(async () => {
     if (inputValue.trim() === '') return;
@@ -163,6 +168,7 @@ export function AIAssistantProvider({ children }: AIAssistantProviderProps) {
       isGeneratingResponse,
       handleSend,
       generateNewResponse,
+      handleUseSuggestion,
     ]
   );
 
