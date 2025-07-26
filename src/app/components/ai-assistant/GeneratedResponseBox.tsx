@@ -25,7 +25,7 @@ export function GeneratedResponseBox() {
       }}
     >
       <Text size="L400" style={{ fontWeight: 'bold', color: '#fff' }}>
-        GỢI Ý CHO TIN NHẮN:
+        Chat hint
       </Text>
       {generatedResponse ? (
         <Box direction="Column" gap="300">
@@ -44,24 +44,25 @@ export function GeneratedResponseBox() {
           </Box>
           <Box direction="Row" gap="200" justifyContent="Center">
             <Button variant="Primary" onClick={onUseSuggestion} disabled={!generatedResponse}>
-              <Text size="B400">Dùng gợi ý</Text>
+              <Text size="B400">Use this one</Text>
             </Button>
             <Button
               variant="Secondary"
               onClick={generateNewResponse}
               disabled={isGeneratingResponse}
             >
-              <Text size="B400">Tạo gợi ý mới</Text>
+              <Text size="B400">Get a new one</Text>
             </Button>
           </Box>
         </Box>
       ) : (
-        <Box direction="Column" gap="300" alignItems="Center" style={{ padding: '24px 0' }}>
-          <Text size="T400" style={{ color: '#ccc', textAlign: 'center' }}>
-            Chưa có gợi ý nào được tạo
-          </Text>
+        <Box direction="Column" gap="300" alignItems="Center" style={{ padding: '24px 12px' }}>
           <Button variant="Primary" onClick={generateNewResponse} disabled={isGeneratingResponse}>
-            {isGeneratingResponse ? <Spinner size="200" /> : <Text size="B400">Tạo gợi ý mới</Text>}
+            {isGeneratingResponse ? (
+              <Spinner size="200" />
+            ) : (
+              <Text size="B400">Generate response</Text>
+            )}
           </Button>
         </Box>
       )}
