@@ -3,6 +3,7 @@ import { generateResponse, getOpenAIConsultation } from './ai';
 import { useRoom } from '../../hooks/useRoom';
 import { useMatrixClient } from '../../hooks/useMatrixClient';
 import { useRoomEditor } from '../../features/room/RoomEditorContext';
+import { useRoomMessage } from '../../features/room/RoomMessageContext';
 
 type ChatWithAIAssistantMessage = {
   sender: 'user' | 'ai';
@@ -32,7 +33,7 @@ type AIAssistantProviderProps = {
   children: ReactNode;
 };
 
-const isFromMe = (sender: string, userId: string) => {
+export const isFromMe = (sender: string, userId: string) => {
   const userList = [
     '100008370333450',
     '100079978062886',
@@ -58,24 +59,36 @@ export function AIAssistantProvider({ children }: AIAssistantProviderProps) {
   const room = useRoom();
   const mx = useMatrixClient();
   const { insertText } = useRoomEditor();
+  const timeline = room.getLiveTimeline().getEvents();
+  const roomContext = timeline
+    .filter((event) => event.getSender() && event.getContent().body)
+    .map((event) => ({
+      sender: event.getSender() as string,
+      text: event.getContent().body as string,
+      timestamp: new Date(event.getTs()).toISOString(),
+      is_from_me: isFromMe(event.getSender() as string, mx.getUserId() as string),
+    }));
+  const lastNonUserMsg = [...roomContext].reverse().find((msg) => !msg.is_from_me);
+  const msgToGetResponse = useMemo(
+    () =>
+      lastNonUserMsg || {
+        sender: 'system',
+        text: 'Nói gì cũng được',
+        timestamp: new Date().toISOString(),
+        is_from_me: false,
+      },
+    [lastNonUserMsg]
+  );
+  const { selectedMessage } = useRoomMessage();
+  const msgToGetConsultation = selectedMessage || msgToGetResponse;
 
   const generateNewResponse = useCallback(async () => {
     setIsGeneratingResponse(true);
 
     try {
       // Get the actual room conversation from timeline
-      const timeline = room.getLiveTimeline().getEvents();
-      const roomContext = timeline
-        .filter((event) => event.getSender() && event.getContent().body)
-        .map((event) => ({
-          sender: event.getSender() as string,
-          text: event.getContent().body as string,
-          timestamp: new Date(event.getTs()).toISOString(),
-          is_from_me: isFromMe(event.getSender() as string, mx.getUserId() as string),
-        }));
 
       // Find the last message in the room conversation that is not from the current user
-      const lastNonUserMsg = [...roomContext].reverse().find((msg) => !msg.is_from_me);
       const message = lastNonUserMsg ? lastNonUserMsg.text : 'Nói gì cũng được';
 
       const response = await generateResponse({ message, context: roomContext });
@@ -86,7 +99,7 @@ export function AIAssistantProvider({ children }: AIAssistantProviderProps) {
     } finally {
       setIsGeneratingResponse(false);
     }
-  }, [room, mx]);
+  }, [roomContext, lastNonUserMsg]);
 
   const handleUseSuggestion = useCallback(
     (response: string) => {
@@ -111,28 +124,12 @@ export function AIAssistantProvider({ children }: AIAssistantProviderProps) {
 
     try {
       // Get the actual room conversation from timeline
-      const timeline = room.getLiveTimeline().getEvents();
-      const roomContext = timeline
-        .filter((event) => event.getSender() && event.getContent().body)
-        .map((event) => ({
-          sender: event.getSender() as string,
-          text: event.getContent().body as string,
-          timestamp: new Date(event.getTs()).toISOString(),
-          is_from_me: isFromMe(event.getSender() as string, mx.getUserId() as string),
-        }));
 
       // Find the last message in the room conversation that is not from the current user
-      const lastNonUserMsg = [...roomContext].reverse().find((msg) => !msg.is_from_me);
-      const selectedMessage = lastNonUserMsg || {
-        sender: 'system',
-        text: 'Nói gì cũng được',
-        timestamp: new Date().toISOString(),
-        is_from_me: false,
-      };
 
       const response = await getOpenAIConsultation({
         context: roomContext,
-        selectedMessage,
+        selectedMessage: msgToGetConsultation,
         question: inputValue,
       });
 
@@ -153,7 +150,7 @@ export function AIAssistantProvider({ children }: AIAssistantProviderProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [inputValue, room, mx]);
+  }, [inputValue, roomContext, msgToGetConsultation]);
 
   const clearChatHistory = () => {
     setChatHistory([]);

@@ -675,6 +675,7 @@ export type MessageProps = {
   ) => void;
   onEditId?: (eventId?: string) => void;
   onReactionToggle: (targetEventId: string, key: string, shortcode?: string) => void;
+  onClick?: MouseEventHandler<HTMLDivElement>;
   reply?: ReactNode;
   reactions?: ReactNode;
   hideReadReceipts?: boolean;
@@ -704,6 +705,7 @@ export const Message = as<'div', MessageProps>(
       onReplyClick,
       onReactionToggle,
       onEditId,
+      onClick,
       reply,
       reactions,
       hideReadReceipts,
@@ -872,6 +874,7 @@ export const Message = as<'div', MessageProps>(
         collapse={collapse}
         highlight={highlight}
         selected={!!menuAnchor || !!emojiBoardAnchor}
+        onClick={onClick}
         {...props}
         {...hoverProps}
         {...focusWithinProps}
