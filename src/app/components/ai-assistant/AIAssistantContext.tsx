@@ -37,7 +37,7 @@ export const isFromMe = (sender: string, userId: string) => {
   const userList = [
     '100008370333450',
     '100079978062886',
-    'lovefish49',
+    '101429627928641',
     '17842384556897595',
     'u005',
   ];
