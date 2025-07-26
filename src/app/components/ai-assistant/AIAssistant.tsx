@@ -38,6 +38,8 @@ function AIAssistantContent() {
     <Box className={css.AIAssistant} shrink="No" direction="Column">
       <AIAssistantHeader />
       <Box grow="Yes" direction="Column" style={{ position: 'relative', overflow: 'hidden' }}>
+        {/* Generated Response Box */}
+        <GeneratedResponseBox />
         <Scroll variant="Background" visibility="Hover">
           <Box direction="Column" gap="400" style={{ padding: '16px', minHeight: '100%' }}>
             {showEmptyState ? (
@@ -50,8 +52,6 @@ function AIAssistantContent() {
             )}
           </Box>
         </Scroll>
-        {/* Generated Response Box */}
-        <GeneratedResponseBox />
       </Box>
       <ChatInput />
     </Box>
