@@ -43,20 +43,44 @@ export function GeneratedResponseBox() {
             <Text style={{ color: '#fff', lineHeight: '1.5' }}>{generatedResponse}</Text>
           </Box>
           <Box direction="Row" gap="200" justifyContent="Center">
-            <Button variant="Primary" onClick={onUseSuggestion} disabled={!generatedResponse}>
-              <Text size="B400">Use this one</Text>
+            <Button
+              onClick={onUseSuggestion}
+              disabled={!generatedResponse}
+              style={{
+                backgroundColor: '#bcb6eb', // Light purple (lavender)
+                border: 'none',
+                borderRadius: '8px',
+                padding: '12px 24px',
+                cursor: 'pointer',
+                color: '#333',
+                fontWeight: '500',
+              }}
+            >
+              <Text size="B400" style={{ color: '#333' }}>
+                Use this one
+              </Text>
             </Button>
             <Button
-              variant="Secondary"
               onClick={generateNewResponse}
               disabled={isGeneratingResponse}
+              style={{
+                backgroundColor: '#423c66', // Dark purple (indigo)
+                border: 'none',
+                borderRadius: '8px',
+                padding: '12px 24px',
+                cursor: 'pointer',
+                color: '#fff',
+                fontWeight: '500',
+              }}
             >
-              <Text size="B400">Get a new one</Text>
+              <Text size="B400" style={{ color: '#fff' }}>
+                Get a new one
+              </Text>
             </Button>
           </Box>
         </Box>
       ) : (
-        <Box direction="Column" gap="300" alignItems="Center" style={{ padding: '24px 12px' }}>
+        <Box direction="Column" gap="300" alignItems="Center" style={{ padding: '24px 12' }}>
           <Button variant="Primary" onClick={generateNewResponse} disabled={isGeneratingResponse}>
             {isGeneratingResponse ? (
               <Spinner size="200" />
