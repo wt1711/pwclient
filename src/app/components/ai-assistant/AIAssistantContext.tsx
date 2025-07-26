@@ -18,7 +18,7 @@ type AIAssistantContextType = {
   setInputValue: (value: string) => void;
   handleSend: () => void;
   generateNewResponse: () => void;
-  useSuggestion: (response: string) => void;
+  handleUseSuggestion: (response: string) => void;
   clearChatHistory: () => void;
 };
 
@@ -55,7 +55,7 @@ export function AIAssistantProvider({ children }: AIAssistantProviderProps) {
     }, 1000);
   };
 
-  const useSuggestion = (response: string) => {
+  const handleUseSuggestion = (response: string) => {
     // Mock: Insert generated response into main chat input
     console.log('Using suggestion:', response);
     // TODO: Implement actual insertion into main chat input
@@ -127,7 +127,7 @@ export function AIAssistantProvider({ children }: AIAssistantProviderProps) {
       setInputValue,
       handleSend,
       generateNewResponse,
-      useSuggestion,
+      handleUseSuggestion,
       clearChatHistory,
     }),
     [inputValue, chatHistory, isLoading, generatedResponse, isGeneratingResponse, handleSend]
