@@ -33,7 +33,13 @@ type AIAssistantProviderProps = {
 };
 
 const isFromMe = (sender: string, userId: string) => {
-  const userList = ['100008370333450', '100079978062886', 'u004', 'u005'];
+  const userList = [
+    '100008370333450',
+    '100079978062886',
+    'lovefish49',
+    '17842384556897595',
+    'u005',
+  ];
   // [FB: Khanh ta, Fb: Wayne Tr, ig: lovefish49, ig: vedup.1711, ig: dtran1004]
   const match = sender.match(/\d+/);
   const extractedSender = match ? match[0] : '';
