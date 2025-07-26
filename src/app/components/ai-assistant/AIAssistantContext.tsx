@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode, useMemo, useCallback } from 'react';
 import { generateResponse } from './ai';
+import { useRoom } from '../../hooks/useRoom';
+import { useMatrixClient } from '../../hooks/useMatrixClient';
 
 type ChatWithAIAssistantMessage = {
   sender: 'user' | 'ai';
@@ -35,14 +37,29 @@ export function AIAssistantProvider({ children }: AIAssistantProviderProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [generatedResponse, setGeneratedResponse] = useState('');
   const [isGeneratingResponse, setIsGeneratingResponse] = useState(false);
+  const room = useRoom();
+  const mx = useMatrixClient();
 
-  const generateNewResponse = async () => {
+  const generateNewResponse = useCallback(async () => {
     setIsGeneratingResponse(true);
 
     try {
-      // Mock message for now - will be hooked up later
-      const mockMessage = 'Do you know anything about fish?';
-      const response = await generateResponse(mockMessage);
+      // Get the actual room conversation from timeline
+      const timeline = room.getLiveTimeline().getEvents();
+      const roomContext = timeline
+        .filter((event) => event.getSender() && event.getContent().body)
+        .map((event) => ({
+          sender: event.getSender() as string,
+          text: event.getContent().body as string,
+          timestamp: new Date(event.getTs()).toISOString(),
+          is_from_me: event.getSender() === mx.getUserId(),
+        }));
+
+      // Find the last message in the room conversation that is not from the current user
+      const lastNonUserMsg = [...roomContext].reverse().find((msg) => !msg.is_from_me);
+      const message = lastNonUserMsg ? lastNonUserMsg.text : '';
+
+      const response = await generateResponse({ message, context: roomContext });
       setGeneratedResponse(response);
     } catch (error) {
       console.error('Error generating response:', error);
@@ -50,7 +67,7 @@ export function AIAssistantProvider({ children }: AIAssistantProviderProps) {
     } finally {
       setIsGeneratingResponse(false);
     }
-  };
+  }, [room, mx]);
 
   const handleUseSuggestion = (response: string) => {
     // Mock: Insert generated response into main chat input
@@ -127,7 +144,15 @@ export function AIAssistantProvider({ children }: AIAssistantProviderProps) {
       handleUseSuggestion,
       clearChatHistory,
     }),
-    [inputValue, chatHistory, isLoading, generatedResponse, isGeneratingResponse, handleSend]
+    [
+      inputValue,
+      chatHistory,
+      isLoading,
+      generatedResponse,
+      isGeneratingResponse,
+      handleSend,
+      generateNewResponse,
+    ]
   );
 
   return <AIAssistantContext.Provider value={value}>{children}</AIAssistantContext.Provider>;

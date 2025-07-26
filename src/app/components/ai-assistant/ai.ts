@@ -5,11 +5,15 @@ export type Message = {
   is_from_me: boolean;
 };
 
-export async function getOpenAISuggestion(
-  context: Message[],
-  selectedMessage: Message,
-  question?: string
-): Promise<string> {
+export async function getOpenAISuggestion({
+  context,
+  selectedMessage,
+  question,
+}: {
+  context: Message[];
+  selectedMessage: Message;
+  question?: string;
+}): Promise<string> {
   try {
     const response = await fetch('https://wmaide-server.vercel.app/api/suggestion', {
       method: 'POST',
@@ -36,7 +40,13 @@ export async function getOpenAISuggestion(
   }
 }
 
-export async function generateResponse(message: string): Promise<string> {
+export async function generateResponse({
+  message,
+  context,
+}: {
+  message: string;
+  context: Message[];
+}): Promise<string> {
   try {
     const response = await fetch('https://wmaide-server.vercel.app/api/generate-response', {
       method: 'POST',
@@ -45,6 +55,7 @@ export async function generateResponse(message: string): Promise<string> {
       },
       body: JSON.stringify({
         message,
+        context,
       }),
     });
 
