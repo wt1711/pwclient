@@ -17,8 +17,7 @@ export function GeneratedResponseBox() {
       direction="Column"
       gap="300"
       style={{
-        margin: '16px',
-        padding: '20px',
+        padding: '16px',
         backgroundColor: '#1a1a1a',
         borderRadius: '12px',
         border: '1px solid #333',
