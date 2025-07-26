@@ -1,6 +1,5 @@
 import React from 'react';
-import { Box, Text, Icon, IconButton } from 'folds';
-import { Icons } from 'folds';
+import { Box, Text, Icon, Icons, IconButton } from 'folds';
 import { useRoomMessage } from '../../features/room/RoomMessageContext';
 
 export function SelectedMessageBox() {
@@ -19,7 +18,7 @@ export function SelectedMessageBox() {
       direction="Column"
       gap="200"
       style={{
-        margin: '16px',
+        margin: '16px 0px',
         padding: '16px',
         backgroundColor: '#2a2a3a',
         borderRadius: '8px',
@@ -31,7 +30,7 @@ export function SelectedMessageBox() {
         <Text size="T300" style={{ color: '#bcb6eb', fontWeight: '500' }}>
           Tin nhắn đã chọn
         </Text>
-        <IconButton variant="SurfaceVariant" size="200" radii="300" onClick={handleClearSelection}>
+        <IconButton variant="SurfaceVariant" size="300" radii="300" onClick={handleClearSelection}>
           <Icon src={Icons.Cross} size="100" />
         </IconButton>
       </Box>
