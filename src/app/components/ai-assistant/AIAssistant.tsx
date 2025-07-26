@@ -1,21 +1,10 @@
 import React, { useState } from 'react';
-import {
-  Avatar,
-  Box,
-  Header,
-  Icon,
-  IconButton,
-  Icons,
-  Input,
-  Scroll,
-  Text,
-  Spinner,
-  Button,
-} from 'folds';
+import { Avatar, Box, Header, Icon, IconButton, Icons, Input, Scroll, Text, Spinner } from 'folds';
 import { useSetSetting } from '../../state/hooks/settings';
 import { settingsAtom } from '../../state/settings';
 import * as css from './AIAssistant.css';
 import wingmanPFP from './wingman.png';
+import { GeneratedResponseBox } from './GeneratedResponseBox';
 
 type ChatWithAIAssistantMessage = {
   sender: 'user' | 'ai';
@@ -52,36 +41,12 @@ export function AIAssistant({ message }: AIAssistantProps) {
   const [inputValue, setInputValue] = useState('');
   const [chatHistory, setChatHistory] = useState<ChatWithAIAssistantMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [generatedResponse, setGeneratedResponse] = useState('');
-  const [isGeneratingResponse, setIsGeneratingResponse] = useState(false);
   const setAiDrawer = useSetSetting(settingsAtom, 'isAiDrawerOpen');
 
-  const generateNewResponse = () => {
-    setIsGeneratingResponse(true);
-
-    // Mock response generation
-    setTimeout(() => {
-      const mockResponses = [
-        'Dạ vâng, chị cứ đến nhé! Em rất mong được gặp chị. Đường về hơi kẹt một chút, nhưng em sẽ ở nhà chờ chị.',
-        'Không có gì ạ! Em rất vui được giúp đỡ chị. Nếu chị cần gì thêm, cứ nhắn em nhé!',
-        'Em nghĩ chị nên đi lúc 7 giờ tối sẽ phù hợp nhất. Lúc đó đường cũng bớt kẹt hơn.',
-        'Dạ vâng, em hiểu rồi ạ. Em sẽ chuẩn bị sẵn sàng cho chị.',
-        'Cảm ơn chị đã thông báo! Em sẽ đợi chị ở nhà.',
-        'Chị cứ yên tâm đi, em sẽ lo mọi thứ ạ!',
-      ];
-
-      const randomResponse = mockResponses[Math.floor(Math.random() * mockResponses.length)];
-      setGeneratedResponse(randomResponse);
-      setIsGeneratingResponse(false);
-    }, 1000);
-  };
-
-  const useSuggestion = () => {
-    if (generatedResponse) {
-      // Mock: Insert generated response into main chat input
-      console.log('Using suggestion:', generatedResponse);
-      // TODO: Implement actual insertion into main chat input
-    }
+  const handleUseSuggestion = (response: string) => {
+    // Mock: Insert generated response into main chat input
+    console.log('Using suggestion:', response);
+    // TODO: Implement actual insertion into main chat input
   };
 
   const handleSend = async () => {
@@ -133,7 +98,7 @@ export function AIAssistant({ message }: AIAssistantProps) {
     }, 1500);
   };
 
-  const showEmptyState = chatHistory.length === 0 && !message && !generatedResponse;
+  const showEmptyState = chatHistory.length === 0 && !message;
 
   return (
     <Box className={css.AIAssistant} shrink="No" direction="Column">
@@ -169,62 +134,7 @@ export function AIAssistant({ message }: AIAssistantProps) {
                 )}
 
                 {/* Generated Response Box */}
-                <Box
-                  direction="Column"
-                  gap="200"
-                  style={{
-                    padding: '16px',
-                    backgroundColor: '#f5f5f5',
-                    borderRadius: '8px',
-                    border: '1px solid #e0e0e0',
-                  }}
-                >
-                  <Text size="L400" style={{ fontWeight: 'bold' }}>
-                    GỢI Ý CHO TIN NHẮN:
-                  </Text>
-                  {generatedResponse ? (
-                    <Box direction="Column" gap="200">
-                      <Text
-                        style={{ padding: '12px', backgroundColor: 'white', borderRadius: '6px' }}
-                      >
-                        {generatedResponse}
-                      </Text>
-                      <Box direction="Row" gap="200">
-                        <Button
-                          variant="Primary"
-                          onClick={useSuggestion}
-                          disabled={!generatedResponse}
-                        >
-                          <Text size="B400">Dùng gợi ý</Text>
-                        </Button>
-                        <Button
-                          variant="Secondary"
-                          onClick={generateNewResponse}
-                          disabled={isGeneratingResponse}
-                        >
-                          <Text size="B400">Tạo gợi ý mới</Text>
-                        </Button>
-                      </Box>
-                    </Box>
-                  ) : (
-                    <Box direction="Column" gap="200" alignItems="Center">
-                      <Text size="T400" style={{ color: '#666' }}>
-                        Chưa có gợi ý nào được tạo
-                      </Text>
-                      <Button
-                        variant="Primary"
-                        onClick={generateNewResponse}
-                        disabled={isGeneratingResponse}
-                      >
-                        {isGeneratingResponse ? (
-                          <Spinner size="200" />
-                        ) : (
-                          <Text size="B400">Tạo gợi ý mới</Text>
-                        )}
-                      </Button>
-                    </Box>
-                  )}
-                </Box>
+                <GeneratedResponseBox onUseSuggestion={handleUseSuggestion} />
 
                 {/* Chat History */}
                 {chatHistory.length > 0 && (
