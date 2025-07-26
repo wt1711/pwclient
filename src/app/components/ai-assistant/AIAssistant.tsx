@@ -1,11 +1,12 @@
 import React from 'react';
-import { Avatar, Box, Header, Icon, IconButton, Icons, Input, Scroll, Text } from 'folds';
+import { Avatar, Box, Header, Icon, IconButton, Icons, Scroll, Text } from 'folds';
 import { useSetSetting } from '../../state/hooks/settings';
 import { settingsAtom } from '../../state/settings';
 import * as css from './AIAssistant.css';
 import wingmanPFP from './wingman.png';
 import { GeneratedResponseBox } from './GeneratedResponseBox';
 import { ChatHistory } from './ChatHistory';
+import { ChatInput } from './ChatInput';
 import { AIAssistantProvider, useAIAssistant } from './AIAssistantContext';
 
 function EmptyState() {
@@ -30,7 +31,7 @@ function EmptyState() {
 }
 
 function AIAssistantContent() {
-  const { inputValue, setInputValue, handleSend, chatHistory, isLoading } = useAIAssistant();
+  const { chatHistory } = useAIAssistant();
   const setAiDrawer = useSetSetting(settingsAtom, 'isAiDrawerOpen');
 
   const showEmptyState = chatHistory.length === 0;
@@ -69,25 +70,7 @@ function AIAssistantContent() {
           </Box>
         </Scroll>
       </Box>
-      <Box style={{ padding: '16px' }} direction="Row" gap="200" alignItems="Center">
-        <Input
-          variant="Background"
-          value={inputValue}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInputValue(e.target.value)}
-          onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => {
-            if (e.key === 'Enter') handleSend();
-          }}
-          placeholder="Hỏi Wingman ở đây..."
-          style={{ flexGrow: 1 }}
-        />
-        <IconButton
-          variant="Primary"
-          onClick={handleSend}
-          disabled={isLoading || !inputValue.trim()}
-        >
-          <Icon src={Icons.Send} />
-        </IconButton>
-      </Box>
+      <ChatInput />
     </Box>
   );
 }
