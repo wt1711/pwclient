@@ -5,7 +5,7 @@ export type Message = {
   is_from_me: boolean;
 };
 
-export async function getOpenAISuggestion({
+export async function getOpenAIConsultation({
   context,
   selectedMessage,
   question,

@@ -10,9 +10,9 @@ export function ChatHistory() {
   }
 
   return (
-    <Box direction="Column" gap="200">
+    <Box direction="Column" gap="200" style={{ marginTop: '32px' }}>
       <Text size="L400" style={{ fontWeight: 'bold' }}>
-        Lịch sử trò chuyện:
+        Lịch sử trò chuyện với Wingman AI:
       </Text>
       {chatHistory.map((chat) => (
         <Box key={chat.timestamp} alignSelf={chat.sender === 'user' ? 'End' : 'Start'}>
