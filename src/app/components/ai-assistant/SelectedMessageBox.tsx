@@ -35,13 +35,11 @@ export function SelectedMessageBox() {
         style={{
           padding: '12px',
           backgroundColor: 'var(--bg-surface-low)',
-          borderRadius: '6px',
+          borderRadius: '8px',
           border: '1px solid var(--bg-surface-border)',
         }}
       >
-        <Text style={{ color: 'var(--fg-primary)', lineHeight: '1.4' }}>
-          {selectedMessage.text}
-        </Text>
+        <Text style={{ lineHeight: '1.4' }}>{selectedMessage.text}</Text>
       </Box>
     </Box>
   );

@@ -59,9 +59,7 @@ export function GeneratedResponseBox() {
                 padding: '12px 24px',
               }}
             >
-              <Text size="B400" style={{ color: 'var(--fg-primary)' }}>
-                Lấy gợi ý mới
-              </Text>
+              <Text size="B400">Lấy gợi ý mới</Text>
             </Button>
           </Box>
         </Box>
