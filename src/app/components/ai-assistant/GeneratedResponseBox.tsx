@@ -17,10 +17,8 @@ export function GeneratedResponseBox() {
       direction="Column"
       gap="300"
       style={{
-        padding: '16px',
+        margin: '16px',
         backgroundColor: '#1a1a1a',
-        borderRadius: '12px',
-        border: '1px solid #333',
       }}
     >
       <Text size="L400" style={{ fontWeight: 'bold', color: '#fff' }}>
@@ -30,8 +28,8 @@ export function GeneratedResponseBox() {
         <Box direction="Column" gap="300">
           <Box
             style={{
-              padding: '32px 16px',
-              backgroundColor: '#2a2a2a',
+              padding: '16px 16px',
+              backgroundColor: 'green',
               borderRadius: '8px',
               border: '1px solid #404040',
               minHeight: '60px',
