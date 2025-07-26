@@ -25,9 +25,7 @@ export function SelectedMessageBox() {
       }}
     >
       <Box direction="Row" justifyContent="SpaceBetween" alignItems="Center">
-        <Text size="L400" style={{ color: 'var(--fg-primary)', fontWeight: '500' }}>
-          Tin nhắn đã chọn
-        </Text>
+        <Text size="L400">Tin nhắn đã chọn</Text>
         <IconButton variant="SurfaceVariant" size="300" radii="300" onClick={handleClearSelection}>
           <Icon src={Icons.Cross} size="100" />
         </IconButton>
@@ -36,7 +34,7 @@ export function SelectedMessageBox() {
       <Box
         style={{
           padding: '12px',
-          backgroundColor: 'var(--bg-surface)',
+          backgroundColor: 'var(--bg-surface-low)',
           borderRadius: '6px',
           border: '1px solid var(--bg-surface-border)',
         }}

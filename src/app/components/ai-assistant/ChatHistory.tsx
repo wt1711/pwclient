@@ -11,9 +11,7 @@ export function ChatHistory() {
 
   return (
     <Box direction="Column" gap="200" style={{ marginTop: '32px' }}>
-      <Text size="L400" style={{ fontWeight: 'bold' }}>
-        Lịch sử trò chuyện với Wingman AI:
-      </Text>
+      <Text size="L400">Chat với Wingman AI:</Text>
       {chatHistory.map((chat) => (
         <Box key={chat.timestamp} alignSelf={chat.sender === 'user' ? 'End' : 'Start'}>
           <Box

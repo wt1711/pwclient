@@ -21,15 +21,13 @@ export function GeneratedResponseBox() {
         backgroundColor: 'var(--bg-surface-raised)',
       }}
     >
-      <Text size="L400" style={{ fontWeight: 'bold', color: 'var(--fg-primary)' }}>
-        Hỗ trợ nhắn tin
-      </Text>
+      <Text size="L400">Hỗ trợ nhắn tin</Text>
       {generatedResponse ? (
         <Box direction="Column" gap="300">
           <Box
             style={{
               padding: '24px 16px',
-              backgroundColor: 'var(--bg-surface)',
+              backgroundColor: 'var(--bg-surface-low)',
               borderRadius: '8px',
               border: '1px solid var(--bg-surface-border)',
               minHeight: '60px',
@@ -38,9 +36,7 @@ export function GeneratedResponseBox() {
               boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
             }}
           >
-            <Text style={{ color: 'var(--fg-primary)', lineHeight: '1.5' }}>
-              {generatedResponse}
-            </Text>
+            <Text>{generatedResponse}</Text>
           </Box>
           <Box direction="Row" gap="200" justifyContent="Center">
             <Button
@@ -52,9 +48,7 @@ export function GeneratedResponseBox() {
                 border: '1px solid var(--bg-surface-border)',
               }}
             >
-              <Text size="B400" style={{ color: 'var(--fg-on-primary)' }}>
-                Dùng gợi ý này
-              </Text>
+              <Text size="B400">Dùng gợi ý này</Text>
             </Button>
             <Button
               onClick={generateNewResponse}
