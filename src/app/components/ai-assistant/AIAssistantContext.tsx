@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useMemo, useCallback } from 'react';
+import { generateResponse } from './ai';
 
 type ChatWithAIAssistantMessage = {
   sender: 'user' | 'ai';
@@ -35,24 +36,20 @@ export function AIAssistantProvider({ children }: AIAssistantProviderProps) {
   const [generatedResponse, setGeneratedResponse] = useState('');
   const [isGeneratingResponse, setIsGeneratingResponse] = useState(false);
 
-  const generateNewResponse = () => {
+  const generateNewResponse = async () => {
     setIsGeneratingResponse(true);
 
-    // Mock response generation
-    setTimeout(() => {
-      const mockResponses = [
-        'Dạ vâng, chị cứ đến nhé! Em rất mong được gặp chị. Đường về hơi kẹt một chút, nhưng em sẽ ở nhà chờ chị.',
-        'Không có gì ạ! Em rất vui được giúp đỡ chị. Nếu chị cần gì thêm, cứ nhắn em nhé!',
-        'Em nghĩ chị nên đi lúc 7 giờ tối sẽ phù hợp nhất. Lúc đó đường cũng bớt kẹt hơn.',
-        'Dạ vâng, em hiểu rồi ạ. Em sẽ chuẩn bị sẵn sàng cho chị.',
-        'Cảm ơn chị đã thông báo! Em sẽ đợi chị ở nhà.',
-        'Chị cứ yên tâm đi, em sẽ lo mọi thứ ạ!',
-      ];
-
-      const randomResponse = mockResponses[Math.floor(Math.random() * mockResponses.length)];
-      setGeneratedResponse(randomResponse);
+    try {
+      // Mock message for now - will be hooked up later
+      const mockMessage = 'Do you know anything about fish?';
+      const response = await generateResponse(mockMessage);
+      setGeneratedResponse(response);
+    } catch (error) {
+      console.error('Error generating response:', error);
+      setGeneratedResponse('Xin lỗi, đã có lỗi khi tạo phản hồi.');
+    } finally {
       setIsGeneratingResponse(false);
-    }, 1000);
+    }
   };
 
   const handleUseSuggestion = (response: string) => {
