@@ -19,15 +19,13 @@ export function SelectedMessageBox() {
       gap="200"
       style={{
         margin: '16px 0px',
-        padding: '16px',
         backgroundColor: 'var(--bg-surface-raised)',
         borderRadius: '8px',
-        border: '1px solid var(--bg-surface-border)',
         position: 'relative',
       }}
     >
       <Box direction="Row" justifyContent="SpaceBetween" alignItems="Center">
-        <Text size="T300" style={{ color: 'var(--fg-primary)', fontWeight: '500' }}>
+        <Text size="L400" style={{ color: 'var(--fg-primary)', fontWeight: '500' }}>
           Tin nhắn đã chọn
         </Text>
         <IconButton variant="SurfaceVariant" size="300" radii="300" onClick={handleClearSelection}>
