@@ -28,13 +28,14 @@ export function GeneratedResponseBox() {
         <Box direction="Column" gap="300">
           <Box
             style={{
-              padding: '16px 16px',
-              backgroundColor: 'green',
+              padding: '24px 16px',
+              backgroundColor: '#3a3a4a',
               borderRadius: '8px',
-              border: '1px solid #404040',
+              border: '1px solid #5a5a6a',
               minHeight: '60px',
               display: 'flex',
               alignItems: 'center',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
             }}
           >
             <Text style={{ color: '#fff', lineHeight: '1.5' }}>{generatedResponse}</Text>
