@@ -1,37 +1,12 @@
-import React, { useState } from 'react';
-import { Avatar, Box, Header, Icon, IconButton, Icons, Input, Scroll, Text, Spinner } from 'folds';
-import { useSetSetting } from '../../state/hooks/settings';
-import { settingsAtom } from '../../state/settings';
+import React from 'react';
+import { Avatar, Box, Scroll, Text } from 'folds';
 import * as css from './AIAssistant.css';
-import { getOpenAISuggestion } from './ai';
-import { useRoom } from '../../hooks/useRoom';
-import { useMatrixClient } from '../../hooks/useMatrixClient';
 import wingmanPFP from './wingman.png';
-
-const userFacebookIds = ['100079978062886', '100008370333450'];
-const checkIfUserIsMe = (currentUserId: string, userId: string | null) => {
-  if (!currentUserId) return false;
-  if (currentUserId === userId) return true;
-  // Regex to find and extract the numeric ID from a Facebook bridge user ID
-  const fbIdRegex = /@meta_(\d+)/;
-  const match = currentUserId.match(fbIdRegex);
-
-  if (match && match[1]) {
-    const extractedId = match[1];
-    return userFacebookIds.includes(extractedId);
-  }
-  return false;
-};
-
-type ChatWithAIAssistantMessage = {
-  sender: 'user' | 'ai';
-  text: string;
-  timestamp: number;
-};
-
-type AIAssistantProps = {
-  message: string;
-};
+import { GeneratedResponseBox } from './GeneratedResponseBox';
+import { ChatHistory } from './ChatHistory';
+import { ChatInput } from './ChatInput';
+import { AIAssistantHeader } from './AIAssistantHeader';
+import { AIAssistantProvider, useAIAssistant } from './AIAssistantContext';
 
 function EmptyState() {
   return (
@@ -54,128 +29,39 @@ function EmptyState() {
   );
 }
 
-export function AIAssistant({ message }: AIAssistantProps) {
-  const [inputValue, setInputValue] = useState('');
-  const [chatHistory, setChatHistory] = useState<ChatWithAIAssistantMessage[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const setAiDrawer = useSetSetting(settingsAtom, 'isAiDrawerOpen');
-  const room = useRoom();
-  const mx = useMatrixClient();
-  const timeline = room.getLiveTimeline().getEvents();
+function AIAssistantContent() {
+  const { chatHistory } = useAIAssistant();
 
-  const context = timeline
-    .filter((event) => event.getSender() && event.getContent().body)
-    .map((event) => ({
-      sender: event.getSender() as string,
-      text: event.getContent().body as string,
-      timestamp: new Date(event.getTs()).toISOString(),
-      is_from_me: checkIfUserIsMe(event.getSender() as string, mx.getUserId()),
-    }));
-
-  const handleSend = async () => {
-    if (inputValue.trim() === '') return;
-
-    const newUserMessage: ChatWithAIAssistantMessage = {
-      sender: 'user',
-      text: inputValue,
-      timestamp: Date.now(),
-    };
-    setChatHistory((prev) => [...prev, newUserMessage]);
-    setInputValue('');
-    setIsLoading(true);
-
-    const aiResponseText = await getOpenAISuggestion(
-      context,
-      context[context.length - 1], // mock selectedMessage
-      newUserMessage.text
-    );
-
-    const aiResponse: ChatWithAIAssistantMessage = {
-      sender: 'ai',
-      text: aiResponseText,
-      timestamp: Date.now(),
-    };
-    setChatHistory((prev) => [...prev, aiResponse]);
-    setIsLoading(false);
-  };
-
-  const showEmptyState = chatHistory.length === 0 && !message;
+  const showEmptyState = chatHistory.length === 0;
 
   return (
     <Box className={css.AIAssistant} shrink="No" direction="Column">
-      <Header variant="Surface" size="600">
-        <Box grow="Yes" alignItems="Center" gap="200">
-          <Avatar size="200">
-            <img
-              src={wingmanPFP}
-              alt="Wingman"
-              style={{ width: '100%', height: '100%', marginLeft: '10px' }}
-            />
-          </Avatar>
-          <Text size="T400">Wingman AI</Text>
-        </Box>
-        <IconButton size="300" onClick={() => setAiDrawer(false)} radii="300">
-          <Icon src={Icons.Cross} />
-        </IconButton>
-      </Header>
+      <AIAssistantHeader />
       <Box grow="Yes" direction="Column" style={{ position: 'relative', overflow: 'hidden' }}>
+        {/* Generated Response Box */}
+        <GeneratedResponseBox />
         <Scroll variant="Background" visibility="Hover">
           <Box direction="Column" gap="400" style={{ padding: '16px', minHeight: '100%' }}>
             {showEmptyState ? (
               <EmptyState />
             ) : (
               <>
-                <Box direction="Column" gap="200">
-                  <Text size="L400" style={{ fontWeight: 'bold' }}>
-                    Original Message:
-                  </Text>
-                  <Text>{message}</Text>
-                </Box>
-                <Box direction="Column" gap="200">
-                  {chatHistory.map((chat) => (
-                    <Box key={chat.timestamp} alignSelf={chat.sender === 'user' ? 'End' : 'Start'}>
-                      <Box
-                        style={{
-                          padding: '8px 12px',
-                          borderRadius: '12px',
-                          color: chat.sender === 'user' ? '#000' : '#fff',
-                          backgroundColor: chat.sender === 'user' ? '#e0e0e0' : '#262626',
-                        }}
-                      >
-                        <Text>{chat.text}</Text>
-                      </Box>
-                    </Box>
-                  ))}
-                  {isLoading && (
-                    <Box alignSelf="Start">
-                      <Spinner size="200" />
-                    </Box>
-                  )}
-                </Box>
+                {/* Chat History */}
+                <ChatHistory />
               </>
             )}
           </Box>
         </Scroll>
       </Box>
-      <Box style={{ padding: '16px' }} direction="Row" gap="200" alignItems="Center">
-        <Input
-          variant="Background"
-          value={inputValue}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInputValue(e.target.value)}
-          onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => {
-            if (e.key === 'Enter') handleSend();
-          }}
-          placeholder="Hỏi Wingman ở đây..."
-          style={{ flexGrow: 1 }}
-        />
-        <IconButton
-          variant="Primary"
-          onClick={handleSend}
-          disabled={isLoading || !inputValue.trim()}
-        >
-          <Icon src={Icons.Send} />
-        </IconButton>
-      </Box>
+      <ChatInput />
     </Box>
+  );
+}
+
+export function AIAssistant() {
+  return (
+    <AIAssistantProvider>
+      <AIAssistantContent />
+    </AIAssistantProvider>
   );
 }
