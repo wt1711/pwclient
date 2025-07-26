@@ -20,14 +20,14 @@ export function SelectedMessageBox() {
       style={{
         margin: '16px 0px',
         padding: '16px',
-        backgroundColor: '#2a2a3a',
+        backgroundColor: 'var(--bg-surface-raised)',
         borderRadius: '8px',
-        border: '1px solid #5a5a6a',
+        border: '1px solid var(--bg-surface-border)',
         position: 'relative',
       }}
     >
       <Box direction="Row" justifyContent="SpaceBetween" alignItems="Center">
-        <Text size="T300" style={{ color: '#bcb6eb', fontWeight: '500' }}>
+        <Text size="T300" style={{ color: 'var(--fg-primary)', fontWeight: '500' }}>
           Tin nhắn đã chọn
         </Text>
         <IconButton variant="SurfaceVariant" size="300" radii="300" onClick={handleClearSelection}>
@@ -38,12 +38,14 @@ export function SelectedMessageBox() {
       <Box
         style={{
           padding: '12px',
-          backgroundColor: '#1a1a1a',
+          backgroundColor: 'var(--bg-surface)',
           borderRadius: '6px',
-          border: '1px solid #404040',
+          border: '1px solid var(--bg-surface-border)',
         }}
       >
-        <Text style={{ color: '#fff', lineHeight: '1.4' }}>{selectedMessage.text}</Text>
+        <Text style={{ color: 'var(--fg-primary)', lineHeight: '1.4' }}>
+          {selectedMessage.text}
+        </Text>
       </Box>
     </Box>
   );
