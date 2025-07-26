@@ -1,18 +1,10 @@
 import React from 'react';
 import { Box, Text, Spinner } from 'folds';
+import { useAIAssistant } from './AIAssistantContext';
 
-type ChatWithAIAssistantMessage = {
-  sender: 'user' | 'ai';
-  text: string;
-  timestamp: number;
-};
+export function ChatHistory() {
+  const { chatHistory, isLoading } = useAIAssistant();
 
-type ChatHistoryProps = {
-  chatHistory: ChatWithAIAssistantMessage[];
-  isLoading: boolean;
-};
-
-export function ChatHistory({ chatHistory, isLoading }: ChatHistoryProps) {
   if (chatHistory.length === 0) {
     return null;
   }

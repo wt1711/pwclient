@@ -1,37 +1,14 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Box, Text, Spinner, Button } from 'folds';
+import { useAIAssistant } from './AIAssistantContext';
 
-type GeneratedResponseBoxProps = {
-  onUseSuggestion: (response: string) => void;
-};
+export function GeneratedResponseBox() {
+  const { generatedResponse, isGeneratingResponse, generateNewResponse, useSuggestion } =
+    useAIAssistant();
 
-export function GeneratedResponseBox({ onUseSuggestion }: GeneratedResponseBoxProps) {
-  const [generatedResponse, setGeneratedResponse] = useState('');
-  const [isGeneratingResponse, setIsGeneratingResponse] = useState(false);
-
-  const generateNewResponse = () => {
-    setIsGeneratingResponse(true);
-
-    // Mock response generation
-    setTimeout(() => {
-      const mockResponses = [
-        'Dạ vâng, chị cứ đến nhé! Em rất mong được gặp chị. Đường về hơi kẹt một chút, nhưng em sẽ ở nhà chờ chị.',
-        'Không có gì ạ! Em rất vui được giúp đỡ chị. Nếu chị cần gì thêm, cứ nhắn em nhé!',
-        'Em nghĩ chị nên đi lúc 7 giờ tối sẽ phù hợp nhất. Lúc đó đường cũng bớt kẹt hơn.',
-        'Dạ vâng, em hiểu rồi ạ. Em sẽ chuẩn bị sẵn sàng cho chị.',
-        'Cảm ơn chị đã thông báo! Em sẽ đợi chị ở nhà.',
-        'Chị cứ yên tâm đi, em sẽ lo mọi thứ ạ!',
-      ];
-
-      const randomResponse = mockResponses[Math.floor(Math.random() * mockResponses.length)];
-      setGeneratedResponse(randomResponse);
-      setIsGeneratingResponse(false);
-    }, 1000);
-  };
-
-  const useSuggestion = () => {
+  const handleUseSuggestion = () => {
     if (generatedResponse) {
-      onUseSuggestion(generatedResponse);
+      useSuggestion(generatedResponse);
     }
   };
 
@@ -55,7 +32,7 @@ export function GeneratedResponseBox({ onUseSuggestion }: GeneratedResponseBoxPr
             {generatedResponse}
           </Text>
           <Box direction="Row" gap="200">
-            <Button variant="Primary" onClick={useSuggestion} disabled={!generatedResponse}>
+            <Button variant="Primary" onClick={handleUseSuggestion} disabled={!generatedResponse}>
               <Text size="B400">Dùng gợi ý</Text>
             </Button>
             <Button

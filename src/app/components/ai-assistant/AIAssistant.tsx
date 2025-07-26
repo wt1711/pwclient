@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Avatar, Box, Header, Icon, IconButton, Icons, Input, Scroll, Text } from 'folds';
 import { useSetSetting } from '../../state/hooks/settings';
 import { settingsAtom } from '../../state/settings';
@@ -6,12 +6,7 @@ import * as css from './AIAssistant.css';
 import wingmanPFP from './wingman.png';
 import { GeneratedResponseBox } from './GeneratedResponseBox';
 import { ChatHistory } from './ChatHistory';
-
-type ChatWithAIAssistantMessage = {
-  sender: 'user' | 'ai';
-  text: string;
-  timestamp: number;
-};
+import { AIAssistantProvider, useAIAssistant } from './AIAssistantContext';
 
 type AIAssistantProps = {
   message: string;
@@ -38,68 +33,11 @@ function EmptyState() {
   );
 }
 
-export function AIAssistant({ message }: AIAssistantProps) {
-  const [inputValue, setInputValue] = useState('');
-  const [chatHistory, setChatHistory] = useState<ChatWithAIAssistantMessage[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+function AIAssistantContent() {
+  const { inputValue, setInputValue, handleSend, chatHistory, isLoading } = useAIAssistant();
   const setAiDrawer = useSetSetting(settingsAtom, 'isAiDrawerOpen');
 
-  const handleUseSuggestion = (response: string) => {
-    // Mock: Insert generated response into main chat input
-    console.log('Using suggestion:', response);
-    // TODO: Implement actual insertion into main chat input
-  };
-
-  const handleSend = async () => {
-    if (inputValue.trim() === '') return;
-
-    const newUserMessage: ChatWithAIAssistantMessage = {
-      sender: 'user',
-      text: inputValue,
-      timestamp: Date.now(),
-    };
-    setChatHistory((prev) => [...prev, newUserMessage]);
-    setInputValue('');
-    setIsLoading(true);
-
-    // Mock AI response generation
-    setTimeout(() => {
-      let mockResponse = '';
-
-      // Generate contextually relevant mock responses
-      if (
-        inputValue.toLowerCase().includes('gợi ý') ||
-        inputValue.toLowerCase().includes('suggestion')
-      ) {
-        mockResponse =
-          'Dạ vâng, chị cứ đến nhé! Em rất mong được gặp chị. Đường về hơi kẹt một chút, nhưng em sẽ ở nhà chờ chị.';
-      } else if (
-        inputValue.toLowerCase().includes('cảm ơn') ||
-        inputValue.toLowerCase().includes('thank')
-      ) {
-        mockResponse =
-          'Không có gì ạ! Em rất vui được giúp đỡ chị. Nếu chị cần gì thêm, cứ nhắn em nhé!';
-      } else if (
-        inputValue.toLowerCase().includes('thời gian') ||
-        inputValue.toLowerCase().includes('time')
-      ) {
-        mockResponse =
-          'Em nghĩ chị nên đi lúc 7 giờ tối sẽ phù hợp nhất. Lúc đó đường cũng bớt kẹt hơn.';
-      } else {
-        mockResponse = `Cảm ơn chị đã hỏi! Dựa trên cuộc hội thoại, em nghĩ chị có thể trả lời: "Dạ vâng, em hiểu rồi ạ. Em sẽ chuẩn bị sẵn sàng cho chị."`;
-      }
-
-      const aiResponse: ChatWithAIAssistantMessage = {
-        sender: 'ai',
-        text: mockResponse,
-        timestamp: Date.now(),
-      };
-      setChatHistory((prev) => [...prev, aiResponse]);
-      setIsLoading(false);
-    }, 1500);
-  };
-
-  const showEmptyState = chatHistory.length === 0 && !message;
+  const showEmptyState = chatHistory.length === 0;
 
   return (
     <Box className={css.AIAssistant} shrink="No" direction="Column">
@@ -125,20 +63,11 @@ export function AIAssistant({ message }: AIAssistantProps) {
               <EmptyState />
             ) : (
               <>
-                {message && (
-                  <Box direction="Column" gap="200">
-                    <Text size="L400" style={{ fontWeight: 'bold' }}>
-                      Original Message:
-                    </Text>
-                    <Text>{message}</Text>
-                  </Box>
-                )}
-
                 {/* Generated Response Box */}
-                <GeneratedResponseBox onUseSuggestion={handleUseSuggestion} />
+                <GeneratedResponseBox />
 
                 {/* Chat History */}
-                <ChatHistory chatHistory={chatHistory} isLoading={isLoading} />
+                <ChatHistory />
               </>
             )}
           </Box>
@@ -164,5 +93,13 @@ export function AIAssistant({ message }: AIAssistantProps) {
         </IconButton>
       </Box>
     </Box>
+  );
+}
+
+export function AIAssistant({ message }: AIAssistantProps) {
+  return (
+    <AIAssistantProvider message={message}>
+      <AIAssistantContent />
+    </AIAssistantProvider>
   );
 }
