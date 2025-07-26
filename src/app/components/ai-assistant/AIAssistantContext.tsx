@@ -89,16 +89,6 @@ export function AIAssistantProvider({ children }: AIAssistantProviderProps) {
   );
   const { selectedMessage } = useRoomMessage();
   const msgToGetConsultation = selectedMessage || msgToGetResponse;
-  console.log('selectedMessage', selectedMessage);
-  // const selectedMsgObject = selectedMessage?.text
-  //   ? parseSelectedMessage(selectedMessage, mx.getUserId() as string)
-  //   : null;
-
-  useEffect(() => {
-    if (selectedMessage?.text) {
-      setInputValue(selectedMessage.text);
-    }
-  }, [selectedMessage]);
 
   const generateNewResponse = useCallback(async () => {
     setIsGeneratingResponse(true);
