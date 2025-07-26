@@ -44,15 +44,14 @@ function AIAssistantContent() {
               <EmptyState />
             ) : (
               <>
-                {/* Generated Response Box */}
-                <GeneratedResponseBox />
-
                 {/* Chat History */}
                 <ChatHistory />
               </>
             )}
           </Box>
         </Scroll>
+        {/* Generated Response Box */}
+        <GeneratedResponseBox />
       </Box>
       <ChatInput />
     </Box>
