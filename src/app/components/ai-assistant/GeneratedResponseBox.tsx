@@ -64,8 +64,13 @@ export function GeneratedResponseBox() {
           </Box>
         </Box>
       ) : (
-        <Box direction="Column" gap="300" alignItems="Center" style={{ padding: '24px 12px' }}>
-          <Button variant="Primary" onClick={generateNewResponse} disabled={isGeneratingResponse}>
+        <Box direction="Column" alignItems="Center">
+          <Button
+            fill="Solid"
+            variant="Primary"
+            onClick={generateNewResponse}
+            disabled={isGeneratingResponse}
+          >
             {isGeneratingResponse ? <Spinner size="200" /> : <Text size="B400">Tạo gợi ý</Text>}
           </Button>
         </Box>
