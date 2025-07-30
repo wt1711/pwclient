@@ -1379,7 +1379,6 @@ export function RoomTimeline({
                 <Box grow="Yes" direction="Column">
                   <Text size="T300" priority="300">
                     <b>{senderName}</b>
-                    {t('Organisms.RoomCommon.changed_room_name')}
                   </Text>
                 </Box>
               }
