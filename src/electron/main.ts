@@ -1,5 +1,8 @@
 import { app, BrowserWindow } from 'electron';
-import { getPreloadPath, getUIPath } from './pathResolver.js';
+import {
+  getPreloadPath,
+  // getUIPath
+} from './pathResolver.js';
 import { createTray } from './tray.js';
 import { createMenu } from './menu.js';
 import { isDev } from './util.js';
