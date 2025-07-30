@@ -6,7 +6,7 @@ import { vanillaExtractPlugin } from '@vanilla-extract/vite-plugin';
 import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill';
 import inject from '@rollup/plugin-inject';
 import topLevelAwait from 'vite-plugin-top-level-await';
-import { VitePWA } from 'vite-plugin-pwa';
+
 import fs from 'fs';
 import path from 'path';
 
@@ -21,14 +21,6 @@ const copyFiles = {
     {
       src: 'config.json',
       dest: '',
-    },
-    {
-      src: 'public/manifest.json',
-      dest: '',
-    },
-    {
-      src: 'public/res/android',
-      dest: 'public/',
     },
   ],
 };
@@ -86,20 +78,6 @@ export default defineConfig({
     vanillaExtractPlugin(),
     wasm(),
     react(),
-    VitePWA({
-      srcDir: 'src',
-      filename: 'sw.ts',
-      strategies: 'injectManifest',
-      injectRegister: false,
-      manifest: false,
-      injectManifest: {
-        injectionPoint: undefined,
-      },
-      devOptions: {
-        enabled: true,
-        type: 'module',
-      },
-    }),
   ],
   optimizeDeps: {
     esbuildOptions: {
