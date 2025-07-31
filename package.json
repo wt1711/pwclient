@@ -20,7 +20,8 @@
     "check:eslint": "eslint src/*",
     "check:prettier": "prettier --check .",
     "fix:prettier": "prettier --write .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "vercel-build": "apt-get update && apt-get install -y $(cat packages.txt) && vite build"
   },
   "keywords": [],
   "author": "Wingman",
