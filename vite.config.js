@@ -17,11 +17,6 @@ const copyFiles = {
       dest: '',
       rename: 'pdf.worker.min.js',
     },
-
-    {
-      src: 'config.json',
-      dest: '',
-    },
   ],
 };
 
