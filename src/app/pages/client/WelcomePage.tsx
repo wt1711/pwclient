@@ -18,13 +18,9 @@ export function WelcomePage() {
             title="Welcome to Cinny"
             subTitle={
               <span>
-                Yet another matrix client.{' '}
-                <a
-                  href="https://github.com/cinnyapp/cinny/releases"
-                  target="_blank"
-                  rel="noreferrer noopener"
-                >
-                  v4.8.1
+                Wingman power, in your pocket.{' '}
+                <a href="https://www.google.com" target="_blank" rel="noreferrer noopener">
+                  v0.0.1
                 </a>
               </span>
             }
@@ -33,7 +29,7 @@ export function WelcomePage() {
               <Box grow="Yes" style={{ maxWidth: toRem(300) }} direction="Column" gap="300">
                 <Button
                   as="a"
-                  href="https://github.com/cinnyapp/cinny"
+                  href="https://www.google.com"
                   target="_blank"
                   rel="noreferrer noopener"
                   before={<Icon size="200" src={Icons.Code} />}
@@ -44,7 +40,7 @@ export function WelcomePage() {
                 </Button>
                 <Button
                   as="a"
-                  href="https://cinny.in/#sponsor"
+                  href="https://www.google.com"
                   target="_blank"
                   rel="noreferrer noopener"
                   fill="Soft"
