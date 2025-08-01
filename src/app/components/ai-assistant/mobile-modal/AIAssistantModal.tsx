@@ -64,7 +64,7 @@ export function AIAssistantModal() {
             <div
             // onMouseDown={stopPropagation}
             >
-              <AIAssistantProvider>
+              <AIAssistantProvider isMobile>
                 <AIAssistantContent />
               </AIAssistantProvider>
             </div>

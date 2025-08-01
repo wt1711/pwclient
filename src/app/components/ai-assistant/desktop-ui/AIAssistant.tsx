@@ -42,7 +42,7 @@ function AIAssistantContent() {
 
 export function AIAssistant() {
   return (
-    <AIAssistantProvider>
+    <AIAssistantProvider isMobile={false}>
       <AIAssistantContent />
     </AIAssistantProvider>
   );

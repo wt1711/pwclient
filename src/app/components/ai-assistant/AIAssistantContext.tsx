@@ -18,6 +18,7 @@ type AIAssistantContextType = {
   isLoading: boolean;
   generatedResponse: string;
   isGeneratingResponse: boolean;
+  isMobile: boolean;
 
   // Actions
   setInputValue: (value: string) => void;
@@ -31,6 +32,7 @@ const AIAssistantContext = createContext<AIAssistantContextType | undefined>(und
 
 type AIAssistantProviderProps = {
   children: ReactNode;
+  isMobile: boolean;
 };
 
 export const isFromMe = (sender: string, userId: string) => {
@@ -50,7 +52,7 @@ export const isFromMe = (sender: string, userId: string) => {
   return false;
 };
 
-export function AIAssistantProvider({ children }: AIAssistantProviderProps) {
+export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderProps) {
   const [inputValue, setInputValue] = useState('');
   const [chatHistory, setChatHistory] = useState<ChatWithAIAssistantMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -164,6 +166,7 @@ export function AIAssistantProvider({ children }: AIAssistantProviderProps) {
       isLoading,
       generatedResponse,
       isGeneratingResponse,
+      isMobile,
 
       // Actions
       setInputValue,
@@ -178,6 +181,7 @@ export function AIAssistantProvider({ children }: AIAssistantProviderProps) {
       isLoading,
       generatedResponse,
       isGeneratingResponse,
+      isMobile,
       handleSend,
       generateNewResponse,
       handleUseSuggestion,
