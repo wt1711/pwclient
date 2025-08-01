@@ -25,7 +25,7 @@ function AIAssistantContent() {
         width: '80vw',
         maxWidth: '468px',
         height: '80vh',
-        backgroundColor: 'var(--bg-surface-raised)',
+        backgroundColor: 'var(--bg-surface-extra-low)',
         color: 'var(--tc-surface-normal)',
         borderRadius: '12px',
       }}
