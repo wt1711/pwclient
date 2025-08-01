@@ -1,13 +1,21 @@
 import { ReactNode, useCallback, useEffect, useState } from 'react';
 import { AsyncStatus, useAsyncCallback } from '../hooks/useAsyncCallback';
 import { ClientConfig } from '../hooks/useClientConfig';
-import { trimTrailingSlash } from '../utils/common';
 
-const getClientConfig = async (): Promise<ClientConfig> => {
-  const url = `${trimTrailingSlash(import.meta.env.BASE_URL)}/config.json`;
-  const config = await fetch(url, { method: 'GET' });
-  return config.json();
+const defaultConfig = {
+  defaultHomeserver: 1,
+  homeserverList: ['matrix.lvbrd.xyz'],
+  allowCustomHomeservers: true,
+
+  featuredCommunities: {
+    openAsDefault: false,
+    spaces: [],
+    rooms: [],
+    servers: ['matrix.lvbrd.xyz'],
+  },
 };
+
+const getClientConfig = async (): Promise<ClientConfig> => defaultConfig;
 
 type ClientConfigLoaderProps = {
   fallback?: () => ReactNode;
