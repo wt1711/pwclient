@@ -1,8 +1,8 @@
 import React from 'react';
 import { Avatar, Box, Header, Icon, IconButton, Icons, Text } from 'folds';
-import { useSetSetting } from '../../state/hooks/settings';
-import { settingsAtom } from '../../state/settings';
-import wingmanPFP from './wingman.png';
+import { useSetSetting } from '../../../state/hooks/settings';
+import { settingsAtom } from '../../../state/settings';
+import wingmanPFP from '../wingman.png';
 
 export function AIAssistantHeader() {
   const setAiDrawer = useSetSetting(settingsAtom, 'isAiDrawerOpen');

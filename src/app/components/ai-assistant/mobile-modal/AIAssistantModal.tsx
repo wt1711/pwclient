@@ -1,11 +1,11 @@
 import React from 'react';
-import { Overlay, OverlayCenter, OverlayBackdrop, Portal } from 'folds';
+import { Overlay, OverlayCenter, OverlayBackdrop, Portal, Box } from 'folds';
 import FocusTrap from 'focus-trap-react';
 
-import { useSetSetting } from '../../state/hooks/settings';
-import { settingsAtom } from '../../state/settings';
-import { stopPropagation } from '../../utils/keyboard';
-import { AIAssistant } from './AIAssistant';
+import { useSetSetting } from '../../../state/hooks/settings';
+import { settingsAtom } from '../../../state/settings';
+import { stopPropagation } from '../../../utils/keyboard';
+import { AIAssistant } from '../desktop-ui/AIAssistant';
 
 export function AIAssistantModal() {
   const setAiDrawer = useSetSetting(settingsAtom, 'isAiDrawerOpen');
@@ -23,9 +23,11 @@ export function AIAssistantModal() {
               escapeDeactivates: stopPropagation,
             }}
           >
-            <div onMouseDown={stopPropagation}>
+            <Box
+            // onMouseDown={stopPropagation}
+            >
               <AIAssistant />
-            </div>
+            </Box>
           </FocusTrap>
         </OverlayCenter>
       </Overlay>

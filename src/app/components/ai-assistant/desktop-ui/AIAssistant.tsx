@@ -1,13 +1,13 @@
 import React from 'react';
 import { Avatar, Box, Scroll, Text } from 'folds';
 import * as css from './AIAssistant.css';
-import wingmanPFP from './wingman.png';
+import wingmanPFP from '../wingman.png';
 import { GeneratedResponseBox } from './GeneratedResponseBox';
 import { ChatHistory } from './ChatHistory';
 import { ChatInput } from './ChatInput';
 import { AIAssistantHeader } from './AIAssistantHeader';
 import { SelectedMessageBox } from './SelectedMessageBox';
-import { AIAssistantProvider, useAIAssistant } from './AIAssistantContext';
+import { AIAssistantProvider, useAIAssistant } from '../AIAssistantContext';
 
 function EmptyState() {
   return (

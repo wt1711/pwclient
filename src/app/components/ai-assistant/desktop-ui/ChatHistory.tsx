@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Text, Spinner } from 'folds';
-import { useAIAssistant } from './AIAssistantContext';
+import { useAIAssistant } from '../AIAssistantContext';
 
 export function ChatHistory() {
   const { chatHistory, isLoading } = useAIAssistant();
