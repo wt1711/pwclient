@@ -17,10 +17,7 @@ const copyFiles = {
       dest: '',
       rename: 'pdf.worker.min.js',
     },
-    {
-      src: 'netlify.toml',
-      dest: '',
-    },
+
     {
       src: 'config.json',
       dest: '',
