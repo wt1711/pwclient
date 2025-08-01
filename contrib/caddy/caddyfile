@@ -1,5 +1,5 @@
 # more info: https://caddyserver.com/docs/caddyfile/patterns#single-page-apps-spas
-cinny.domain.tld {
+pwclient.domain.tld {
   root * /path/to/cinny/dist
   try_files {path} / index.html
   file_server
