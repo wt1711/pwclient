@@ -51,20 +51,22 @@ export function Room() {
     return <Navigate to="/" replace />;
   }
 
+  const isDesktop = screenSize === ScreenSize.Desktop;
+
   return (
     <PowerLevelsContextProvider value={powerLevels}>
       <RoomEditorProvider>
         <RoomMessageProvider>
           <Box grow="Yes">
             <RoomView room={room} eventId={eventId} />
-            {screenSize === ScreenSize.Desktop && isDrawer && (
+            {isDesktop && isDrawer && (
               <>
                 <Line variant="Background" direction="Vertical" size="300" />
                 <MembersDrawer key={room.roomId} room={room} members={members} />
               </>
             )}
-            {screenSize !== ScreenSize.Desktop && isAiDrawer && <AIAssistantModal />}
-            {screenSize === ScreenSize.Desktop && isAiDrawer && (
+            {!isDesktop && isAiDrawer && <AIAssistantModal />}
+            {isDesktop && isAiDrawer && (
               <>
                 <Line variant="Background" direction="Vertical" size="300" />
                 <AIAssistant />
