@@ -1,5 +1,5 @@
 import React from 'react';
-import { Overlay, OverlayCenter, OverlayBackdrop, Portal, Box, Scroll, Avatar, Text } from 'folds';
+import { Overlay, OverlayCenter, OverlayBackdrop, Portal, Box, Scroll } from 'folds';
 import FocusTrap from 'focus-trap-react';
 
 import { useSetSetting } from '../../../state/hooks/settings';
@@ -11,28 +11,7 @@ import { GeneratedResponseBox } from '../desktop-ui/GeneratedResponseBox';
 import { SelectedMessageBox } from '../desktop-ui/SelectedMessageBox';
 import { ChatHistory } from '../desktop-ui/ChatHistory';
 import { ChatInput } from '../desktop-ui/ChatInput';
-import wingmanPFP from '../wingman.png';
-
-function EmptyState() {
-  return (
-    <Box
-      grow="Yes"
-      direction="Column"
-      justifyContent="Center"
-      alignItems="Center"
-      gap="200"
-      style={{ height: '100%' }}
-    >
-      <Avatar size="500">
-        <img src={wingmanPFP} alt="Wingman" style={{ width: '100%', height: '100%' }} />
-      </Avatar>
-      <Text size="H4">Hỏi Wingman ngay</Text>
-      <Text align="Center" style={{ maxWidth: '300px' }}>
-        Nhận gợi ý hoặc phân tích về cuộc hội thoại từ Wingman
-      </Text>
-    </Box>
-  );
-}
+import { EmptyState } from '../common/EmptyState';
 
 function AIAssistantContent() {
   const { chatHistory } = useAIAssistant();
@@ -46,7 +25,8 @@ function AIAssistantContent() {
         width: '80vw',
         maxWidth: '468px',
         height: '80vh',
-        backgroundColor: 'var(--bg-surface-extra-raised)',
+        backgroundColor: 'var(--bg-surface-raised)',
+        color: 'var(--tc-surface-normal)',
         borderRadius: '12px',
       }}
     >
