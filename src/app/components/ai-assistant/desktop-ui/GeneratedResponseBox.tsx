@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Text, Spinner, Button } from 'folds';
-import { useAIAssistant } from './AIAssistantContext';
+import { useAIAssistant } from '../AIAssistantContext';
 
 export function GeneratedResponseBox() {
   const { generatedResponse, isGeneratingResponse, generateNewResponse, handleUseSuggestion } =

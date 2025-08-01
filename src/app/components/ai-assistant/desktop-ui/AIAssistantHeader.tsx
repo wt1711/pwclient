@@ -1,14 +1,16 @@
 import React from 'react';
 import { Avatar, Box, Header, Icon, IconButton, Icons, Text } from 'folds';
-import { useSetSetting } from '../../state/hooks/settings';
-import { settingsAtom } from '../../state/settings';
-import wingmanPFP from './wingman.png';
+import { useSetSetting } from '../../../state/hooks/settings';
+import { settingsAtom } from '../../../state/settings';
+import { useAIAssistant } from '../AIAssistantContext';
+import wingmanPFP from '../wingman.png';
 
 export function AIAssistantHeader() {
   const setAiDrawer = useSetSetting(settingsAtom, 'isAiDrawerOpen');
+  const isMobile = useAIAssistant();
 
   return (
-    <Header variant="Surface" size="600">
+    <Header variant="Surface" size="600" style={{ borderRadius: isMobile ? '12px' : '0px' }}>
       <Box grow="Yes" alignItems="Center" gap="200">
         <Avatar size="200">
           <img

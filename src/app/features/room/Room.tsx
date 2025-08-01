@@ -13,7 +13,8 @@ import { useKeyDown } from '../../hooks/useKeyDown';
 import { markAsRead } from '../../../client/action/notifications';
 import { useMatrixClient } from '../../hooks/useMatrixClient';
 import { useRoomMembers } from '../../hooks/useRoomMembers';
-import { AIAssistant } from '../../components/ai-assistant/AIAssistant';
+import { AIAssistant } from '../../components/ai-assistant/desktop-ui/AIAssistant';
+import { AIAssistantModal } from '../../components/ai-assistant/mobile-modal/AIAssistantModal';
 import { RoomEditorProvider } from './RoomEditorContext';
 import { RoomMessageProvider } from './RoomMessageContext';
 
@@ -62,6 +63,7 @@ export function Room() {
                 <MembersDrawer key={room.roomId} room={room} members={members} />
               </>
             )}
+            {screenSize !== ScreenSize.Desktop && isAiDrawer && <AIAssistantModal />}
             {screenSize === ScreenSize.Desktop && isAiDrawer && (
               <>
                 <Line variant="Background" direction="Vertical" size="300" />
