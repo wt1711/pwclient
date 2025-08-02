@@ -4,6 +4,8 @@ import { useRoom } from '../../hooks/useRoom';
 import { useMatrixClient } from '../../hooks/useMatrixClient';
 import { useRoomEditor } from '../../features/room/RoomEditorContext';
 import { useRoomMessage } from '../../features/room/RoomMessageContext';
+import { useSetSetting } from '../../state/hooks/settings';
+import { settingsAtom } from '../../state/settings';
 
 type ChatWithAIAssistantMessage = {
   sender: 'user' | 'ai';
@@ -60,7 +62,8 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
   const [isGeneratingResponse, setIsGeneratingResponse] = useState(false);
   const room = useRoom();
   const mx = useMatrixClient();
-  const { insertText } = useRoomEditor();
+  const { insertText, deleteText } = useRoomEditor();
+  const setIsAiDrawer = useSetSetting(settingsAtom, 'isAiDrawerOpen');
   const timeline = room.getLiveTimeline().getEvents();
   const roomContext = timeline
     .filter((event) => event.getSender() && event.getContent().body)
@@ -96,7 +99,6 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
       const response = await generateResponse({ message, context: roomContext });
       setGeneratedResponse(response);
     } catch (error) {
-      console.error('Error generating response:', error);
       setGeneratedResponse('Xin lỗi, đã có lỗi khi tạo phản hồi.');
     } finally {
       setIsGeneratingResponse(false);
@@ -106,10 +108,14 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
   const handleUseSuggestion = useCallback(
     (response: string) => {
       if (response) {
+        deleteText();
         insertText(response);
+        if (isMobile) {
+          setIsAiDrawer(false);
+        }
       }
     },
-    [insertText]
+    [insertText, deleteText, isMobile, setIsAiDrawer]
   );
 
   const handleSend = useCallback(async () => {

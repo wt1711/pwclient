@@ -67,7 +67,6 @@ import {
 } from '../../hooks/useRoomsNotificationPreferences';
 import { JumpToTime } from './jump-to-time';
 import { useRoomNavigate } from '../../hooks/useRoomNavigate';
-import { AIAssistant } from '../../components/ai-assistant/desktop-ui/AIAssistant';
 import wingmanPFP from '../../components/ai-assistant/wingman.png';
 
 type RoomMenuProps = {
@@ -412,25 +411,27 @@ export function RoomViewHeader() {
               </IconButton>
             )}
           </TooltipProvider>
-          <TooltipProvider
-            position="Bottom"
-            offset={4}
-            tooltip={
-              <Tooltip>
-                <Text>Ask AI</Text>
-              </Tooltip>
-            }
-          >
-            {(triggerRef) => (
-              <IconButton
-                ref={triggerRef}
-                onClick={() => setAIAssistantOpen(true)}
-                aria-pressed={aiAssistantOpen}
-              >
-                <img src={wingmanPFP} alt="Wingman" style={{ width: '20px', height: '20px' }} />
-              </IconButton>
-            )}
-          </TooltipProvider>
+          {screenSize === ScreenSize.Desktop && (
+            <TooltipProvider
+              position="Bottom"
+              offset={4}
+              tooltip={
+                <Tooltip>
+                  <Text>Ask AI</Text>
+                </Tooltip>
+              }
+            >
+              {(triggerRef) => (
+                <IconButton
+                  ref={triggerRef}
+                  onClick={() => setAIAssistantOpen(true)}
+                  aria-pressed={aiAssistantOpen}
+                >
+                  <img src={wingmanPFP} alt="Wingman" style={{ width: '20px', height: '20px' }} />
+                </IconButton>
+              )}
+            </TooltipProvider>
+          )}
           <PopOut
             anchor={pinMenuAnchor}
             position="Bottom"
