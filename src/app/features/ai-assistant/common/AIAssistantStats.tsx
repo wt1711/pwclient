@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Text } from 'folds';
 import PropTypes from 'prop-types';
-import { getGirlTypes } from '../data';
+import { getDateTypes } from '../data';
+import { useRoom } from '../../../hooks/useRoom';
 
 interface StatBoxProps {
   label: string;
@@ -85,10 +86,12 @@ export function AIAssistantStats() {
       backgroundColor: 'rgba(219, 39, 119, 0.1)',
     },
   ];
+  const room = useRoom();
+  const roomID = room.roomId || 'default';
 
   useEffect(() => {
-    setGirlTypes(getGirlTypes());
-  }, []);
+    setGirlTypes(getDateTypes(roomID));
+  }, [roomID]);
 
   return (
     <Box direction="Column" gap="200" style={{ padding: '8px 16px' }}>
