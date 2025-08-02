@@ -62,7 +62,7 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
   const [isGeneratingResponse, setIsGeneratingResponse] = useState(false);
   const room = useRoom();
   const mx = useMatrixClient();
-  const { insertText } = useRoomEditor();
+  const { insertText, deleteText } = useRoomEditor();
   const setIsAiDrawer = useSetSetting(settingsAtom, 'isAiDrawerOpen');
   const timeline = room.getLiveTimeline().getEvents();
   const roomContext = timeline
@@ -99,7 +99,6 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
       const response = await generateResponse({ message, context: roomContext });
       setGeneratedResponse(response);
     } catch (error) {
-      console.error('Error generating response:', error);
       setGeneratedResponse('Xin lỗi, đã có lỗi khi tạo phản hồi.');
     } finally {
       setIsGeneratingResponse(false);
@@ -109,13 +108,14 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
   const handleUseSuggestion = useCallback(
     (response: string) => {
       if (response) {
+        deleteText();
         insertText(response);
         if (isMobile) {
           setIsAiDrawer(false);
         }
       }
     },
-    [insertText, isMobile, setIsAiDrawer]
+    [insertText, deleteText, isMobile, setIsAiDrawer]
   );
 
   const handleSend = useCallback(async () => {

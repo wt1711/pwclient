@@ -5,6 +5,7 @@ type RoomEditorContextType = {
   editor: Editor | null;
   setEditor: (editor: Editor | null) => void;
   insertText: (text: string) => void;
+  deleteText: () => void;
 };
 
 const RoomEditorContext = createContext<RoomEditorContextType | undefined>(undefined);
@@ -31,13 +32,30 @@ export function RoomEditorProvider({ children }: RoomEditorProviderProps) {
     [editor]
   );
 
+  const deleteText = useCallback(() => {
+    if (editor) {
+      try {
+        Transforms.select(editor, {
+          anchor: Editor.start(editor, []),
+          focus: Editor.end(editor, []),
+        });
+        Transforms.delete(editor);
+      } catch (error) {
+        throw new Error('Error deleting text from room editor:');
+      }
+    } else {
+      throw new Error('Editor not available');
+    }
+  }, [editor]);
+
   const value: RoomEditorContextType = useMemo(
     () => ({
       editor,
       setEditor,
       insertText,
+      deleteText,
     }),
-    [editor, setEditor, insertText]
+    [editor, setEditor, insertText, deleteText]
   );
 
   return <RoomEditorContext.Provider value={value}>{children}</RoomEditorContext.Provider>;
