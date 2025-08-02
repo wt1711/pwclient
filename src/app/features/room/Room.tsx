@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Box, Line } from 'folds';
+import { Box, IconButton, Line } from 'folds';
 import { useParams, useNavigate, Navigate } from 'react-router-dom';
 import { isKeyHotkey } from 'is-hotkey';
 import { RoomView } from './RoomView';
@@ -17,6 +17,7 @@ import { AIAssistant } from '../../components/ai-assistant/desktop-ui/AIAssistan
 import { AIAssistantModal } from '../../components/ai-assistant/mobile-modal/AIAssistantModal';
 import { RoomEditorProvider } from './RoomEditorContext';
 import { RoomMessageProvider } from './RoomMessageContext';
+import wingmanPFP from '../../components/ai-assistant/wingman.png';
 
 export function Room() {
   const { eventId } = useParams();
@@ -26,7 +27,7 @@ export function Room() {
   const { roomId } = room;
   const screenSize = useScreenSizeContext();
   const [isDrawer] = useSetting(settingsAtom, 'isPeopleDrawer');
-  const [isAiDrawer] = useSetting(settingsAtom, 'isAiDrawerOpen');
+  const [isAiDrawer, setIsAiDrawer] = useSetting(settingsAtom, 'isAiDrawerOpen');
   const [hideActivity] = useSetting(settingsAtom, 'hideActivity');
   const powerLevels = usePowerLevels(room);
   const members = useRoomMembers(mx, room.roomId);
@@ -71,6 +72,27 @@ export function Room() {
                 <Line variant="Background" direction="Vertical" size="300" />
                 <AIAssistant />
               </>
+            )}
+            {!isDesktop && (
+              <IconButton
+                variant="Primary"
+                style={{
+                  position: 'fixed',
+                  bottom: '80px',
+                  right: '20px',
+                  zIndex: 100,
+                  borderRadius: '100%',
+                  padding: '5px',
+                  cursor: 'pointer',
+                }}
+                onClick={() => setIsAiDrawer(true)}
+              >
+                <img
+                  src={wingmanPFP}
+                  alt="Wingman"
+                  style={{ width: '50px', height: '50px', borderRadius: '100%' }}
+                />
+              </IconButton>
             )}
           </Box>
         </RoomMessageProvider>
