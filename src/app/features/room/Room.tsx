@@ -13,11 +13,11 @@ import { useKeyDown } from '../../hooks/useKeyDown';
 import { markAsRead } from '../../../client/action/notifications';
 import { useMatrixClient } from '../../hooks/useMatrixClient';
 import { useRoomMembers } from '../../hooks/useRoomMembers';
-import { AIAssistant } from '../../components/ai-assistant/desktop-ui/AIAssistant';
-import { AIAssistantModal } from '../../components/ai-assistant/mobile-modal/AIAssistantModal';
+import { AIAssistant } from '../ai-assistant/desktop-ui/AIAssistant';
+import { AIAssistantModal } from '../ai-assistant/mobile-modal/AIAssistantModal';
 import { RoomEditorProvider } from './RoomEditorContext';
 import { RoomMessageProvider } from './RoomMessageContext';
-import wingmanPFP from '../../components/ai-assistant/wingman.png';
+import wingmanPFP from '../ai-assistant/wingman.png';
 
 export function Room() {
   const { eventId } = useParams();
