@@ -14,7 +14,7 @@ import { markAsRead } from '../../../client/action/notifications';
 import { useMatrixClient } from '../../hooks/useMatrixClient';
 import { useRoomMembers } from '../../hooks/useRoomMembers';
 import { AIAssistant } from '../ai-assistant/desktop-ui/AIAssistant';
-import { AIAssistantModal } from '../ai-assistant/mobile-modal/AIAssistantModal';
+import { AIAssistantModal } from '../ai-assistant/common/AIAssistantModal';
 import { RoomEditorProvider } from './RoomEditorContext';
 import { RoomMessageProvider } from './RoomMessageContext';
 import wingmanPFP from '../ai-assistant/wingman.png';
