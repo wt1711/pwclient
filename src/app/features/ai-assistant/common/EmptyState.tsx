@@ -12,7 +12,7 @@ export function EmptyState() {
       gap="200"
       style={{ height: '100%' }}
     >
-      <Avatar size="500">
+      <Avatar size="500" style={{ borderRadius: '100%' }}>
         <img src={wingmanPFP} alt="Wingman" style={{ width: '100%', height: '100%' }} />
       </Avatar>
       <Text size="H4">Hỏi Wingman ngay</Text>

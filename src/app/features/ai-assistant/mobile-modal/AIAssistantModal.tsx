@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Overlay, OverlayCenter, OverlayBackdrop, Portal, Box, Scroll } from 'folds';
 import FocusTrap from 'focus-trap-react';
 
@@ -6,16 +6,23 @@ import { useSetSetting } from '../../../state/hooks/settings';
 import { settingsAtom } from '../../../state/settings';
 import { stopPropagation } from '../../../utils/keyboard';
 import { AIAssistantProvider, useAIAssistant } from '../AIAssistantContext';
-import { AIAssistantHeader } from '../desktop-ui/AIAssistantHeader';
-import { GeneratedResponseBox } from '../desktop-ui/GeneratedResponseBox';
-import { SelectedMessageBox } from '../desktop-ui/SelectedMessageBox';
-import { ChatHistory } from '../desktop-ui/ChatHistory';
-import { ChatInput } from '../desktop-ui/ChatInput';
+import { AIAssistantHeader } from '../common/AIAssistantHeader';
+import { GeneratedResponseBox } from '../common/GeneratedResponseBox';
+import { SelectedMessageBox } from '../common/SelectedMessageBox';
+import { ChatHistory } from '../common/ChatHistory';
+import { ChatInput } from '../common/ChatInput';
 import { EmptyState } from '../common/EmptyState';
+import Tabs from '../../../atoms/tabs/Tabs.jsx';
+import { AIAssistantStats } from '../common/AIAssistantStats';
+import { useRoomMessage } from '../../room/RoomMessageContext';
 
 function AIAssistantContent() {
   const { chatHistory } = useAIAssistant();
   const showEmptyState = chatHistory.length === 0;
+  const { selectedMessage } = useRoomMessage();
+  const defaultTabName = selectedMessage ? 'chat' : 'response';
+  const defaultTabIndex = selectedMessage ? 1 : 0;
+  const [selectedTab, setSelectedTab] = useState(defaultTabName);
 
   return (
     <Box
@@ -31,14 +38,25 @@ function AIAssistantContent() {
       }}
     >
       <AIAssistantHeader />
+      <AIAssistantStats />
+      <Tabs
+        items={[
+          { text: 'Response', id: 'response' },
+          { text: 'Chat', id: 'chat' },
+        ]}
+        defaultSelected={defaultTabIndex}
+        onSelect={(item) => setSelectedTab(item.id)}
+      />
       <Box grow="Yes" direction="Column" style={{ position: 'relative', overflow: 'hidden' }}>
-        <GeneratedResponseBox />
-        <Scroll variant="Background" visibility="Hover">
-          <Box direction="Column" gap="400" style={{ padding: '16px', minHeight: '100%' }}>
-            <SelectedMessageBox />
-            {showEmptyState ? <EmptyState /> : <ChatHistory />}
-          </Box>
-        </Scroll>
+        {selectedTab === 'response' && <GeneratedResponseBox />}
+        {selectedTab === 'chat' && (
+          <Scroll variant="Background" visibility="Hover">
+            <Box direction="Column" gap="400" style={{ padding: '16px', minHeight: '100%' }}>
+              <SelectedMessageBox />
+              {showEmptyState ? <EmptyState /> : <ChatHistory />}
+            </Box>
+          </Scroll>
+        )}
       </Box>
       <ChatInput />
     </Box>
@@ -47,7 +65,12 @@ function AIAssistantContent() {
 
 export function AIAssistantModal() {
   const setAiDrawer = useSetSetting(settingsAtom, 'isAiDrawerOpen');
-  const handleClose = () => setAiDrawer(false);
+  const { setSelectedMessage } = useRoomMessage();
+
+  const handleClose = () => {
+    setAiDrawer(false);
+    setSelectedMessage(null);
+  };
 
   return (
     <Portal>
@@ -61,9 +84,7 @@ export function AIAssistantModal() {
               escapeDeactivates: stopPropagation,
             }}
           >
-            <div
-            // onMouseDown={stopPropagation}
-            >
+            <div>
               <AIAssistantProvider isMobile>
                 <AIAssistantContent />
               </AIAssistantProvider>

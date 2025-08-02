@@ -1,12 +1,13 @@
 import React from 'react';
 import { Box, Scroll } from 'folds';
 import * as css from './AIAssistant.css';
-import { GeneratedResponseBox } from './GeneratedResponseBox';
-import { ChatHistory } from './ChatHistory';
-import { ChatInput } from './ChatInput';
-import { AIAssistantHeader } from './AIAssistantHeader';
-import { SelectedMessageBox } from './SelectedMessageBox';
+import { GeneratedResponseBox } from '../common/GeneratedResponseBox';
+import { ChatHistory } from '../common/ChatHistory';
+import { ChatInput } from '../common/ChatInput';
+import { AIAssistantHeader } from '../common/AIAssistantHeader';
+import { SelectedMessageBox } from '../common/SelectedMessageBox';
 import { AIAssistantProvider, useAIAssistant } from '../AIAssistantContext';
+import { AIAssistantStats } from '../common/AIAssistantStats';
 import { EmptyState } from '../common/EmptyState';
 
 function AIAssistantContent() {
@@ -17,6 +18,8 @@ function AIAssistantContent() {
   return (
     <Box className={css.AIAssistant} shrink="No" direction="Column">
       <AIAssistantHeader />
+      <AIAssistantStats />
+
       <Box grow="Yes" direction="Column" style={{ position: 'relative', overflow: 'hidden' }}>
         {/* Generated Response Box */}
         <GeneratedResponseBox />

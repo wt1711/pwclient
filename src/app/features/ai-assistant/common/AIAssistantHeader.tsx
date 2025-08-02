@@ -12,7 +12,7 @@ export function AIAssistantHeader() {
   return (
     <Header variant="Surface" size="600" style={{ borderRadius: isMobile ? '12px' : '0px' }}>
       <Box grow="Yes" alignItems="Center" gap="200">
-        <Avatar size="200">
+        <Avatar size="200" style={{ borderRadius: '100%' }}>
           <img
             src={wingmanPFP}
             alt="Wingman"

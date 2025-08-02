@@ -35,7 +35,6 @@ export async function getOpenAIConsultation({
     const data = await response.json();
     return data.suggestion;
   } catch (error) {
-    console.error('API error:', error);
     return 'Xin lỗi, đã có lỗi khi lấy gợi ý.';
   }
 }
@@ -67,7 +66,6 @@ export async function generateResponse({
     const data = await response.json();
     return data.response;
   } catch (error) {
-    console.error('API error:', error);
     return 'Xin lỗi, đã có lỗi khi tạo phản hồi.';
   }
 }
