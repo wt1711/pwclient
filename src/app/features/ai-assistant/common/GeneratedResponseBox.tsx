@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, Text, Spinner, Button } from 'folds';
 import { useAIAssistant } from '../AIAssistantContext';
+import { ScreenSize, useScreenSizeContext } from '../../../hooks/useScreenSize';
 
 export function GeneratedResponseBox() {
   const { generatedResponse, isGeneratingResponse, generateNewResponse, handleUseSuggestion } =
@@ -11,6 +12,8 @@ export function GeneratedResponseBox() {
       handleUseSuggestion(generatedResponse);
     }
   };
+  const screenSize = useScreenSizeContext();
+  const isDesktop = screenSize === ScreenSize.Desktop;
 
   return (
     <Box
@@ -21,7 +24,7 @@ export function GeneratedResponseBox() {
         backgroundColor: 'var(--bg-surface-raised)',
       }}
     >
-      <Text size="L400">Hỗ trợ nhắn tin</Text>
+      {isDesktop && <Text size="L400">Hỗ trợ nhắn tin</Text>}
       {generatedResponse ? (
         <Box direction="Column" gap="300">
           <Box

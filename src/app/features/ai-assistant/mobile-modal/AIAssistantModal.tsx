@@ -41,8 +41,8 @@ function AIAssistantContent() {
       <AIAssistantStats />
       <Tabs
         items={[
-          { text: 'Response', id: 'response' },
-          { text: 'Chat', id: 'chat' },
+          { text: 'Gợi ý trả lời', id: 'response' },
+          { text: 'Hỏi Wingman', id: 'chat' },
         ]}
         defaultSelected={defaultTabIndex}
         onSelect={(item) => setSelectedTab(item.id)}
