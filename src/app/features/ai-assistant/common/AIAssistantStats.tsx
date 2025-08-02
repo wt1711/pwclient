@@ -47,14 +47,14 @@ StatBox.propTypes = {
 export function AIAssistantStats() {
   const stats = [
     {
-      label: 'Compatibility',
+      label: 'Hợp nhau',
       value: '95%',
       valueColor: '#D97706',
       backgroundColor: 'rgba(217, 119, 6, 0.1)',
     },
     {
-      label: 'Conv. Heat',
-      value: '🔥 High',
+      label: 'Sức nóng câu chuyện',
+      value: '🔥 KHÁ NÓNG',
       valueColor: '#DB2777',
       backgroundColor: 'rgba(219, 39, 119, 0.1)',
     },
