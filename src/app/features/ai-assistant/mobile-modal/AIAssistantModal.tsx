@@ -7,13 +7,14 @@ import { useSetSetting } from '../../../state/hooks/settings';
 import { settingsAtom } from '../../../state/settings';
 import { stopPropagation } from '../../../utils/keyboard';
 import { AIAssistantProvider, useAIAssistant } from '../AIAssistantContext';
-import { AIAssistantHeader } from '../desktop-ui/AIAssistantHeader';
+import { AIAssistantHeader } from '../common/AIAssistantHeader';
 import { GeneratedResponseBox } from '../desktop-ui/GeneratedResponseBox';
 import { SelectedMessageBox } from '../desktop-ui/SelectedMessageBox';
 import { ChatHistory } from '../desktop-ui/ChatHistory';
 import { ChatInput } from '../desktop-ui/ChatInput';
 import { EmptyState } from '../common/EmptyState';
 import Tabs from '../../../atoms/tabs/Tabs.jsx';
+import { AIAssistantStats } from '../common/AIAssistantStats';
 
 function AIAssistantContent() {
   const { chatHistory } = useAIAssistant();
@@ -34,6 +35,7 @@ function AIAssistantContent() {
       }}
     >
       <AIAssistantHeader />
+      <AIAssistantStats />
       <Tabs
         items={[
           { text: 'Response', id: 'response' },
