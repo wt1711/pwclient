@@ -78,6 +78,7 @@ import { useRoomPinnedEvents } from '../../../hooks/useRoomPinnedEvents';
 import { StateEvent } from '../../../../types/matrix/room';
 import { getTagIconSrc, PowerLevelTag } from '../../../hooks/usePowerLevelTags';
 import { PowerIcon } from '../../../components/power';
+import wingmanPFP from '../../ai-assistant/wingman.png';
 import colorMXID from '../../../../util/colorMXID';
 
 export type ReactionHandler = (keyOrMxc: string, shortcode: string) => void;
@@ -884,6 +885,15 @@ export const Message = as<'div', MessageProps>(
           <div className={css.MessageOptionsBase}>
             <Menu className={css.MessageOptionsBar} variant="SurfaceVariant">
               <Box gap="100">
+                <IconButton
+                  onClick={onReplyClick}
+                  data-event-id={mEvent.getId()}
+                  variant="SurfaceVariant"
+                  size="300"
+                  radii="300"
+                >
+                  <img src={wingmanPFP} alt="Wingman" style={{ width: '20px', height: '20px' }} />
+                </IconButton>
                 {canSendReaction && (
                   <PopOut
                     position="Bottom"
