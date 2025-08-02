@@ -79,7 +79,7 @@ export function Room() {
                 style={{
                   position: 'fixed',
                   bottom: '80px',
-                  right: '20px',
+                  left: '20px',
                   zIndex: 100,
                   borderRadius: '100%',
                   padding: '5px',
