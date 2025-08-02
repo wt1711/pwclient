@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Box, Text } from 'folds';
 import PropTypes from 'prop-types';
+import { getGirlTypes } from '../data';
 
 interface StatBoxProps {
   label: string;
@@ -44,7 +45,32 @@ StatBox.propTypes = {
   backgroundColor: PropTypes.string.isRequired,
 };
 
+interface TagProps {
+  label: string;
+}
+
+function Tag({ label }: TagProps) {
+  return (
+    <Box
+      style={{
+        padding: '4px 8px',
+        borderRadius: '8px',
+        backgroundColor: 'rgba(0, 0, 0, 0.1)',
+      }}
+    >
+      <Text size="T200" style={{ color: 'var(--tc-surface-normal)', whiteSpace: 'nowrap' }}>
+        {label}
+      </Text>
+    </Box>
+  );
+}
+
+Tag.propTypes = {
+  label: PropTypes.string.isRequired,
+};
+
 export function AIAssistantStats() {
+  const [girlTypes, setGirlTypes] = useState<string[]>([]);
   const stats = [
     {
       label: 'Hợp nhau',
@@ -60,17 +86,28 @@ export function AIAssistantStats() {
     },
   ];
 
+  useEffect(() => {
+    setGirlTypes(getGirlTypes());
+  }, []);
+
   return (
-    <Box direction="Row" gap="200" style={{ padding: '8px 16px', justifyContent: 'space-around' }}>
-      {stats.map((stat) => (
-        <StatBox
-          key={stat.label}
-          label={stat.label}
-          value={stat.value}
-          valueColor={stat.valueColor}
-          backgroundColor={stat.backgroundColor}
-        />
-      ))}
+    <Box direction="Column" gap="200" style={{ padding: '8px 16px' }}>
+      <Box direction="Row" gap="200" style={{ justifyContent: 'space-around' }}>
+        {stats.map((stat) => (
+          <StatBox
+            key={stat.label}
+            label={stat.label}
+            value={stat.value}
+            valueColor={stat.valueColor}
+            backgroundColor={stat.backgroundColor}
+          />
+        ))}
+      </Box>
+      <Box direction="Row" gap="100" style={{ flexWrap: 'wrap', justifyContent: 'center' }}>
+        {girlTypes.map((type) => (
+          <Tag key={type} label={type} />
+        ))}
+      </Box>
     </Box>
   );
 }
