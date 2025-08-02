@@ -32,6 +32,6 @@ export const getGirlTypes = () => {
   const isEven = randomIndex % 2 === 0;
   const allPropsToChoose = typeTags.filter((_, idx) => (isEven ? idx % 2 === 0 : idx % 2 === 1));
   const totalPropsPairs = typeTags.length / 2;
-  const numOfPropsToChoose = Math.max(randomIndex % totalPropsPairs, allPropsToChoose.length);
+  const numOfPropsToChoose = Math.min(randomIndex % totalPropsPairs, allPropsToChoose.length);
   return getRandomElements(allPropsToChoose, numOfPropsToChoose);
 };
