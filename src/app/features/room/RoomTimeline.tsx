@@ -121,8 +121,8 @@ import { useImagePackRooms } from '../../hooks/useImagePackRooms';
 import { GetPowerLevelTag } from '../../hooks/usePowerLevelTags';
 import { useIsDirectRoom } from '../../hooks/useRoom';
 import { useRoomMessage } from './RoomMessageContext';
-import { Message as MessageType } from '../../components/ai-assistant/ai';
-import { isFromMe } from '../../components/ai-assistant/AIAssistantContext';
+import { Message as MessageType } from '../ai-assistant/ai';
+import { isFromMe } from '../ai-assistant/AIAssistantContext';
 
 const TimelineFloat = as<'div', css.TimelineFloatVariants>(
   ({ position, className, ...props }, ref) => (

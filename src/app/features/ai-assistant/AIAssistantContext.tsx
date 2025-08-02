@@ -2,8 +2,8 @@ import React, { createContext, useContext, useState, ReactNode, useMemo, useCall
 import { generateResponse, getOpenAIConsultation } from './ai';
 import { useRoom } from '../../hooks/useRoom';
 import { useMatrixClient } from '../../hooks/useMatrixClient';
-import { useRoomEditor } from '../../features/room/RoomEditorContext';
-import { useRoomMessage } from '../../features/room/RoomMessageContext';
+import { useRoomEditor } from '../room/RoomEditorContext';
+import { useRoomMessage } from '../room/RoomMessageContext';
 import { useSetSetting } from '../../state/hooks/settings';
 import { settingsAtom } from '../../state/settings';
 

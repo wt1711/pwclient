@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Text, Icon, Icons, IconButton } from 'folds';
-import { useRoomMessage } from '../../../features/room/RoomMessageContext';
+import { useRoomMessage } from '../../room/RoomMessageContext';
 
 export function SelectedMessageBox() {
   const { selectedMessage, setSelectedMessage } = useRoomMessage();
