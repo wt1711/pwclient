@@ -60,7 +60,7 @@ import {
 } from '../../../utils/matrix';
 import { MessageLayout, MessageSpacing, settingsAtom } from '../../../state/settings';
 import { useMatrixClient } from '../../../hooks/useMatrixClient';
-import { useSetSetting, useSetting } from '../../../state/hooks/settings';
+import { useSetSetting } from '../../../state/hooks/settings';
 import { useRecentEmoji } from '../../../hooks/useRecentEmoji';
 import * as css from './styles.css';
 import { EventReaders } from '../../../components/event-readers';
@@ -80,7 +80,7 @@ import { StateEvent } from '../../../../types/matrix/room';
 import { getTagIconSrc, PowerLevelTag } from '../../../hooks/usePowerLevelTags';
 import { PowerIcon } from '../../../components/power';
 import wingmanPFP from '../../ai-assistant/wingman.png';
-import colorMXID from '../../../../util/colorMXID';
+// import colorMXID from '../../../../util/colorMXID';
 
 export type ReactionHandler = (keyOrMxc: string, shortcode: string) => void;
 
@@ -373,7 +373,7 @@ export const MessagePinItem = as<
     if (!isPinned && eventId) {
       pinContent.pinned.push(eventId);
     }
-    mx.sendStateEvent(room.roomId, StateEvent.RoomPinnedEvents, pinContent);
+    mx.sendStateEvent(room.roomId, StateEvent.RoomPinnedEvents as any, pinContent);
     onClose?.();
   };
 
@@ -741,7 +741,8 @@ export const Message = as<'div', MessageProps>(
       ? getTagIconSrc(mx, useAuthentication, powerLevelTag.icon)
       : undefined;
 
-    const usernameColor = legacyUsernameColor ? colorMXID(senderId) : tagColor;
+    // const usernameColor = legacyUsernameColor ? colorMXID(senderId) : tagColor;
+    const usernameColor = legacyUsernameColor ? tagColor : tagColor;
 
     const headerJSX = !collapse && (
       <Box
