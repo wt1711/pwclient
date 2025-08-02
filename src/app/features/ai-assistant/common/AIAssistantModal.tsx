@@ -15,11 +15,15 @@ import { ChatInput } from './ChatInput';
 import { EmptyState } from './EmptyState';
 import Tabs from '../../../atoms/tabs/Tabs.jsx';
 import { AIAssistantStats } from './AIAssistantStats';
+import { useRoomMessage } from '../../room/RoomMessageContext';
 
 function AIAssistantContent() {
   const { chatHistory } = useAIAssistant();
   const showEmptyState = chatHistory.length === 0;
-  const [selectedTab, setSelectedTab] = useState('response');
+  const { selectedMessage } = useRoomMessage();
+  const defaultTabName = selectedMessage ? 'chat' : 'response';
+  const defaultTabIndex = selectedMessage ? 1 : 0;
+  const [selectedTab, setSelectedTab] = useState(defaultTabName);
 
   return (
     <Box
@@ -41,7 +45,7 @@ function AIAssistantContent() {
           { text: 'Response', id: 'response' },
           { text: 'Chat', id: 'chat' },
         ]}
-        defaultSelected={0}
+        defaultSelected={defaultTabIndex}
         onSelect={(item) => setSelectedTab(item.id)}
       />
       <Box grow="Yes" direction="Column" style={{ position: 'relative', overflow: 'hidden' }}>
