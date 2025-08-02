@@ -1,4 +1,3 @@
-// comment to trigger re-lint
 import React, { useState } from 'react';
 import { Overlay, OverlayCenter, OverlayBackdrop, Portal, Box, Scroll } from 'folds';
 import FocusTrap from 'focus-trap-react';
@@ -51,24 +50,27 @@ function AIAssistantContent() {
       <Box grow="Yes" direction="Column" style={{ position: 'relative', overflow: 'hidden' }}>
         {selectedTab === 'response' && <GeneratedResponseBox />}
         {selectedTab === 'chat' && (
-          <>
-            <Scroll variant="Background" visibility="Hover">
-              <Box direction="Column" gap="400" style={{ padding: '16px', minHeight: '100%' }}>
-                <SelectedMessageBox />
-                {showEmptyState ? <EmptyState /> : <ChatHistory />}
-              </Box>
-            </Scroll>
-            <ChatInput />
-          </>
+          <Scroll variant="Background" visibility="Hover">
+            <Box direction="Column" gap="400" style={{ padding: '16px', minHeight: '100%' }}>
+              <SelectedMessageBox />
+              {showEmptyState ? <EmptyState /> : <ChatHistory />}
+            </Box>
+          </Scroll>
         )}
       </Box>
+      <ChatInput />
     </Box>
   );
 }
 
 export function AIAssistantModal() {
   const setAiDrawer = useSetSetting(settingsAtom, 'isAiDrawerOpen');
-  const handleClose = () => setAiDrawer(false);
+  const { setSelectedMessage } = useRoomMessage();
+
+  const handleClose = () => {
+    setAiDrawer(false);
+    setSelectedMessage(null);
+  };
 
   return (
     <Portal>
@@ -82,9 +84,7 @@ export function AIAssistantModal() {
               escapeDeactivates: stopPropagation,
             }}
           >
-            <div
-            // onMouseDown={stopPropagation}
-            >
+            <div>
               <AIAssistantProvider isMobile>
                 <AIAssistantContent />
               </AIAssistantProvider>
