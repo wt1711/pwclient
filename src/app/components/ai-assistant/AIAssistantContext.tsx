@@ -108,8 +108,15 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
   const handleUseSuggestion = useCallback(
     (response: string) => {
       if (response) {
+        let cleanedResponse = response.trim();
+        if (
+          (cleanedResponse.startsWith('"') && cleanedResponse.endsWith('"')) ||
+          (cleanedResponse.startsWith("'") && cleanedResponse.endsWith("'"))
+        ) {
+          cleanedResponse = cleanedResponse.substring(1, cleanedResponse.length - 1);
+        }
         deleteText();
-        insertText(response);
+        insertText(cleanedResponse);
         if (isMobile) {
           setIsAiDrawer(false);
         }

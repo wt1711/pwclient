@@ -78,8 +78,8 @@ export function Room() {
                 variant="Primary"
                 style={{
                   position: 'fixed',
-                  top: '50px',
-                  right: '10px',
+                  bottom: '80px',
+                  left: '10px',
                   zIndex: 100,
                   borderRadius: '100%',
                   padding: '5px',
