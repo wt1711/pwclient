@@ -897,7 +897,11 @@ export const Message = as<'div', MessageProps>(
                     size="300"
                     radii="300"
                   >
-                    <img src={wingmanPFP} alt="Wingman" style={{ width: '20px', height: '20px' }} />
+                    <img
+                      src={wingmanPFP}
+                      alt="Wingman"
+                      style={{ width: '20px', height: '20px', borderRadius: '100%' }}
+                    />
                   </IconButton>
                   {canSendReaction && (
                     <PopOut
