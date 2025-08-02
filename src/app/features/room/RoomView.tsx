@@ -13,14 +13,14 @@ import { RoomTimeline } from './RoomTimeline';
 import { RoomViewTyping } from './RoomViewTyping';
 import { RoomTombstone } from './RoomTombstone';
 import { RoomInput } from './RoomInput';
-import { RoomViewFollowing, RoomViewFollowingPlaceholder } from './RoomViewFollowing';
+// import { RoomViewFollowing, RoomViewFollowingPlaceholder } from './RoomViewFollowing';
 import { Page } from '../../components/page';
 import { RoomViewHeader } from './RoomViewHeader';
 import { useKeyDown } from '../../hooks/useKeyDown';
 import { editableActiveElement } from '../../utils/dom';
 import navigation from '../../../client/state/navigation';
-import { settingsAtom } from '../../state/settings';
-import { useSetting } from '../../state/hooks/settings';
+// import { settingsAtom } from '../../state/settings';
+// import { useSetting } from '../../state/hooks/settings';
 import { useAccessibleTagColors, usePowerLevelTags } from '../../hooks/usePowerLevelTags';
 import { useTheme } from '../../hooks/useTheme';
 
@@ -61,7 +61,7 @@ export function RoomView({ room, eventId }: { room: Room; eventId?: string }) {
   const roomInputRef = useRef<HTMLDivElement>(null);
   const roomViewRef = useRef<HTMLDivElement>(null);
 
-  const [hideActivity] = useSetting(settingsAtom, 'hideActivity');
+  // const [hideActivity] = useSetting(settingsAtom, 'hideActivity');
 
   const { roomId } = room;
   const editor = useEditor();
@@ -147,7 +147,7 @@ export function RoomView({ room, eventId }: { room: Room; eventId?: string }) {
             </>
           )}
         </div>
-        {hideActivity ? <RoomViewFollowingPlaceholder /> : <RoomViewFollowing room={room} />}
+        {/* {hideActivity ? <RoomViewFollowingPlaceholder /> : <RoomViewFollowing room={room} />} */}
       </Box>
     </Page>
   );
