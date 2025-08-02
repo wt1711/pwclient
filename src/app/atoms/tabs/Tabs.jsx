@@ -5,10 +5,7 @@ import './Tabs.scss';
 import Button from '../button/Button';
 import ScrollView from '../scroll/ScrollView';
 
-function TabItem({
-  selected, iconSrc,
-  onClick, children, disabled,
-}) {
+function TabItem({ selected, iconSrc, onClick, children, disabled }) {
   const isSelected = selected ? 'tab-item--selected' : '';
 
   return (
@@ -54,8 +51,8 @@ function Tabs({ items, defaultSelected, onSelect }) {
         <div className="tabs__content">
           {items.map((item, index) => (
             <TabItem
-              key={item.text}
-              selected={selectedItem.text === item.text}
+              key={item.id}
+              selected={selectedItem.id === item.id}
               iconSrc={item.iconSrc}
               disabled={item.disabled}
               onClick={(e) => handleTabSelection(item, index, e.currentTarget)}
@@ -76,10 +73,11 @@ Tabs.defaultProps = {
 Tabs.propTypes = {
   items: PropTypes.arrayOf(
     PropTypes.shape({
+      id: PropTypes.string.isRequired,
       iconSrc: PropTypes.string,
       text: PropTypes.string,
       disabled: PropTypes.bool,
-    }),
+    })
   ).isRequired,
   defaultSelected: PropTypes.number,
   onSelect: PropTypes.func.isRequired,
