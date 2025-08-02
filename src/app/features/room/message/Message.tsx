@@ -63,7 +63,6 @@ import { useMatrixClient } from '../../../hooks/useMatrixClient';
 import { useSetSetting, useSetting } from '../../../state/hooks/settings';
 import { useRecentEmoji } from '../../../hooks/useRecentEmoji';
 import * as css from './styles.css';
-import { AIAssistantModal } from '../../ai-assistant/mobile-modal/AIAssistantModal';
 import { EventReaders } from '../../../components/event-readers';
 import { TextViewer } from '../../../components/text-viewer';
 import { AsyncStatus, useAsyncCallback } from '../../../hooks/useAsyncCallback';
@@ -873,7 +872,7 @@ export const Message = as<'div', MessageProps>(
 
     return (
       <>
-        {isAiDrawerOpen && <AIAssistantModal />}
+        {/* {isAiDrawerOpen && <AIAssistantModal />} */}
         <MessageBase
           className={classNames(css.MessageBase, className)}
           tabIndex={0}
