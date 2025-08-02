@@ -18,8 +18,8 @@ import { useRoomMessage } from '../../room/RoomMessageContext';
 
 function AIAssistantContent() {
   const { chatHistory } = useAIAssistant();
-  const showEmptyState = chatHistory.length === 0;
   const { selectedMessage } = useRoomMessage();
+  const showEmptyState = chatHistory.length === 0 && !selectedMessage;
   const defaultTabName = selectedMessage ? 'chat' : 'response';
   const defaultTabIndex = selectedMessage ? 1 : 0;
   const [selectedTab, setSelectedTab] = useState(defaultTabName);
@@ -41,8 +41,8 @@ function AIAssistantContent() {
       <AIAssistantStats />
       <Tabs
         items={[
-          { text: 'Response', id: 'response' },
-          { text: 'Chat', id: 'chat' },
+          { text: 'Gợi ý trả lời', id: 'response' },
+          { text: 'Hỏi Wingman', id: 'chat' },
         ]}
         defaultSelected={defaultTabIndex}
         onSelect={(item) => setSelectedTab(item.id)}
@@ -50,15 +50,17 @@ function AIAssistantContent() {
       <Box grow="Yes" direction="Column" style={{ position: 'relative', overflow: 'hidden' }}>
         {selectedTab === 'response' && <GeneratedResponseBox />}
         {selectedTab === 'chat' && (
-          <Scroll variant="Background" visibility="Hover">
-            <Box direction="Column" gap="400" style={{ padding: '16px', minHeight: '100%' }}>
-              <SelectedMessageBox />
-              {showEmptyState ? <EmptyState /> : <ChatHistory />}
-            </Box>
-          </Scroll>
+          <>
+            <Scroll variant="Background" visibility="Hover">
+              <Box direction="Column" gap="400" style={{ padding: '16px', minHeight: '100%' }}>
+                <SelectedMessageBox />
+                {showEmptyState ? <EmptyState /> : <ChatHistory />}
+              </Box>
+            </Scroll>
+            <ChatInput />
+          </>
         )}
       </Box>
-      <ChatInput />
     </Box>
   );
 }
