@@ -4,6 +4,8 @@ import { useRoom } from '../../hooks/useRoom';
 import { useMatrixClient } from '../../hooks/useMatrixClient';
 import { useRoomEditor } from '../../features/room/RoomEditorContext';
 import { useRoomMessage } from '../../features/room/RoomMessageContext';
+import { useSetSetting } from '../../state/hooks/settings';
+import { settingsAtom } from '../../state/settings';
 
 type ChatWithAIAssistantMessage = {
   sender: 'user' | 'ai';
@@ -61,6 +63,7 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
   const room = useRoom();
   const mx = useMatrixClient();
   const { insertText } = useRoomEditor();
+  const setIsAiDrawer = useSetSetting(settingsAtom, 'isAiDrawerOpen');
   const timeline = room.getLiveTimeline().getEvents();
   const roomContext = timeline
     .filter((event) => event.getSender() && event.getContent().body)
@@ -107,9 +110,12 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
     (response: string) => {
       if (response) {
         insertText(response);
+        if (isMobile) {
+          setIsAiDrawer(false);
+        }
       }
     },
-    [insertText]
+    [insertText, isMobile, setIsAiDrawer]
   );
 
   const handleSend = useCallback(async () => {
