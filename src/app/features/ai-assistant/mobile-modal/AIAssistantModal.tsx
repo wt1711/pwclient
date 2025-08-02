@@ -7,14 +7,14 @@ import { useSetSetting } from '../../../state/hooks/settings';
 import { settingsAtom } from '../../../state/settings';
 import { stopPropagation } from '../../../utils/keyboard';
 import { AIAssistantProvider, useAIAssistant } from '../AIAssistantContext';
-import { AIAssistantHeader } from './AIAssistantHeader';
-import { GeneratedResponseBox } from './GeneratedResponseBox';
-import { SelectedMessageBox } from './SelectedMessageBox';
-import { ChatHistory } from './ChatHistory';
-import { ChatInput } from './ChatInput';
-import { EmptyState } from './EmptyState';
+import { AIAssistantHeader } from '../common/AIAssistantHeader';
+import { GeneratedResponseBox } from '../common/GeneratedResponseBox';
+import { SelectedMessageBox } from '../common/SelectedMessageBox';
+import { ChatHistory } from '../common/ChatHistory';
+import { ChatInput } from '../common/ChatInput';
+import { EmptyState } from '../common/EmptyState';
 import Tabs from '../../../atoms/tabs/Tabs.jsx';
-import { AIAssistantStats } from './AIAssistantStats';
+import { AIAssistantStats } from '../common/AIAssistantStats';
 import { useRoomMessage } from '../../room/RoomMessageContext';
 
 function AIAssistantContent() {
