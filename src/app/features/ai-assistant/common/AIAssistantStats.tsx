@@ -84,7 +84,7 @@ export function AIAssistantStats() {
     },
     {
       label: 'Sức nóng',
-      value: '🔥 70 độ',
+      value: '🌡️ 70',
       valueColor: 'var(--tc-danger-high)',
       backgroundColor: 'var(--bg-caution-active)',
     },
