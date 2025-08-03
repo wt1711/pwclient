@@ -77,7 +77,7 @@ export function AIAssistantStats() {
   const [girlTypes, setGirlTypes] = useState<string[]>([]);
   const stats = [
     {
-      label: 'Tương hợp',
+      label: 'Phù hợp',
       value: '95%',
       valueColor: 'var(--tc-caution-high)',
       backgroundColor: 'var(--bg-caution-active)',
