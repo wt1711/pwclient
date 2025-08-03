@@ -54,12 +54,15 @@ function Tag({ label }: TagProps) {
   return (
     <Box
       style={{
-        padding: '4px 8px',
-        borderRadius: '8px',
+        padding: '8px 12px',
+        borderRadius: '20%',
         backgroundColor: 'var(--bg-surface-active)',
       }}
     >
-      <Text size="T200" style={{ color: 'var(--tc-surface-normal)', whiteSpace: 'nowrap' }}>
+      <Text
+        size="T200"
+        style={{ color: 'var(--tc-positive-normal)', fontWeight: '600', whiteSpace: 'nowrap' }}
+      >
         {label}
       </Text>
     </Box>
