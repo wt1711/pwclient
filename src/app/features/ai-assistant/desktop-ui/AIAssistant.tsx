@@ -8,6 +8,7 @@ import { AIAssistantHeader } from '../common/AIAssistantHeader';
 import { SelectedMessageBox } from '../common/SelectedMessageBox';
 import { AIAssistantProvider, useAIAssistant } from '../AIAssistantContext';
 import { AIAssistantStats } from '../common/AIAssistantStats';
+import { AIChatHeader } from '../common/AIChatHeader';
 import { EmptyState } from '../common/EmptyState';
 
 function AIAssistantContent() {
@@ -17,8 +18,9 @@ function AIAssistantContent() {
 
   return (
     <Box className={css.AIAssistant} shrink="No" direction="Column">
-      <AIAssistantHeader />
+      <AIChatHeader />
       <AIAssistantStats />
+      <AIAssistantHeader />
 
       <Box grow="Yes" direction="Column" style={{ position: 'relative', overflow: 'hidden' }}>
         {/* Generated Response Box */}

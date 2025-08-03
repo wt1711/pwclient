@@ -17,7 +17,10 @@ export function EmptyState() {
       </Avatar>
       {/* <Text size="H4">Hỏi Wingman ngay</Text> */}
       <Text align="Center" style={{ maxWidth: '300px' }}>
-        Nhận gợi ý hoặc phân tích về cuộc hội thoại từ Wingman
+        <b>Hỏi Wingman</b> về cả cuộc hội thoại
+      </Text>
+      <Text align="Center" style={{ maxWidth: '300px' }}>
+        hoặc một tin nhắn cụ thể
       </Text>
     </Box>
   );
