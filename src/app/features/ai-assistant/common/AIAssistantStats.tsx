@@ -26,14 +26,14 @@ function StatBox({ label, value, valueColor, backgroundColor }: StatBoxProps) {
         flex: 1,
       }}
     >
-      <Text size="T200" style={{ color: 'var(--tc-surface-low)', whiteSpace: 'nowrap' }}>
-        {label}
-      </Text>
       <Text
         size="T400"
         style={{ color: valueColor, fontWeight: 'var(--fw-medium)', whiteSpace: 'nowrap' }}
       >
         {value}
+      </Text>
+      <Text size="T200" style={{ color: 'var(--tc-surface-low)', whiteSpace: 'nowrap' }}>
+        {label}
       </Text>
     </Box>
   );
@@ -74,16 +74,16 @@ export function AIAssistantStats() {
   const [girlTypes, setGirlTypes] = useState<string[]>([]);
   const stats = [
     {
-      label: 'Hợp nhau',
+      label: 'Tương hợp',
       value: '95%',
-      valueColor: '#D97706',
-      backgroundColor: 'rgba(217, 119, 6, 0.1)',
+      valueColor: 'var(--tc-caution-high)',
+      backgroundColor: 'var(--bg-caution-active)',
     },
     {
       label: 'Sức nóng câu chuyện',
       value: '🔥 KHÁ NÓNG',
-      valueColor: '#DB2777',
-      backgroundColor: 'rgba(219, 39, 119, 0.1)',
+      valueColor: 'var(--tc-danger-high)',
+      backgroundColor: 'var(--bg-caution-active)',
     },
   ];
   const room = useRoom();
