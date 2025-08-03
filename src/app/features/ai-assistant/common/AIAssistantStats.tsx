@@ -54,12 +54,15 @@ function Tag({ label }: TagProps) {
   return (
     <Box
       style={{
-        padding: '4px 8px',
-        borderRadius: '8px',
-        backgroundColor: 'rgba(0, 0, 0, 0.1)',
+        padding: '8px 12px',
+        borderRadius: '20%',
+        backgroundColor: 'var(--bg-surface-active)',
       }}
     >
-      <Text size="T200" style={{ color: 'var(--tc-surface-normal)', whiteSpace: 'nowrap' }}>
+      <Text
+        size="T200"
+        style={{ color: 'var(--tc-positive-normal)', fontWeight: '600', whiteSpace: 'nowrap' }}
+      >
         {label}
       </Text>
     </Box>
@@ -74,14 +77,14 @@ export function AIAssistantStats() {
   const [girlTypes, setGirlTypes] = useState<string[]>([]);
   const stats = [
     {
-      label: 'Tương hợp',
+      label: 'Phù hợp',
       value: '95%',
       valueColor: 'var(--tc-caution-high)',
       backgroundColor: 'var(--bg-caution-active)',
     },
     {
-      label: 'Sức nóng câu chuyện',
-      value: '🔥 KHÁ NÓNG',
+      label: 'Sức nóng',
+      value: '🔥 70 độ',
       valueColor: 'var(--tc-danger-high)',
       backgroundColor: 'var(--bg-caution-active)',
     },
