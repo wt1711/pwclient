@@ -83,8 +83,8 @@ export function AIAssistantStats() {
       backgroundColor: 'var(--bg-caution-active)',
     },
     {
-      label: 'Sức nóng câu chuyện',
-      value: '🔥 KHÁ NÓNG',
+      label: 'Sức nóng',
+      value: '🔥 70 độ',
       valueColor: 'var(--tc-danger-high)',
       backgroundColor: 'var(--bg-caution-active)',
     },
