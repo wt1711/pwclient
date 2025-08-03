@@ -35,7 +35,7 @@ export async function getOpenAIConsultation({
     const data = await response.json();
     return data.suggestion;
   } catch (error) {
-    return 'Xin lỗi, đã có lỗi khi lấy gợi ý.';
+    return 'Xin lỗi, đã có lỗi khi lấy mẫu.';
   }
 }
 

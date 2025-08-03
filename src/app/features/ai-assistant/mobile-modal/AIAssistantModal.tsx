@@ -7,6 +7,7 @@ import { settingsAtom } from '../../../state/settings';
 import { stopPropagation } from '../../../utils/keyboard';
 import { AIAssistantProvider, useAIAssistant } from '../AIAssistantContext';
 import { AIAssistantHeader } from '../common/AIAssistantHeader';
+import { AIChatHeader } from '../common/AIChatHeader';
 import { GeneratedResponseBox } from '../common/GeneratedResponseBox';
 import { SelectedMessageBox } from '../common/SelectedMessageBox';
 import { ChatHistory } from '../common/ChatHistory';
@@ -37,11 +38,12 @@ function AIAssistantContent() {
         borderRadius: '12px',
       }}
     >
-      <AIAssistantHeader />
+      <AIChatHeader />
       <AIAssistantStats />
+      <AIAssistantHeader />
       <Tabs
         items={[
-          { text: 'Gợi ý trả lời', id: 'response' },
+          { text: 'Tin nhắn mẫu', id: 'response' },
           { text: 'Hỏi Wingman', id: 'chat' },
         ]}
         defaultSelected={defaultTabIndex}

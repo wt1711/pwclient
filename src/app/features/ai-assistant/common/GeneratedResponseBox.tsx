@@ -51,7 +51,7 @@ export function GeneratedResponseBox() {
                 border: '1px solid var(--bg-surface-border)',
               }}
             >
-              <Text size="B400">Dùng gợi ý này</Text>
+              <Text size="B400">Dùng mẫu này </Text>
             </Button>
             <Button
               onClick={generateNewResponse}
@@ -62,19 +62,20 @@ export function GeneratedResponseBox() {
                 padding: '12px 24px',
               }}
             >
-              <Text size="B400">Lấy gợi ý mới</Text>
+              <Text size="B400">Tạo mẫu mới</Text>
             </Button>
           </Box>
         </Box>
       ) : (
         <Box direction="Column" alignItems="Center">
           <Button
+            size="500"
             fill="Solid"
             variant="Primary"
             onClick={generateNewResponse}
             disabled={isGeneratingResponse}
           >
-            {isGeneratingResponse ? <Spinner size="200" /> : <Text size="B400">Tạo gợi ý</Text>}
+            {isGeneratingResponse ? <Spinner size="200" /> : <Text size="H6">Tạo mẫu mới</Text>}
           </Button>
         </Box>
       )}
