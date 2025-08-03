@@ -56,7 +56,7 @@ function Tag({ label }: TagProps) {
       style={{
         padding: '4px 8px',
         borderRadius: '8px',
-        backgroundColor: 'rgba(0, 0, 0, 0.1)',
+        backgroundColor: 'var(--bg-surface-active)',
       }}
     >
       <Text size="T200" style={{ color: 'var(--tc-surface-normal)', whiteSpace: 'nowrap' }}>
