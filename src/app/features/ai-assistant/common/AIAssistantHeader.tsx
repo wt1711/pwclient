@@ -11,7 +11,7 @@ export function AIAssistantHeader() {
         <Avatar size="300" style={{ borderRadius: '100%', marginLeft: '10px' }}>
           <img src={wingmanPFP} alt="Wingman" style={{ width: '100%', height: '100%' }} />
         </Avatar>
-        <Text size="T400">Wingman AI</Text>
+        <Text size="T400">Wingman AI hỗ trợ</Text>
       </Box>
     </Header>
   );
