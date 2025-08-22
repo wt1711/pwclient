@@ -1,4 +1,7 @@
-import React, { MouseEventHandler, forwardRef, useState } from 'react';
+import React, {
+  // MouseEventHandler,  useState
+  forwardRef,
+} from 'react';
 import FocusTrap from 'focus-trap-react';
 import {
   Box,
@@ -17,29 +20,32 @@ import {
   toRem,
   config,
   Line,
-  PopOut,
-  RectCords,
-  Badge,
+  // PopOut,
+  // RectCords,
+  // Badge,
   Spinner,
 } from 'folds';
-import { useNavigate } from 'react-router-dom';
+// import { useNavigate } from 'react-router-dom';
 import { JoinRule, Room } from 'matrix-js-sdk';
 import { useAtomValue } from 'jotai';
 
-import { useStateEvent } from '../../hooks/useStateEvent';
+// import { useStateEvent } from '../../hooks/useStateEvent';
 import { PageHeader } from '../../components/page';
 import { RoomAvatar, RoomIcon } from '../../components/room-avatar';
 import { UseStateProvider } from '../../components/UseStateProvider';
 import { RoomTopicViewer } from '../../components/room-topic-viewer';
-import { StateEvent } from '../../../types/matrix/room';
+// import { StateEvent } from '../../../types/matrix/room';
 import { useMatrixClient } from '../../hooks/useMatrixClient';
 import { useRoom } from '../../hooks/useRoom';
-import { useSetSetting, useSetting } from '../../state/hooks/settings';
+import {
+  // useSetSetting,
+  useSetting,
+} from '../../state/hooks/settings';
 import { settingsAtom } from '../../state/settings';
 import { useSpaceOptionally } from '../../hooks/useSpace';
-import { getHomeSearchPath, getSpaceSearchPath, withSearchParam } from '../../pages/pathUtils';
+// import { getHomeSearchPath, getSpaceSearchPath, withSearchParam } from '../../pages/pathUtils';
 import { getCanonicalAliasOrRoomId, isRoomAlias, mxcUrlToHttp } from '../../utils/matrix';
-import { _SearchPathSearchParams } from '../../pages/paths';
+// import { _SearchPathSearchParams } from '../../pages/paths';
 import * as css from './RoomViewHeader.css';
 import { useRoomUnread } from '../../state/hooks/unread';
 import { usePowerLevelsAPI, usePowerLevelsContext } from '../../hooks/usePowerLevels';
@@ -56,8 +62,8 @@ import { getMatrixToRoom } from '../../plugins/matrix-to';
 import { getViaServers } from '../../plugins/via-servers';
 import { BackRouteHandler } from '../../components/BackRouteHandler';
 import { useMediaAuthentication } from '../../hooks/useMediaAuthentication';
-import { useRoomPinnedEvents } from '../../hooks/useRoomPinnedEvents';
-import { RoomPinMenu } from './room-pin-menu';
+// import { useRoomPinnedEvents } from '../../hooks/useRoomPinnedEvents';
+// import { RoomPinMenu } from './room-pin-menu';
 import { useOpenRoomSettings } from '../../state/hooks/roomSettings';
 import { RoomNotificationModeSwitcher } from '../../components/RoomNotificationSwitcher';
 import {
@@ -73,7 +79,7 @@ type RoomMenuProps = {
   room: Room;
   requestClose: () => void;
 };
-const RoomMenu = forwardRef<HTMLDivElement, RoomMenuProps>(({ room, requestClose }, ref) => {
+export const RoomMenu = forwardRef<HTMLDivElement, RoomMenuProps>(({ room, requestClose }, ref) => {
   const mx = useMatrixClient();
   const [hideActivity] = useSetting(settingsAtom, 'hideActivity');
   const unread = useRoomUnread(room.roomId, roomToUnreadAtom);
@@ -241,20 +247,20 @@ const RoomMenu = forwardRef<HTMLDivElement, RoomMenuProps>(({ room, requestClose
 });
 
 export function RoomViewHeader() {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const mx = useMatrixClient();
   const useAuthentication = useMediaAuthentication();
   const screenSize = useScreenSizeContext();
   const room = useRoom();
-  const space = useSpaceOptionally();
-  const [menuAnchor, setMenuAnchor] = useState<RectCords>();
-  const [pinMenuAnchor, setPinMenuAnchor] = useState<RectCords>();
+  // const space = useSpaceOptionally();
+  // const [menuAnchor, setMenuAnchor] = useState<RectCords>();
+  // const [pinMenuAnchor, setPinMenuAnchor] = useState<RectCords>();
   const [aiAssistantOpen, setAIAssistantOpen] = useSetting(settingsAtom, 'isAiDrawerOpen');
   const mDirects = useAtomValue(mDirectAtom);
 
-  const pinnedEvents = useRoomPinnedEvents(room);
-  const encryptionEvent = useStateEvent(room, StateEvent.RoomEncryption);
-  const ecryptedRoom = !!encryptionEvent;
+  // const pinnedEvents = useRoomPinnedEvents(room);
+  // const encryptionEvent = useStateEvent(room, StateEvent.RoomEncryption);
+  // const ecryptedRoom = !!encryptionEvent;
   const avatarMxc = useRoomAvatar(room, mDirects.has(room.roomId));
   const name = useRoomName(room);
   const topic = useRoomTopic(room);
@@ -262,25 +268,25 @@ export function RoomViewHeader() {
     ? mxcUrlToHttp(mx, avatarMxc, useAuthentication, 96, 96, 'crop') ?? undefined
     : undefined;
 
-  const setPeopleDrawer = useSetSetting(settingsAtom, 'isPeopleDrawer');
+  // const setPeopleDrawer = useSetSetting(settingsAtom, 'isPeopleDrawer');
 
-  const handleSearchClick = () => {
-    const searchParams: _SearchPathSearchParams = {
-      rooms: room.roomId,
-    };
-    const path = space
-      ? getSpaceSearchPath(getCanonicalAliasOrRoomId(mx, space.roomId))
-      : getHomeSearchPath();
-    navigate(withSearchParam(path, searchParams));
-  };
+  // const handleSearchClick = () => {
+  //   const searchParams: _SearchPathSearchParams = {
+  //     rooms: room.roomId,
+  //   };
+  //   const path = space
+  //     ? getSpaceSearchPath(getCanonicalAliasOrRoomId(mx, space.roomId))
+  //     : getHomeSearchPath();
+  //   navigate(withSearchParam(path, searchParams));
+  // };
 
-  const handleOpenMenu: MouseEventHandler<HTMLButtonElement> = (evt) => {
-    setMenuAnchor(evt.currentTarget.getBoundingClientRect());
-  };
+  // const handleOpenMenu: MouseEventHandler<HTMLButtonElement> = (evt) => {
+  //   setMenuAnchor(evt.currentTarget.getBoundingClientRect());
+  // };
 
-  const handleOpenPinMenu: MouseEventHandler<HTMLButtonElement> = (evt) => {
-    setPinMenuAnchor(evt.currentTarget.getBoundingClientRect());
-  };
+  // const handleOpenPinMenu: MouseEventHandler<HTMLButtonElement> = (evt) => {
+  //   setPinMenuAnchor(evt.currentTarget.getBoundingClientRect());
+  // };
 
   return (
     <PageHeader balance={screenSize === ScreenSize.Mobile}>
@@ -357,7 +363,7 @@ export function RoomViewHeader() {
           </Box>
         </Box>
         <Box shrink="No">
-          {!ecryptedRoom && (
+          {/* {!ecryptedRoom && (
             <TooltipProvider
               position="Bottom"
               offset={4}
@@ -373,8 +379,8 @@ export function RoomViewHeader() {
                 </IconButton>
               )}
             </TooltipProvider>
-          )}
-          <TooltipProvider
+          )} */}
+          {/* <TooltipProvider
             position="Bottom"
             offset={4}
             tooltip={
@@ -410,7 +416,7 @@ export function RoomViewHeader() {
                 <Icon size="400" src={Icons.Pin} filled={!!pinMenuAnchor} />
               </IconButton>
             )}
-          </TooltipProvider>
+          </TooltipProvider> */}
           {screenSize === ScreenSize.Desktop && (
             <TooltipProvider
               position="Bottom"
@@ -424,7 +430,7 @@ export function RoomViewHeader() {
               {(triggerRef) => (
                 <IconButton
                   ref={triggerRef}
-                  onClick={() => setAIAssistantOpen(true)}
+                  onClick={() => setAIAssistantOpen(!aiAssistantOpen)}
                   aria-pressed={aiAssistantOpen}
                 >
                   <img src={wingmanPFP} alt="Wingman" style={{ width: '20px', height: '20px' }} />
@@ -432,7 +438,7 @@ export function RoomViewHeader() {
               )}
             </TooltipProvider>
           )}
-          <PopOut
+          {/* <PopOut
             anchor={pinMenuAnchor}
             position="Bottom"
             content={
@@ -450,8 +456,8 @@ export function RoomViewHeader() {
                 <RoomPinMenu room={room} requestClose={() => setPinMenuAnchor(undefined)} />
               </FocusTrap>
             }
-          />
-          {screenSize === ScreenSize.Desktop && (
+          /> */}
+          {/* {screenSize === ScreenSize.Desktop && (
             <TooltipProvider
               position="Bottom"
               offset={4}
@@ -467,8 +473,8 @@ export function RoomViewHeader() {
                 </IconButton>
               )}
             </TooltipProvider>
-          )}
-          <TooltipProvider
+          )} */}
+          {/* <TooltipProvider
             position="Bottom"
             align="End"
             offset={4}
@@ -483,8 +489,8 @@ export function RoomViewHeader() {
                 <Icon size="400" src={Icons.VerticalDots} filled={!!menuAnchor} />
               </IconButton>
             )}
-          </TooltipProvider>
-          <PopOut
+          </TooltipProvider> */}
+          {/* <PopOut
             anchor={menuAnchor}
             position="Bottom"
             align="End"
@@ -503,7 +509,7 @@ export function RoomViewHeader() {
                 <RoomMenu room={room} requestClose={() => setMenuAnchor(undefined)} />
               </FocusTrap>
             }
-          />
+          /> */}
         </Box>
       </Box>
     </PageHeader>
