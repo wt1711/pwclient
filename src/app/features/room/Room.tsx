@@ -3,7 +3,7 @@ import { Box, IconButton, Line } from 'folds';
 import { useParams, useNavigate, Navigate } from 'react-router-dom';
 import { isKeyHotkey } from 'is-hotkey';
 import { RoomView } from './RoomView';
-import { MembersDrawer } from './MembersDrawer';
+// import { MembersDrawer } from './MembersDrawer';
 import { ScreenSize, useScreenSizeContext } from '../../hooks/useScreenSize';
 import { useSetting } from '../../state/hooks/settings';
 import { settingsAtom } from '../../state/settings';
@@ -12,7 +12,7 @@ import { useRoom } from '../../hooks/useRoom';
 import { useKeyDown } from '../../hooks/useKeyDown';
 import { markAsRead } from '../../../client/action/notifications';
 import { useMatrixClient } from '../../hooks/useMatrixClient';
-import { useRoomMembers } from '../../hooks/useRoomMembers';
+// import { useRoomMembers } from '../../hooks/useRoomMembers';
 import { AIAssistant } from '../ai-assistant/desktop-ui/AIAssistant';
 import { AIAssistantModal } from '../ai-assistant/mobile-modal/AIAssistantModal';
 import { RoomEditorProvider } from './RoomEditorContext';
@@ -26,11 +26,11 @@ export function Room() {
   const room = useRoom();
   const { roomId } = room;
   const screenSize = useScreenSizeContext();
-  const [isDrawer] = useSetting(settingsAtom, 'isPeopleDrawer');
+  // const [isDrawer] = useSetting(settingsAtom, 'isPeopleDrawer');
   const [isAiDrawer, setIsAiDrawer] = useSetting(settingsAtom, 'isAiDrawerOpen');
   const [hideActivity] = useSetting(settingsAtom, 'hideActivity');
   const powerLevels = usePowerLevels(room);
-  const members = useRoomMembers(mx, room.roomId);
+  // const members = useRoomMembers(mx, room.roomId);
 
   useKeyDown(
     window,
@@ -60,12 +60,12 @@ export function Room() {
         <RoomMessageProvider>
           <Box grow="Yes">
             <RoomView room={room} eventId={eventId} />
-            {isDesktop && isDrawer && (
+            {/* {isDesktop && isDrawer && (
               <>
                 <Line variant="Background" direction="Vertical" size="300" />
                 <MembersDrawer key={room.roomId} room={room} members={members} />
               </>
-            )}
+            )} */}
             {!isDesktop && isAiDrawer && <AIAssistantModal />}
             {isDesktop && isAiDrawer && (
               <>
