@@ -1,5 +1,9 @@
 import React, { createContext, useContext, useState, ReactNode, useMemo, useCallback } from 'react';
-import { generateResponse, getOpenAIConsultation } from './ai';
+import {
+  generateResponseFromMessage,
+  generateResponseFromHistory,
+  getOpenAIConsultation,
+} from './ai';
 import { useRoom } from '../../hooks/useRoom';
 import { useMatrixClient } from '../../hooks/useMatrixClient';
 import { useRoomEditor } from '../room/RoomEditorContext';
@@ -25,7 +29,8 @@ type AIAssistantContextType = {
   // Actions
   setInputValue: (value: string) => void;
   handleSend: () => void;
-  generateNewResponse: () => void;
+  generateNewResponseFromMessage: () => void;
+  generateNewResponseFromHistory: () => void;
   handleUseSuggestion: (response: string) => void;
   clearChatHistory: () => void;
 };
@@ -87,7 +92,7 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
   const { selectedMessage } = useRoomMessage();
   const msgToGetConsultation = selectedMessage || msgToGetResponse;
 
-  const generateNewResponse = useCallback(async () => {
+  const generateNewResponseFromMessage = useCallback(async () => {
     setIsGeneratingResponse(true);
 
     try {
@@ -96,14 +101,31 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
       // Find the last message in the room conversation that is not from the current user
       const message = lastNonUserMsg ? lastNonUserMsg.text : 'Nói gì cũng được';
 
-      const response = await generateResponse({ message, context: roomContext });
+      const response = await generateResponseFromMessage({ message, context: roomContext });
       setGeneratedResponse(response);
     } catch (error) {
-      setGeneratedResponse('Xin lỗi, đã có lỗi khi tạo phản hồi.');
+      setGeneratedResponse('Xin lỗi, đã có lỗi');
     } finally {
       setIsGeneratingResponse(false);
     }
   }, [roomContext, lastNonUserMsg]);
+
+  const generateNewResponseFromHistory = useCallback(async () => {
+    setIsGeneratingResponse(true);
+
+    try {
+      // Get the actual room conversation from timeline
+
+      // Find the last message in the room conversation that is not from the current user
+
+      const response = await generateResponseFromHistory({ context: roomContext });
+      setGeneratedResponse(response);
+    } catch (error) {
+      setGeneratedResponse('Xin lỗi, đã có lỗi');
+    } finally {
+      setIsGeneratingResponse(false);
+    }
+  }, [roomContext]);
 
   const handleUseSuggestion = useCallback(
     (response: string) => {
@@ -184,7 +206,8 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
       // Actions
       setInputValue,
       handleSend,
-      generateNewResponse,
+      generateNewResponseFromMessage,
+      generateNewResponseFromHistory,
       handleUseSuggestion,
       clearChatHistory,
     }),
@@ -196,7 +219,8 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
       isGeneratingResponse,
       isMobile,
       handleSend,
-      generateNewResponse,
+      generateNewResponseFromMessage,
+      generateNewResponseFromHistory,
       handleUseSuggestion,
     ]
   );
