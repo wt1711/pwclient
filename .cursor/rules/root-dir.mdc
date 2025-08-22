@@ -1,0 +1,5 @@
+---
+description: When running terminal command in this project, always cd into /Users/duc/workspace/pwclient
+globs:
+alwaysApply: true
+---
