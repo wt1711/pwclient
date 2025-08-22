@@ -1,25 +1,28 @@
 import React, { useRef } from 'react';
-import { Icon, Icons, Scroll } from 'folds';
+import {
+  // Icon, Icons,
+  Scroll,
+} from 'folds';
 
 import {
   Sidebar,
   SidebarContent,
   SidebarStackSeparator,
   SidebarStack,
-  SidebarAvatar,
-  SidebarItemTooltip,
-  SidebarItem,
+  // SidebarAvatar,
+  // SidebarItemTooltip,
+  // SidebarItem,
 } from '../../components/sidebar';
 import {
-  DirectTab,
+  // DirectTab,
+  // ExploreTab,
   HomeTab,
   SpaceTabs,
   InboxTab,
-  ExploreTab,
   SettingsTab,
   UnverifiedTab,
 } from './sidebar';
-import { openCreateRoom, openSearch } from '../../../client/action/navigation';
+// import { openCreateRoom, openSearch } from '../../../client/action/navigation';
 
 export function SidebarNav() {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -31,11 +34,11 @@ export function SidebarNav() {
           <Scroll ref={scrollRef} variant="Background" size="0">
             <SidebarStack>
               <HomeTab />
-              <DirectTab />
+              {/* <DirectTab /> */}
             </SidebarStack>
             <SpaceTabs scrollRef={scrollRef} />
             <SidebarStackSeparator />
-            <SidebarStack>
+            {/* <SidebarStack>
               <ExploreTab />
               <SidebarItem>
                 <SidebarItemTooltip tooltip="Create Space">
@@ -51,14 +54,14 @@ export function SidebarNav() {
                   )}
                 </SidebarItemTooltip>
               </SidebarItem>
-            </SidebarStack>
+            </SidebarStack> */}
           </Scroll>
         }
         sticky={
           <>
             <SidebarStackSeparator />
             <SidebarStack>
-              <SidebarItem>
+              {/* <SidebarItem>
                 <SidebarItemTooltip tooltip="Search">
                   {(triggerRef) => (
                     <SidebarAvatar
@@ -71,7 +74,7 @@ export function SidebarNav() {
                     </SidebarAvatar>
                   )}
                 </SidebarItemTooltip>
-              </SidebarItem>
+              </SidebarItem> */}
 
               <UnverifiedTab />
 

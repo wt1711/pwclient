@@ -1,5 +1,16 @@
 import React, { MouseEventHandler, useCallback, useMemo, useRef, useState } from 'react';
-import { Box, Chip, Icon, IconButton, Icons, Line, Scroll, Spinner, Text, config } from 'folds';
+import {
+  Box,
+  Chip,
+  Icon,
+  IconButton,
+  Icons,
+  // Line,
+  Scroll,
+  Spinner,
+  Text,
+  config,
+} from 'folds';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useAtom, useAtomValue } from 'jotai';
 import { useNavigate } from 'react-router-dom';
@@ -16,10 +27,12 @@ import {
 } from '../../hooks/useSpaceHierarchy';
 import { VirtualTile } from '../../components/virtualizer';
 import { spaceRoomsAtom } from '../../state/spaceRooms';
-import { MembersDrawer } from '../room/MembersDrawer';
-import { useSetting } from '../../state/hooks/settings';
-import { ScreenSize, useScreenSizeContext } from '../../hooks/useScreenSize';
-import { settingsAtom } from '../../state/settings';
+// import { MembersDrawer } from '../room/MembersDrawer';
+// import { useSetting } from '../../state/hooks/settings';
+import // ScreenSize,
+// useScreenSizeContext,
+'../../hooks/useScreenSize';
+// import { settingsAtom } from '../../state/settings';
 import { LobbyHeader } from './LobbyHeader';
 import { LobbyHero } from './LobbyHero';
 import { ScrollTopContainer } from '../../components/scroll-top-container';
@@ -51,7 +64,7 @@ import {
 import { useOrphanSpaces } from '../../state/hooks/roomList';
 import { roomToParentsAtom } from '../../state/room/roomToParents';
 import { AccountDataEvent } from '../../../types/matrix/accountData';
-import { useRoomMembers } from '../../hooks/useRoomMembers';
+// import { useRoomMembers } from '../../hooks/useRoomMembers';
 import { SpaceHierarchy } from './SpaceHierarchy';
 import { useGetRoom } from '../../hooks/useGetRoom';
 import { AsyncStatus, useAsyncCallback } from '../../hooks/useAsyncCallback';
@@ -152,14 +165,14 @@ export function Lobby() {
   const space = useSpace();
   const spacePowerLevels = usePowerLevels(space);
   const lex = useMemo(() => new ASCIILexicalTable(' '.charCodeAt(0), '~'.charCodeAt(0), 6), []);
-  const members = useRoomMembers(mx, space.roomId);
+  // const members = useRoomMembers(mx, space.roomId);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const heroSectionRef = useRef<HTMLDivElement>(null);
   const [heroSectionHeight, setHeroSectionHeight] = useState<number>();
   const [spaceRooms, setSpaceRooms] = useAtom(spaceRoomsAtom);
-  const [isDrawer] = useSetting(settingsAtom, 'isPeopleDrawer');
-  const screenSize = useScreenSizeContext();
+  // const [isDrawer] = useSetting(settingsAtom, 'isPeopleDrawer');
+  // const screenSize = useScreenSizeContext();
   const [onTop, setOnTop] = useState(true);
   const [closedCategories, setClosedCategories] = useAtom(useClosedLobbyCategoriesAtom());
   const [sidebarItems] = useSidebarItems(
@@ -544,12 +557,12 @@ export function Lobby() {
             </Scroll>
           </Box>
         </Page>
-        {screenSize === ScreenSize.Desktop && isDrawer && (
+        {/* {screenSize === ScreenSize.Desktop && isDrawer && (
           <>
             <Line variant="Background" direction="Vertical" size="300" />
             <MembersDrawer room={space} members={members} />
           </>
-        )}
+        )} */}
       </Box>
     </PowerLevelsContextProvider>
   );
