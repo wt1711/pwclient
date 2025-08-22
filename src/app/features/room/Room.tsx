@@ -18,6 +18,7 @@ import { AIAssistantModal } from '../ai-assistant/mobile-modal/AIAssistantModal'
 import { RoomEditorProvider } from './RoomEditorContext';
 import { RoomMessageProvider } from './RoomMessageContext';
 import wingmanPFP from '../ai-assistant/wingman.png';
+import { AIAssistantProvider } from '../ai-assistant/AIAssistantContext';
 
 export function Room() {
   const { eventId } = useParams();
@@ -58,43 +59,45 @@ export function Room() {
     <PowerLevelsContextProvider value={powerLevels}>
       <RoomEditorProvider>
         <RoomMessageProvider>
-          <Box grow="Yes">
-            <RoomView room={room} eventId={eventId} />
-            {/* {isDesktop && isDrawer && (
+          <AIAssistantProvider isMobile={false}>
+            <Box grow="Yes">
+              <RoomView room={room} eventId={eventId} />
+              {/* {isDesktop && isDrawer && (
               <>
                 <Line variant="Background" direction="Vertical" size="300" />
                 <MembersDrawer key={room.roomId} room={room} members={members} />
               </>
             )} */}
-            {!isDesktop && isAiDrawer && <AIAssistantModal />}
-            {isDesktop && isAiDrawer && (
-              <>
-                <Line variant="Background" direction="Vertical" size="300" />
-                <AIAssistant />
-              </>
-            )}
-            {!isDesktop && (
-              <IconButton
-                variant="Primary"
-                style={{
-                  position: 'fixed',
-                  bottom: '80px',
-                  left: '10px',
-                  zIndex: 100,
-                  borderRadius: '100%',
-                  padding: '5px',
-                  cursor: 'pointer',
-                }}
-                onClick={() => setIsAiDrawer(true)}
-              >
-                <img
-                  src={wingmanPFP}
-                  alt="Wingman"
-                  style={{ width: '50px', height: '50px', borderRadius: '100%' }}
-                />
-              </IconButton>
-            )}
-          </Box>
+              {!isDesktop && isAiDrawer && <AIAssistantModal />}
+              {isDesktop && isAiDrawer && (
+                <>
+                  <Line variant="Background" direction="Vertical" size="300" />
+                  <AIAssistant />
+                </>
+              )}
+              {!isDesktop && (
+                <IconButton
+                  variant="Primary"
+                  style={{
+                    position: 'fixed',
+                    bottom: '80px',
+                    left: '10px',
+                    zIndex: 100,
+                    borderRadius: '100%',
+                    padding: '5px',
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => setIsAiDrawer(true)}
+                >
+                  <img
+                    src={wingmanPFP}
+                    alt="Wingman"
+                    style={{ width: '50px', height: '50px', borderRadius: '100%' }}
+                  />
+                </IconButton>
+              )}
+            </Box>
+          </AIAssistantProvider>
         </RoomMessageProvider>
       </RoomEditorProvider>
     </PowerLevelsContextProvider>

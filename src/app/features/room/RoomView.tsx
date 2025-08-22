@@ -23,6 +23,7 @@ import navigation from '../../../client/state/navigation';
 // import { useSetting } from '../../state/hooks/settings';
 import { useAccessibleTagColors, usePowerLevelTags } from '../../hooks/usePowerLevelTags';
 import { useTheme } from '../../hooks/useTheme';
+import { GeneratedResponseBox } from '../ai-assistant/common/GeneratedResponseBox';
 
 const FN_KEYS_REGEX = /^F\d+$/;
 const shouldFocusMessageField = (evt: KeyboardEvent): boolean => {
@@ -125,15 +126,18 @@ export function RoomView({ room, eventId }: { room: Room; eventId?: string }) {
           ) : (
             <>
               {canMessage && (
-                <RoomInput
-                  room={room}
-                  editor={editor}
-                  roomId={roomId}
-                  fileDropContainerRef={roomViewRef}
-                  ref={roomInputRef}
-                  getPowerLevelTag={getPowerLevelTag}
-                  accessibleTagColors={accessibleTagColors}
-                />
+                <>
+                  <GeneratedResponseBox />
+                  <RoomInput
+                    room={room}
+                    editor={editor}
+                    roomId={roomId}
+                    fileDropContainerRef={roomViewRef}
+                    ref={roomInputRef}
+                    getPowerLevelTag={getPowerLevelTag}
+                    accessibleTagColors={accessibleTagColors}
+                  />
+                </>
               )}
               {!canMessage && (
                 <RoomInputPlaceholder

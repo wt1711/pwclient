@@ -8,7 +8,7 @@ import { stopPropagation } from '../../../utils/keyboard';
 import { AIAssistantProvider, useAIAssistant } from '../AIAssistantContext';
 import { AIAssistantHeader } from '../common/AIAssistantHeader';
 import { AIChatHeader } from '../common/AIChatHeader';
-import { GeneratedResponseBox } from '../common/GeneratedResponseBox';
+// import { GeneratedResponseBox } from '../common/GeneratedResponseBox';
 import { SelectedMessageBox } from '../common/SelectedMessageBox';
 import { ChatHistory } from '../common/ChatHistory';
 import { ChatInput } from '../common/ChatInput';
@@ -50,7 +50,7 @@ function AIAssistantContent() {
         onSelect={(item) => setSelectedTab(item.id)}
       />
       <Box grow="Yes" direction="Column" style={{ position: 'relative', overflow: 'hidden' }}>
-        {selectedTab === 'response' && <GeneratedResponseBox />}
+        {/* {selectedTab === 'response' && <GeneratedResponseBox />} */}
         {selectedTab === 'chat' && (
           <>
             <Scroll variant="Background" visibility="Hover">
