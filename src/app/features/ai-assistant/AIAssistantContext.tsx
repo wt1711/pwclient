@@ -26,6 +26,7 @@ type AIAssistantContextType = {
   isGeneratingResponse: boolean;
   isMobile: boolean;
   isAIAssistantOpen: boolean;
+  locale: string;
 
   // Actions
   setInputValue: (value: string) => void;
@@ -62,6 +63,7 @@ export const isFromMe = (sender: string, userId: string) => {
 };
 
 export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderProps) {
+  const locale = 'EN';
   const [inputValue, setInputValue] = useState('');
   const [chatHistory, setChatHistory] = useState<ChatWithAIAssistantMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -212,6 +214,7 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
       isGeneratingResponse,
       isMobile,
       isAIAssistantOpen,
+      locale,
 
       // Actions
       setInputValue,
@@ -235,6 +238,7 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
       generateNewResponseFromHistory,
       handleUseSuggestion,
       toggleAIAssistant,
+      locale,
     ]
   );
 

@@ -1,8 +1,15 @@
 import React from 'react';
 import { Avatar, Box, Text } from 'folds';
 import wingmanPFP from '../wingman.png';
+import { useAIAssistant } from '../AIAssistantContext';
 
 export function EmptyState() {
+  const { locale } = useAIAssistant();
+  const TITLES = {
+    EN: [`Ask Wingman about the convo`, `or a specific message`],
+    VI: [`Hỏi Wingman về cuộc hội thoại`, `hoặc một tin nhắn cụ thể`],
+  };
+  const title = TITLES[locale as keyof typeof TITLES];
   return (
     <Box
       grow="Yes"
@@ -17,10 +24,10 @@ export function EmptyState() {
       </Avatar>
       {/* <Text size="H4">Hỏi Wingman ngay</Text> */}
       <Text align="Center" style={{ maxWidth: '300px' }}>
-        <b>Hỏi Wingman</b> về cả cuộc hội thoại
+        {title[0]}
       </Text>
       <Text align="Center" style={{ maxWidth: '300px' }}>
-        hoặc một tin nhắn cụ thể
+        {title[1]}
       </Text>
     </Box>
   );
