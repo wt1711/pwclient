@@ -116,6 +116,8 @@ import { powerLevelAPI, usePowerLevelsContext } from '../../hooks/usePowerLevels
 import colorMXID from '../../../util/colorMXID';
 import { useIsDirectRoom } from '../../hooks/useRoom';
 
+import { useAIAssistant } from '../ai-assistant/AIAssistantContext';
+
 interface RoomInputProps {
   editor: Editor;
   fileDropContainerRef: RefObject<HTMLElement>;
@@ -139,7 +141,7 @@ export const RoomInput = forwardRef<HTMLDivElement, RoomInputProps>(
     const powerLevels = usePowerLevelsContext();
     const { setEditor: setRoomEditor } = useRoomEditor();
 
-    const [aiAssistantOpen, setAiAssistantOpen] = useState(false);
+    const { isAIAssistantOpen, toggleAIAssistant } = useAIAssistant();
     const aiAssistantBtnRef = useRef<HTMLButtonElement>(null);
     const popoutContentRef = useRef<HTMLDivElement>(null);
 
@@ -179,7 +181,7 @@ export const RoomInput = forwardRef<HTMLDivElement, RoomInputProps>(
     }, [editor, setRoomEditor]);
 
     useEffect(() => {
-      if (!aiAssistantOpen) return undefined;
+      if (!isAIAssistantOpen) return undefined;
 
       const handleClickOutside = (event: MouseEvent) => {
         if (
@@ -188,14 +190,14 @@ export const RoomInput = forwardRef<HTMLDivElement, RoomInputProps>(
           aiAssistantBtnRef.current &&
           !aiAssistantBtnRef.current.contains(event.target as Node)
         ) {
-          setAiAssistantOpen(false);
+          toggleAIAssistant(false);
         }
       };
       document.addEventListener('mousedown', handleClickOutside);
       return () => {
         document.removeEventListener('mousedown', handleClickOutside);
       };
-    }, [aiAssistantOpen]);
+    }, [isAIAssistantOpen, toggleAIAssistant]);
 
     const handleFiles = useCallback(
       async (files: File[]) => {
@@ -619,7 +621,7 @@ export const RoomInput = forwardRef<HTMLDivElement, RoomInputProps>(
                 position="Top"
                 align="End"
                 anchor={
-                  !aiAssistantOpen
+                  !isAIAssistantOpen
                     ? undefined
                     : aiAssistantBtnRef.current?.getBoundingClientRect() ?? undefined
                 }
@@ -642,10 +644,7 @@ export const RoomInput = forwardRef<HTMLDivElement, RoomInputProps>(
                 <IconButton
                   ref={aiAssistantBtnRef}
                   onClick={() => {
-                    setAiAssistantOpen(!aiAssistantOpen);
-                    if (!aiAssistantOpen) {
-                      ReactEditor.focus(editor);
-                    }
+                    toggleAIAssistant();
                   }}
                   variant="SurfaceVariant"
                   size="300"

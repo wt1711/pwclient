@@ -25,6 +25,7 @@ type AIAssistantContextType = {
   generatedResponse: string;
   isGeneratingResponse: boolean;
   isMobile: boolean;
+  isAIAssistantOpen: boolean;
 
   // Actions
   setInputValue: (value: string) => void;
@@ -33,6 +34,7 @@ type AIAssistantContextType = {
   generateNewResponseFromHistory: () => void;
   handleUseSuggestion: (response: string) => void;
   clearChatHistory: () => void;
+  toggleAIAssistant: (isOpen?: boolean) => void;
 };
 
 const AIAssistantContext = createContext<AIAssistantContextType | undefined>(undefined);
@@ -65,6 +67,7 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
   const [isLoading, setIsLoading] = useState(false);
   const [generatedResponse, setGeneratedResponse] = useState('');
   const [isGeneratingResponse, setIsGeneratingResponse] = useState(false);
+  const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
   const room = useRoom();
   const mx = useMatrixClient();
   const { insertText, deleteText } = useRoomEditor();
@@ -112,6 +115,10 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
     [insertText, deleteText, isMobile, setIsAiDrawer]
   );
 
+  const toggleAIAssistant = useCallback((isOpen?: boolean) => {
+    setIsAIAssistantOpen((prev) => isOpen ?? !prev);
+  }, []);
+
   const generateNewResponseFromMessage = useCallback(async () => {
     setIsGeneratingResponse(true);
 
@@ -123,12 +130,13 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
 
       const response = await generateResponseFromMessage({ message, context: roomContext });
       handleUseSuggestion(response);
+      toggleAIAssistant(false);
     } catch (error) {
       setGeneratedResponse('Xin lỗi, đã có lỗi');
     } finally {
       setIsGeneratingResponse(false);
     }
-  }, [roomContext, lastNonUserMsg, handleUseSuggestion]);
+  }, [roomContext, lastNonUserMsg, handleUseSuggestion, toggleAIAssistant]);
 
   const generateNewResponseFromHistory = useCallback(async () => {
     setIsGeneratingResponse(true);
@@ -140,12 +148,13 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
 
       const response = await generateResponseFromHistory({ context: roomContext });
       handleUseSuggestion(response);
+      toggleAIAssistant(false);
     } catch (error) {
       setGeneratedResponse('Xin lỗi, đã có lỗi');
     } finally {
       setIsGeneratingResponse(false);
     }
-  }, [roomContext, handleUseSuggestion]);
+  }, [roomContext, handleUseSuggestion, toggleAIAssistant]);
 
   const handleSend = useCallback(async () => {
     if (inputValue.trim() === '') return;
@@ -202,6 +211,7 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
       generatedResponse,
       isGeneratingResponse,
       isMobile,
+      isAIAssistantOpen,
 
       // Actions
       setInputValue,
@@ -210,6 +220,7 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
       generateNewResponseFromHistory,
       handleUseSuggestion,
       clearChatHistory,
+      toggleAIAssistant,
     }),
     [
       inputValue,
@@ -218,10 +229,12 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
       generatedResponse,
       isGeneratingResponse,
       isMobile,
+      isAIAssistantOpen,
       handleSend,
       generateNewResponseFromMessage,
       generateNewResponseFromHistory,
       handleUseSuggestion,
+      toggleAIAssistant,
     ]
   );
 
