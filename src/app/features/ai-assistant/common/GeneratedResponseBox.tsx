@@ -1,81 +1,56 @@
 import React from 'react';
-import { Box, Text, Spinner, Button } from 'folds';
+import { Box, Text, Spinner, Button, Icon, Icons, Line } from 'folds';
 import { useAIAssistant } from '../AIAssistantContext';
-import { ScreenSize, useScreenSizeContext } from '../../../hooks/useScreenSize';
 
 export function GeneratedResponseBox() {
-  const { generatedResponse, isGeneratingResponse, generateNewResponse, handleUseSuggestion } =
+  const { isGeneratingResponse, generateNewResponseFromMessage, generateNewResponseFromHistory } =
     useAIAssistant();
-
-  const onUseSuggestion = () => {
-    if (generatedResponse) {
-      handleUseSuggestion(generatedResponse);
-    }
-  };
-  const screenSize = useScreenSizeContext();
-  const isDesktop = screenSize === ScreenSize.Desktop;
 
   return (
     <Box
       direction="Column"
-      gap="300"
       style={{
-        margin: '16px',
-        backgroundColor: 'var(--bg-surface-raised)',
+        width: '100%',
       }}
     >
-      {isDesktop && <Text size="L400">Hỗ trợ nhắn tin</Text>}
-      {generatedResponse ? (
-        <Box direction="Column" gap="300">
-          <Box
-            style={{
-              padding: '24px 16px',
-              backgroundColor: 'var(--bg-surface-low)',
-              borderRadius: '8px',
-              border: '1px solid var(--bg-surface-border)',
-              minHeight: '60px',
-              display: 'flex',
-              alignItems: 'center',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-            }}
-          >
-            <Text>{generatedResponse}</Text>
-          </Box>
-          <Box direction="Row" gap="200" justifyContent="Center">
-            <Button
-              onClick={onUseSuggestion}
-              rel="noreferrer noopener"
-              fill="Solid"
-              disabled={!generatedResponse}
-              style={{
-                border: '1px solid var(--bg-surface-border)',
-              }}
-            >
-              <Text size="B400">Dùng mẫu này </Text>
-            </Button>
-            <Button
-              onClick={generateNewResponse}
-              rel="noreferrer noopener"
-              fill="Soft"
-              disabled={isGeneratingResponse}
-              style={{
-                padding: '12px 24px',
-              }}
-            >
-              <Text size="B400">Tạo mẫu mới</Text>
-            </Button>
-          </Box>
+      {isGeneratingResponse ? (
+        <Box alignItems="Center" justifyContent="Center" style={{ padding: '16px' }}>
+          <Spinner size="200" />
         </Box>
       ) : (
-        <Box direction="Column" alignItems="Center">
+        <Box direction="Column" style={{ width: '100%' }}>
           <Button
-            size="500"
-            fill="Solid"
-            variant="Primary"
-            onClick={generateNewResponse}
+            onClick={generateNewResponseFromMessage}
             disabled={isGeneratingResponse}
+            fill="None"
+            style={{ width: '100%', padding: '12px 8px', borderRadius: 0 }}
           >
-            {isGeneratingResponse ? <Spinner size="200" /> : <Text size="H6">Tạo mẫu mới</Text>}
+            <Box
+              direction="Row"
+              justifyContent="SpaceBetween"
+              alignItems="Center"
+              style={{ width: '100%' }}
+            >
+              <Text size="B400">Trả lời tiếp</Text>
+              <Icon src={Icons.Pencil} />
+            </Box>
+          </Button>
+          <Line variant="Surface" />
+          <Button
+            onClick={generateNewResponseFromHistory}
+            disabled={isGeneratingResponse}
+            fill="None"
+            style={{ width: '100%', padding: '12px 8px', borderRadius: 0 }}
+          >
+            <Box
+              direction="Row"
+              justifyContent="SpaceBetween"
+              alignItems="Center"
+              style={{ width: '100%' }}
+            >
+              <Text size="B400">Gợi chuyện mới</Text>
+              <Icon src={Icons.Star} />
+            </Box>
           </Button>
         </Box>
       )}

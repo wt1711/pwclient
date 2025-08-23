@@ -1,5 +1,9 @@
 import React, { createContext, useContext, useState, ReactNode, useMemo, useCallback } from 'react';
-import { generateResponse, getOpenAIConsultation } from './ai';
+import {
+  generateResponseFromMessage,
+  generateResponseFromHistory,
+  getOpenAIConsultation,
+} from './ai';
 import { useRoom } from '../../hooks/useRoom';
 import { useMatrixClient } from '../../hooks/useMatrixClient';
 import { useRoomEditor } from '../room/RoomEditorContext';
@@ -21,13 +25,16 @@ type AIAssistantContextType = {
   generatedResponse: string;
   isGeneratingResponse: boolean;
   isMobile: boolean;
+  isAIAssistantOpen: boolean;
 
   // Actions
   setInputValue: (value: string) => void;
   handleSend: () => void;
-  generateNewResponse: () => void;
+  generateNewResponseFromMessage: () => void;
+  generateNewResponseFromHistory: () => void;
   handleUseSuggestion: (response: string) => void;
   clearChatHistory: () => void;
+  toggleAIAssistant: (isOpen?: boolean) => void;
 };
 
 const AIAssistantContext = createContext<AIAssistantContextType | undefined>(undefined);
@@ -60,6 +67,7 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
   const [isLoading, setIsLoading] = useState(false);
   const [generatedResponse, setGeneratedResponse] = useState('');
   const [isGeneratingResponse, setIsGeneratingResponse] = useState(false);
+  const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
   const room = useRoom();
   const mx = useMatrixClient();
   const { insertText, deleteText } = useRoomEditor();
@@ -87,24 +95,6 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
   const { selectedMessage } = useRoomMessage();
   const msgToGetConsultation = selectedMessage || msgToGetResponse;
 
-  const generateNewResponse = useCallback(async () => {
-    setIsGeneratingResponse(true);
-
-    try {
-      // Get the actual room conversation from timeline
-
-      // Find the last message in the room conversation that is not from the current user
-      const message = lastNonUserMsg ? lastNonUserMsg.text : 'Nói gì cũng được';
-
-      const response = await generateResponse({ message, context: roomContext });
-      setGeneratedResponse(response);
-    } catch (error) {
-      setGeneratedResponse('Xin lỗi, đã có lỗi khi tạo phản hồi.');
-    } finally {
-      setIsGeneratingResponse(false);
-    }
-  }, [roomContext, lastNonUserMsg]);
-
   const handleUseSuggestion = useCallback(
     (response: string) => {
       if (response) {
@@ -124,6 +114,47 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
     },
     [insertText, deleteText, isMobile, setIsAiDrawer]
   );
+
+  const toggleAIAssistant = useCallback((isOpen?: boolean) => {
+    setIsAIAssistantOpen((prev) => isOpen ?? !prev);
+  }, []);
+
+  const generateNewResponseFromMessage = useCallback(async () => {
+    setIsGeneratingResponse(true);
+
+    try {
+      // Get the actual room conversation from timeline
+
+      // Find the last message in the room conversation that is not from the current user
+      const message = lastNonUserMsg ? lastNonUserMsg.text : 'Nói gì cũng được';
+
+      const response = await generateResponseFromMessage({ message, context: roomContext });
+      handleUseSuggestion(response);
+      toggleAIAssistant(false);
+    } catch (error) {
+      setGeneratedResponse('Xin lỗi, đã có lỗi');
+    } finally {
+      setIsGeneratingResponse(false);
+    }
+  }, [roomContext, lastNonUserMsg, handleUseSuggestion, toggleAIAssistant]);
+
+  const generateNewResponseFromHistory = useCallback(async () => {
+    setIsGeneratingResponse(true);
+
+    try {
+      // Get the actual room conversation from timeline
+
+      // Find the last message in the room conversation that is not from the current user
+
+      const response = await generateResponseFromHistory({ context: roomContext });
+      handleUseSuggestion(response);
+      toggleAIAssistant(false);
+    } catch (error) {
+      setGeneratedResponse('Xin lỗi, đã có lỗi');
+    } finally {
+      setIsGeneratingResponse(false);
+    }
+  }, [roomContext, handleUseSuggestion, toggleAIAssistant]);
 
   const handleSend = useCallback(async () => {
     if (inputValue.trim() === '') return;
@@ -180,13 +211,16 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
       generatedResponse,
       isGeneratingResponse,
       isMobile,
+      isAIAssistantOpen,
 
       // Actions
       setInputValue,
       handleSend,
-      generateNewResponse,
+      generateNewResponseFromMessage,
+      generateNewResponseFromHistory,
       handleUseSuggestion,
       clearChatHistory,
+      toggleAIAssistant,
     }),
     [
       inputValue,
@@ -195,9 +229,12 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
       generatedResponse,
       isGeneratingResponse,
       isMobile,
+      isAIAssistantOpen,
       handleSend,
-      generateNewResponse,
+      generateNewResponseFromMessage,
+      generateNewResponseFromHistory,
       handleUseSuggestion,
+      toggleAIAssistant,
     ]
   );
 

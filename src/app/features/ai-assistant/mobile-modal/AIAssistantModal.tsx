@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Overlay, OverlayCenter, OverlayBackdrop, Portal, Box, Scroll } from 'folds';
 import FocusTrap from 'focus-trap-react';
 
@@ -8,12 +8,10 @@ import { stopPropagation } from '../../../utils/keyboard';
 import { AIAssistantProvider, useAIAssistant } from '../AIAssistantContext';
 import { AIAssistantHeader } from '../common/AIAssistantHeader';
 import { AIChatHeader } from '../common/AIChatHeader';
-import { GeneratedResponseBox } from '../common/GeneratedResponseBox';
 import { SelectedMessageBox } from '../common/SelectedMessageBox';
 import { ChatHistory } from '../common/ChatHistory';
 import { ChatInput } from '../common/ChatInput';
 import { EmptyState } from '../common/EmptyState';
-import Tabs from '../../../atoms/tabs/Tabs.jsx';
 import { AIAssistantStats } from '../common/AIAssistantStats';
 import { useRoomMessage } from '../../room/RoomMessageContext';
 
@@ -21,9 +19,6 @@ function AIAssistantContent() {
   const { chatHistory } = useAIAssistant();
   const { selectedMessage } = useRoomMessage();
   const showEmptyState = chatHistory.length === 0 && !selectedMessage;
-  const defaultTabName = selectedMessage ? 'chat' : 'response';
-  const defaultTabIndex = selectedMessage ? 1 : 0;
-  const [selectedTab, setSelectedTab] = useState(defaultTabName);
 
   return (
     <Box
@@ -41,27 +36,16 @@ function AIAssistantContent() {
       <AIChatHeader />
       <AIAssistantStats />
       <AIAssistantHeader />
-      <Tabs
-        items={[
-          { text: 'Tin nhắn mẫu', id: 'response' },
-          { text: 'Hỏi Wingman', id: 'chat' },
-        ]}
-        defaultSelected={defaultTabIndex}
-        onSelect={(item) => setSelectedTab(item.id)}
-      />
       <Box grow="Yes" direction="Column" style={{ position: 'relative', overflow: 'hidden' }}>
-        {selectedTab === 'response' && <GeneratedResponseBox />}
-        {selectedTab === 'chat' && (
-          <>
-            <Scroll variant="Background" visibility="Hover">
-              <Box direction="Column" gap="400" style={{ padding: '16px', minHeight: '100%' }}>
-                <SelectedMessageBox />
-                {showEmptyState ? <EmptyState /> : <ChatHistory />}
-              </Box>
-            </Scroll>
-            <ChatInput />
-          </>
-        )}
+        <>
+          <Scroll variant="Background" visibility="Hover">
+            <Box direction="Column" gap="400" style={{ padding: '16px', minHeight: '100%' }}>
+              <SelectedMessageBox />
+              {showEmptyState ? <EmptyState /> : <ChatHistory />}
+            </Box>
+          </Scroll>
+          <ChatInput />
+        </>
       </Box>
     </Box>
   );
