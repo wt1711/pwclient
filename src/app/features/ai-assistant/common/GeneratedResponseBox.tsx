@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Text, Spinner, Button } from 'folds';
+import { Box, Text, Spinner, Button, Icon, Icons, Line } from 'folds';
 import { useAIAssistant } from '../AIAssistantContext';
 
 export function GeneratedResponseBox() {
@@ -9,38 +9,51 @@ export function GeneratedResponseBox() {
   return (
     <Box
       direction="Column"
-      gap="300"
       style={{
-        margin: '16px',
-        backgroundColor: 'var(--bg-surface-raised)',
+        width: '100%',
       }}
     >
-      <Box direction="Column" alignItems="Center" justifyContent="Center" gap="200">
-        {isGeneratingResponse ? (
+      {isGeneratingResponse ? (
+        <Box alignItems="Center" justifyContent="Center" style={{ padding: '16px' }}>
           <Spinner size="200" />
-        ) : (
-          <>
-            <Button
-              size="300"
-              fill="Solid"
-              variant="Primary"
-              onClick={generateNewResponseFromMessage}
-              disabled={isGeneratingResponse}
+        </Box>
+      ) : (
+        <Box direction="Column" style={{ width: '100%' }}>
+          <Button
+            onClick={generateNewResponseFromMessage}
+            disabled={isGeneratingResponse}
+            fill="None"
+            style={{ width: '100%', padding: '12px 8px', borderRadius: 0 }}
+          >
+            <Box
+              direction="Row"
+              justifyContent="SpaceBetween"
+              alignItems="Center"
+              style={{ width: '100%' }}
             >
-              <Text size="H6">Trả lời tiếp</Text>
-            </Button>
-            <Button
-              size="300"
-              fill="Solid"
-              variant="Primary"
-              onClick={generateNewResponseFromHistory}
-              disabled={isGeneratingResponse}
+              <Text size="B400">Trả lời tiếp</Text>
+              <Icon src={Icons.Pencil} />
+            </Box>
+          </Button>
+          <Line variant="Surface" />
+          <Button
+            onClick={generateNewResponseFromHistory}
+            disabled={isGeneratingResponse}
+            fill="None"
+            style={{ width: '100%', padding: '12px 8px', borderRadius: 0 }}
+          >
+            <Box
+              direction="Row"
+              justifyContent="SpaceBetween"
+              alignItems="Center"
+              style={{ width: '100%' }}
             >
-              <Text size="H6">Gợi chuyện mới</Text>
-            </Button>
-          </>
-        )}
-      </Box>
+              <Text size="B400">Gợi chuyện mới</Text>
+              <Icon src={Icons.Star} />
+            </Box>
+          </Button>
+        </Box>
+      )}
     </Box>
   );
 }
