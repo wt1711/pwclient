@@ -95,6 +95,7 @@ import { fulfilledPromiseSettledResult } from '../../utils/common';
 import { useSetting } from '../../state/hooks/settings';
 import { settingsAtom } from '../../state/settings';
 
+import { GeneratedResponseBox } from '../ai-assistant/common/GeneratedResponseBox';
 import {
   getAudioMsgContent,
   getFileMsgContent,
@@ -138,6 +139,10 @@ export const RoomInput = forwardRef<HTMLDivElement, RoomInputProps>(
     const powerLevels = usePowerLevelsContext();
     const { setEditor: setRoomEditor } = useRoomEditor();
 
+    const [aiAssistantOpen, setAiAssistantOpen] = useState(false);
+    const aiAssistantBtnRef = useRef<HTMLButtonElement>(null);
+    const popoutContentRef = useRef<HTMLDivElement>(null);
+
     const [msgDraft, setMsgDraft] = useAtom(roomIdToMsgDraftAtomFamily(roomId));
     const [replyDraft, setReplyDraft] = useAtom(roomIdToReplyDraftAtomFamily(roomId));
     const replyUserID = replyDraft?.userId;
@@ -159,7 +164,10 @@ export const RoomInput = forwardRef<HTMLDivElement, RoomInputProps>(
 
     const imagePackRooms: Room[] = useImagePackRooms(roomId, roomToParents);
 
-    const [toolbar, setToolbar] = useSetting(settingsAtom, 'editorToolbar');
+    const [
+      toolbar,
+      // setToolbar
+    ] = useSetting(settingsAtom, 'editorToolbar');
     const [autocompleteQuery, setAutocompleteQuery] =
       useState<AutocompleteQuery<AutocompletePrefix>>();
 
@@ -169,6 +177,25 @@ export const RoomInput = forwardRef<HTMLDivElement, RoomInputProps>(
     useEffect(() => {
       setRoomEditor(editor);
     }, [editor, setRoomEditor]);
+
+    useEffect(() => {
+      if (!aiAssistantOpen) return undefined;
+
+      const handleClickOutside = (event: MouseEvent) => {
+        if (
+          popoutContentRef.current &&
+          !popoutContentRef.current.contains(event.target as Node) &&
+          aiAssistantBtnRef.current &&
+          !aiAssistantBtnRef.current.contains(event.target as Node)
+        ) {
+          setAiAssistantOpen(false);
+        }
+      };
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }, [aiAssistantOpen]);
 
     const handleFiles = useCallback(
       async (files: File[]) => {
@@ -586,14 +613,55 @@ export const RoomInput = forwardRef<HTMLDivElement, RoomInputProps>(
           }
           after={
             <>
-              <IconButton
+              <PopOut
+                offset={16}
+                alignOffset={-44}
+                position="Top"
+                align="End"
+                anchor={
+                  !aiAssistantOpen
+                    ? undefined
+                    : aiAssistantBtnRef.current?.getBoundingClientRect() ?? undefined
+                }
+                content={
+                  <Box
+                    ref={popoutContentRef}
+                    direction="Column"
+                    style={{
+                      width: '200px',
+                      backgroundColor: 'var(--bg-surface)',
+                      padding: '8px',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                    }}
+                  >
+                    <GeneratedResponseBox />
+                  </Box>
+                }
+              >
+                <IconButton
+                  ref={aiAssistantBtnRef}
+                  onClick={() => {
+                    setAiAssistantOpen(!aiAssistantOpen);
+                    if (!aiAssistantOpen) {
+                      ReactEditor.focus(editor);
+                    }
+                  }}
+                  variant="SurfaceVariant"
+                  size="300"
+                  radii="300"
+                >
+                  <Icon src={Icons.Pencil} />
+                </IconButton>
+              </PopOut>
+              {/* <IconButton
                 variant="SurfaceVariant"
                 size="300"
                 radii="300"
                 onClick={() => setToolbar(!toolbar)}
               >
                 <Icon src={toolbar ? Icons.AlphabetUnderline : Icons.Alphabet} />
-              </IconButton>
+              </IconButton> */}
               <UseStateProvider initial={undefined}>
                 {(emojiBoardTab: EmojiBoardTab | undefined, setEmojiBoardTab) => (
                   <PopOut

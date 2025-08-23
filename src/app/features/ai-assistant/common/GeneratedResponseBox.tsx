@@ -15,13 +15,13 @@ export function GeneratedResponseBox() {
         backgroundColor: 'var(--bg-surface-raised)',
       }}
     >
-      <Box direction="Row" alignItems="Center" justifyContent="Center" gap="200">
+      <Box direction="Column" alignItems="Center" justifyContent="Center" gap="200">
         {isGeneratingResponse ? (
           <Spinner size="200" />
         ) : (
           <>
             <Button
-              size="500"
+              size="300"
               fill="Solid"
               variant="Primary"
               onClick={generateNewResponseFromMessage}
@@ -30,7 +30,7 @@ export function GeneratedResponseBox() {
               <Text size="H6">Trả lời tiếp</Text>
             </Button>
             <Button
-              size="500"
+              size="300"
               fill="Solid"
               variant="Primary"
               onClick={generateNewResponseFromHistory}
