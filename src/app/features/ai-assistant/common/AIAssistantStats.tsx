@@ -109,6 +109,10 @@ export function AIAssistantStats() {
         },
       ],
     }[locale] || [];
+  const summary = {
+    VI: 'Cuộc trò chuyện đang diễn ra tốt đẹp, hai bạn có vẻ hợp nhau.',
+    EN: 'The conversation is going well, you two seem to get along.',
+  }[locale];
   // const room = useRoom();
   // const roomID = room.roomId || 'default';
 
@@ -128,6 +132,14 @@ export function AIAssistantStats() {
             backgroundColor={stat.backgroundColor}
           />
         ))}
+      </Box>
+      <Box style={{ paddingTop: '8px' }}>
+        <Text
+          size="T300"
+          style={{ fontStyle: 'italic', textAlign: 'center', color: 'var(--tc-surface-low)' }}
+        >
+          {summary}
+        </Text>
       </Box>
       {/* <Box direction="Row" gap="100" style={{ flexWrap: 'wrap', justifyContent: 'center' }}>
         {girlTypes.map((type) => (
