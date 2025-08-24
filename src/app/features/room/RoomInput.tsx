@@ -694,7 +694,7 @@ export const RoomInput = forwardRef<HTMLDivElement, RoomInputProps>(
                       />
                     }
                   >
-                    {!hideStickerBtn && (
+                    {/* {!hideStickerBtn && (
                       <IconButton
                         aria-pressed={emojiBoardTab === EmojiBoardTab.Sticker}
                         onClick={() => setEmojiBoardTab(EmojiBoardTab.Sticker)}
@@ -707,7 +707,7 @@ export const RoomInput = forwardRef<HTMLDivElement, RoomInputProps>(
                           filled={emojiBoardTab === EmojiBoardTab.Sticker}
                         />
                       </IconButton>
-                    )}
+                    )} */}
                     <IconButton
                       ref={emojiBtnRef}
                       aria-pressed={

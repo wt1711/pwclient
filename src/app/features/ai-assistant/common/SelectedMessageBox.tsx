@@ -1,9 +1,11 @@
 import React from 'react';
 import { Box, Text, Icon, Icons, IconButton } from 'folds';
 import { useRoomMessage } from '../../room/RoomMessageContext';
+import { useAIAssistant } from '../AIAssistantContext';
 
 export function SelectedMessageBox() {
   const { selectedMessage, setSelectedMessage } = useRoomMessage();
+  const { locale } = useAIAssistant();
 
   if (!selectedMessage) {
     return null;
@@ -12,6 +14,11 @@ export function SelectedMessageBox() {
   const handleClearSelection = () => {
     setSelectedMessage(null);
   };
+
+  const curTitle = {
+    EN: 'Selected Message',
+    VI: 'Tin nhắn đã chọn',
+  }[locale];
 
   return (
     <Box
@@ -25,7 +32,7 @@ export function SelectedMessageBox() {
       }}
     >
       <Box direction="Row" justifyContent="SpaceBetween" alignItems="Center">
-        <Text size="L400">Tin nhắn đã chọn</Text>
+        <Text size="L400">{curTitle}</Text>
         <IconButton variant="SurfaceVariant" size="300" radii="300" onClick={handleClearSelection}>
           <Icon src={Icons.Cross} size="100" />
         </IconButton>

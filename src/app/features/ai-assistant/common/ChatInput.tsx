@@ -3,7 +3,12 @@ import { Box, Icon, IconButton, Icons, Input } from 'folds';
 import { useAIAssistant } from '../AIAssistantContext';
 
 export function ChatInput() {
-  const { inputValue, setInputValue, handleSend, isLoading } = useAIAssistant();
+  const { inputValue, setInputValue, handleSend, isLoading, locale } = useAIAssistant();
+  const TITLES = {
+    EN: `Ask Wingman here...`,
+    VI: `Hỏi Wingman ở đây...`,
+  };
+  const title = TITLES[locale as keyof typeof TITLES];
 
   return (
     <Box style={{ padding: '16px' }} direction="Row" gap="200" alignItems="Center">
@@ -14,7 +19,7 @@ export function ChatInput() {
         onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => {
           if (e.key === 'Enter') handleSend();
         }}
-        placeholder="Hỏi Wingman ở đây..."
+        placeholder={title}
         style={{ flexGrow: 1 }}
       />
       <IconButton variant="Primary" onClick={handleSend} disabled={isLoading || !inputValue.trim()}>

@@ -3,6 +3,7 @@ import { Box, Text } from 'folds';
 import PropTypes from 'prop-types';
 import { getDateTypes } from '../data';
 import { useRoom } from '../../../hooks/useRoom';
+import { useAIAssistant } from '../AIAssistantContext';
 
 interface StatBoxProps {
   label: string;
@@ -75,26 +76,44 @@ Tag.propTypes = {
 
 export function AIAssistantStats() {
   const [girlTypes, setGirlTypes] = useState<string[]>([]);
-  const stats = [
+  const { locale } = useAIAssistant();
+  const stats =
     {
-      label: 'Phù hợp',
-      value: '95%',
-      valueColor: 'var(--tc-caution-high)',
-      backgroundColor: 'var(--bg-caution-active)',
-    },
-    {
-      label: 'Sức nóng',
-      value: '🌡️ 70',
-      valueColor: 'var(--tc-danger-high)',
-      backgroundColor: 'var(--bg-caution-active)',
-    },
-  ];
+      VI: [
+        {
+          label: 'Phù hợp',
+          value: '95%',
+          valueColor: 'var(--tc-caution-high)',
+          backgroundColor: 'var(--bg-caution-active)',
+        },
+        {
+          label: 'Sức nóng',
+          value: '🌡️ 70',
+          valueColor: 'var(--tc-danger-high)',
+          backgroundColor: 'var(--bg-caution-active)',
+        },
+      ],
+      EN: [
+        {
+          label: 'Match',
+          value: '95%',
+          valueColor: 'var(--tc-caution-high)',
+          backgroundColor: 'var(--bg-caution-active)',
+        },
+        {
+          label: 'Heat',
+          value: '🌡️ 70',
+          valueColor: 'var(--tc-danger-high)',
+          backgroundColor: 'var(--bg-caution-active)',
+        },
+      ],
+    }[locale] || [];
   const room = useRoom();
   const roomID = room.roomId || 'default';
 
   useEffect(() => {
-    setGirlTypes(getDateTypes(roomID));
-  }, [roomID]);
+    setGirlTypes(getDateTypes(roomID, locale));
+  }, [roomID, locale]);
 
   return (
     <Box direction="Column" gap="200" style={{ padding: '8px 16px' }}>

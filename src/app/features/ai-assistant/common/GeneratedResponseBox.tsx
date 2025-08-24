@@ -3,8 +3,17 @@ import { Box, Text, Spinner, Button, Icon, Icons, Line } from 'folds';
 import { useAIAssistant } from '../AIAssistantContext';
 
 export function GeneratedResponseBox() {
-  const { isGeneratingResponse, generateNewResponseFromMessage, generateNewResponseFromHistory } =
-    useAIAssistant();
+  const {
+    isGeneratingResponse,
+    generateNewResponseFromMessage,
+    generateNewResponseFromHistory,
+    locale,
+  } = useAIAssistant();
+  const TITLES = {
+    EN: ['Reply', 'New Topic'],
+    VI: ['Trả lời', 'Chủ đề mới'],
+  };
+  const [replyTitle, newTopicTitle] = TITLES[locale as keyof typeof TITLES] || ['', ''];
 
   return (
     <Box
@@ -31,7 +40,7 @@ export function GeneratedResponseBox() {
               alignItems="Center"
               style={{ width: '100%' }}
             >
-              <Text size="B400">Trả lời tiếp</Text>
+              <Text size="B400">{replyTitle}</Text>
               <Icon src={Icons.Pencil} />
             </Box>
           </Button>
@@ -48,7 +57,7 @@ export function GeneratedResponseBox() {
               alignItems="Center"
               style={{ width: '100%' }}
             >
-              <Text size="B400">Gợi chuyện mới</Text>
+              <Text size="B400">{newTopicTitle}</Text>
               <Icon src={Icons.Star} />
             </Box>
           </Button>
