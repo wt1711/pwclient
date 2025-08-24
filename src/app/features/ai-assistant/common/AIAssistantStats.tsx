@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+// import { useEffect, useState } from 'react';
 import { Box, Text } from 'folds';
 import PropTypes from 'prop-types';
-import { getDateTypes } from '../data';
-import { useRoom } from '../../../hooks/useRoom';
+// import { getDateTypes } from '../data';
+// import { useRoom } from '../../../hooks/useRoom';
 import { useAIAssistant } from '../AIAssistantContext';
 
 interface StatBoxProps {
@@ -75,7 +76,7 @@ Tag.propTypes = {
 };
 
 export function AIAssistantStats() {
-  const [girlTypes, setGirlTypes] = useState<string[]>([]);
+  // const [girlTypes, setGirlTypes] = useState<string[]>([]);
   const { locale } = useAIAssistant();
   const stats =
     {
@@ -96,24 +97,30 @@ export function AIAssistantStats() {
       EN: [
         {
           label: 'Match',
-          value: '95%',
+          value: '75%',
           valueColor: 'var(--tc-caution-high)',
           backgroundColor: 'var(--bg-caution-active)',
         },
         {
           label: 'Heat',
-          value: '🌡️ 70',
+          value: '🌡️ 90',
           valueColor: 'var(--tc-danger-high)',
           backgroundColor: 'var(--bg-caution-active)',
         },
       ],
     }[locale] || [];
-  const room = useRoom();
-  const roomID = room.roomId || 'default';
+  // const summary = {
+  //   VI: 'Hiện tại bạn và cô ấy đang trong giai đoạn thả thính qua lại tinh nghịch, nhiều tò mò nhưng chưa ràng buộc – giống như một “trò chơi hấp dẫn” hơn là một mối quan hệ nghiêm túc.',
+  //   EN: 'Currently, you and her are in the stage of flirting back and forth, with a lot of curiosity but not yet bound – more like a “fun game” than a serious relationship.',
+  // }[locale];
 
-  useEffect(() => {
-    setGirlTypes(getDateTypes(roomID, locale));
-  }, [roomID, locale]);
+  const summary = `Hiện tại bạn và cô ấy đang trong giai đoạn thả thính qua lại tinh nghịch, nhiều tò mò nhưng chưa ràng buộc – một "cuộc dạo chơi cuốn hút" hơn là một mối quan hệ nghiêm túc.`;
+  // const room = useRoom();
+  // const roomID = room.roomId || 'default';
+
+  // useEffect(() => {
+  //   setGirlTypes(getDateTypes(roomID, locale));
+  // }, [roomID, locale]);
 
   return (
     <Box direction="Column" gap="200" style={{ padding: '8px 16px' }}>
@@ -128,11 +135,24 @@ export function AIAssistantStats() {
           />
         ))}
       </Box>
-      <Box direction="Row" gap="100" style={{ flexWrap: 'wrap', justifyContent: 'center' }}>
+      <Box
+        style={{
+          marginTop: '8px',
+          padding: '12px',
+          borderRadius: '8px',
+          border: '1px solid var(--bg-surface-border)',
+          backgroundColor: 'var(--bg-surface-low)',
+        }}
+      >
+        <Text size="B400" style={{ textAlign: 'center', color: 'var(--tc-surface)' }}>
+          {summary}
+        </Text>
+      </Box>
+      {/* <Box direction="Row" gap="100" style={{ flexWrap: 'wrap', justifyContent: 'center' }}>
         {girlTypes.map((type) => (
           <Tag key={type} label={type} />
         ))}
-      </Box>
+      </Box> */}
     </Box>
   );
 }

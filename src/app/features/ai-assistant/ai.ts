@@ -47,7 +47,7 @@ export async function generateResponseFromMessage({
   context: Message[];
 }): Promise<string> {
   try {
-    const response = await fetch('https://wmaide-server.vercel.app/api/generate-response', {
+    const response = await fetch('https://wmaide-server-lac.vercel.app/api/generate-response', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
