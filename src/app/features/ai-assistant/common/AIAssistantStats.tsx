@@ -109,12 +109,11 @@ export function AIAssistantStats() {
         },
       ],
     }[locale] || [];
-  // const summary = {
-  //   VI: 'Hiện tại bạn và cô ấy đang trong giai đoạn thả thính qua lại tinh nghịch, nhiều tò mò nhưng chưa ràng buộc – giống như một “trò chơi hấp dẫn” hơn là một mối quan hệ nghiêm túc.',
-  //   EN: 'Currently, you and her are in the stage of flirting back and forth, with a lot of curiosity but not yet bound – more like a “fun game” than a serious relationship.',
-  // }[locale];
+  const summary = {
+    VI: 'Hiện tại bạn và cô ấy đang trong giai đoạn thả thính qua lại tinh nghịch, nhiều tò mò nhưng chưa ràng buộc – giống như một “trò chơi hấp dẫn” hơn là một mối quan hệ nghiêm túc.',
+    EN: 'Right now, you and her are in the stage of back and forth flirting, with lots of curiosity but not yet a bond – more of an "enchanting game” than a cohesive relationship.',
+  }[locale];
 
-  const summary = `Hiện tại bạn và cô ấy đang trong giai đoạn thả thính qua lại tinh nghịch, nhiều tò mò nhưng chưa ràng buộc – một "cuộc dạo chơi cuốn hút" hơn là một mối quan hệ nghiêm túc.`;
   // const room = useRoom();
   // const roomID = room.roomId || 'default';
 
