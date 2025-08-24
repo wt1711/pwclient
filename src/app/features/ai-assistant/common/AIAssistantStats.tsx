@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+// import { useEffect, useState } from 'react';
 import { Box, Text } from 'folds';
 import PropTypes from 'prop-types';
-import { getDateTypes } from '../data';
-import { useRoom } from '../../../hooks/useRoom';
+// import { getDateTypes } from '../data';
+// import { useRoom } from '../../../hooks/useRoom';
 import { useAIAssistant } from '../AIAssistantContext';
 
 interface StatBoxProps {
@@ -75,7 +76,7 @@ Tag.propTypes = {
 };
 
 export function AIAssistantStats() {
-  const [girlTypes, setGirlTypes] = useState<string[]>([]);
+  // const [girlTypes, setGirlTypes] = useState<string[]>([]);
   const { locale } = useAIAssistant();
   const stats =
     {
@@ -108,12 +109,12 @@ export function AIAssistantStats() {
         },
       ],
     }[locale] || [];
-  const room = useRoom();
-  const roomID = room.roomId || 'default';
+  // const room = useRoom();
+  // const roomID = room.roomId || 'default';
 
-  useEffect(() => {
-    setGirlTypes(getDateTypes(roomID, locale));
-  }, [roomID, locale]);
+  // useEffect(() => {
+  //   setGirlTypes(getDateTypes(roomID, locale));
+  // }, [roomID, locale]);
 
   return (
     <Box direction="Column" gap="200" style={{ padding: '8px 16px' }}>
@@ -128,11 +129,11 @@ export function AIAssistantStats() {
           />
         ))}
       </Box>
-      <Box direction="Row" gap="100" style={{ flexWrap: 'wrap', justifyContent: 'center' }}>
+      {/* <Box direction="Row" gap="100" style={{ flexWrap: 'wrap', justifyContent: 'center' }}>
         {girlTypes.map((type) => (
           <Tag key={type} label={type} />
         ))}
-      </Box>
+      </Box> */}
     </Box>
   );
 }
