@@ -15,7 +15,7 @@ export async function getOpenAIConsultation({
   question?: string;
 }): Promise<string> {
   try {
-    const response = await fetch('https://wmaide-server-lac.vercel.app/api/suggestion', {
+    const response = await fetch('https://wmaide-server.vercel.app/api/suggestion', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
