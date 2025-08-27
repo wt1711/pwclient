@@ -19,7 +19,7 @@ app.on('ready', () => {
   if (isDev()) {
     mainWindow.loadURL('http://localhost:5173');
   } else {
-    mainWindow.loadURL('http://localhost:5173');
+    mainWindow.loadURL('https://pwclient.vercel.app');
     // Temporary until figure out how to load the dist-react/index.html file
     // mainWindow.loadFile(getUIPath());
   }
