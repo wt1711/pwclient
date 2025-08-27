@@ -80,6 +80,9 @@ export default defineConfig({
       strategies: 'injectManifest',
       injectRegister: false,
       manifest: false,
+      injectManifest: {
+        injectionPoint: undefined,
+      },
       devOptions: {
         enabled: true,
         type: 'module',
