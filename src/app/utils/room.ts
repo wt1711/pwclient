@@ -28,6 +28,7 @@ import {
   StateEvent,
   UnreadInfo,
 } from '../../types/matrix/room';
+import { getImpersonatedUserId } from '../features/ai-assistant/utils';
 
 export const getStateEvent = (
   room: Room,
@@ -337,7 +338,8 @@ export const parseReplyFormattedBody = (
 };
 
 export const getMemberDisplayName = (room: Room, userId: string): string | undefined => {
-  const member = room.getMember(userId);
+  // const member = room.getMember(userId); // Revert back to this if needed
+  const member = room.getMember(getImpersonatedUserId(userId, room.getMembers()));
   const name = member?.rawDisplayName;
   if (name === userId) return undefined;
   return name;
@@ -353,7 +355,8 @@ export const getMemberSearchStr = (
 ];
 
 export const getMemberAvatarMxc = (room: Room, userId: string): string | undefined => {
-  const member = room.getMember(userId);
+  // const member = room.getMember(userId); // Revert back to this if needed
+  const member = room.getMember(getImpersonatedUserId(userId, room.getMembers()));
   return member?.getMxcAvatarUrl();
 };
 

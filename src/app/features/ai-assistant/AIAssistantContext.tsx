@@ -10,6 +10,7 @@ import { useRoomEditor } from '../room/RoomEditorContext';
 import { useRoomMessage } from '../room/RoomMessageContext';
 import { useSetSetting } from '../../state/hooks/settings';
 import { settingsAtom } from '../../state/settings';
+import { isFromMe } from './utils';
 
 type ChatWithAIAssistantMessage = {
   sender: 'user' | 'ai';
@@ -43,23 +44,6 @@ const AIAssistantContext = createContext<AIAssistantContextType | undefined>(und
 type AIAssistantProviderProps = {
   children: ReactNode;
   isMobile: boolean;
-};
-
-export const isFromMe = (sender: string, userId: string) => {
-  const userList = [
-    '100008370333450',
-    '100079978062886',
-    '101429627928641',
-    '17842384556897595',
-    'u005',
-  ];
-  // [FB: Khanh ta, Fb: Wayne Tr, ig: lovefish49, ig: vedup.1711, ig: dtran1004]
-  const match = sender.match(/\d+/);
-  const extractedSender = match ? match[0] : '';
-  if (sender === userId || userList.includes(extractedSender as string)) {
-    return true;
-  }
-  return false;
 };
 
 export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderProps) {
