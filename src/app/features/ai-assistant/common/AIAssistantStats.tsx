@@ -1,10 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 // import { useEffect, useState } from 'react';
 import { Box, Text } from 'folds';
 import PropTypes from 'prop-types';
 // import { getDateTypes } from '../data';
 // import { useRoom } from '../../../hooks/useRoom';
+import Tabs from '../../../atoms/tabs/Tabs';
+import Chip from '../../../atoms/chip/Chip';
+import Input from '../../../atoms/input/Input';
+import Button from '../../../atoms/button/Button';
 import { useAIAssistant } from '../AIAssistantContext';
+
+const AnyButton = Button as any;
 
 interface StatBoxProps {
   label: string;
@@ -76,6 +82,7 @@ Tag.propTypes = {
 };
 
 export function AIAssistantStats() {
+  const [activeTab, setActiveTab] = useState('summary');
   // const [girlTypes, setGirlTypes] = useState<string[]>([]);
   const { locale } = useAIAssistant();
   const stats =
@@ -114,12 +121,79 @@ export function AIAssistantStats() {
     EN: 'Right now, you and her are in the stage of back and forth flirting, with lots of curiosity but not yet a bond – more of an "enchanting game” than a cohesive relationship.',
   }[locale];
 
-  // const room = useRoom();
-  // const roomID = room.roomId || 'default';
+  const topics = ['Chanel', 'Pickleball', 'Bodega', 'Weeknd', 'Blackpink', 'BTS'];
 
-  // useEffect(() => {
-  //   setGirlTypes(getDateTypes(roomID, locale));
-  // }, [roomID, locale]);
+  const interactions = [
+    {
+      date: '2025-02-27',
+      note: 'Met at Bodega with her friends. Danced together for a while',
+    },
+    {
+      date: '2025-04-29',
+      note: 'Bumped to each other in Playday Pickleball. Take her to dinner and bring her home',
+    },
+    { date: '2025-07-02', note: 'Went to Blackpink concert in Bangkok together' },
+  ];
+
+  const handleTabSelect = (item: { id: string }) => {
+    setActiveTab(item.id);
+  };
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'summary':
+        return (
+          <>
+            <Box
+              style={{
+                marginTop: '8px',
+                padding: '12px',
+                borderRadius: '8px',
+                border: '1px solid var(--bg-surface-border)',
+                backgroundColor: 'var(--bg-surface-low)',
+              }}
+            >
+              <Text size="B400" style={{ textAlign: 'center', color: 'var(--tc-surface)' }}>
+                {summary}
+              </Text>
+            </Box>
+            <Box
+              direction="Row"
+              gap="100"
+              style={{
+                flexWrap: 'wrap',
+                justifyContent: 'center',
+                marginTop: '8px',
+                padding: '12px',
+              }}
+            >
+              {topics.map((topic) => (
+                <Chip key={topic} text={topic} />
+              ))}
+            </Box>
+          </>
+        );
+      case 'interactions':
+        return (
+          <Box direction="Column" gap="200" style={{ marginTop: '8px', padding: '12px' }}>
+            {interactions.map((interaction) => (
+              <Box key={interaction.note} direction="Column" style={{ marginBottom: '12px' }}>
+                <Text style={{ fontWeight: 'var(--fw-medium)', marginBottom: '4px' }}>
+                  {interaction.date}
+                </Text>
+                <Text>{interaction.note}</Text>
+              </Box>
+            ))}
+            <Box direction="Column" gap="100" style={{ marginTop: '12px' }}>
+              <Input placeholder="Add a new note..." />
+              <AnyButton variant="primary">Add Note</AnyButton>
+            </Box>
+          </Box>
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <Box direction="Column" gap="200" style={{ padding: '8px 16px' }}>
@@ -134,19 +208,15 @@ export function AIAssistantStats() {
           />
         ))}
       </Box>
-      <Box
-        style={{
-          marginTop: '8px',
-          padding: '12px',
-          borderRadius: '8px',
-          border: '1px solid var(--bg-surface-border)',
-          backgroundColor: 'var(--bg-surface-low)',
-        }}
-      >
-        <Text size="B400" style={{ textAlign: 'center', color: 'var(--tc-surface)' }}>
-          {summary}
-        </Text>
-      </Box>
+      <Tabs
+        items={[
+          { id: 'summary', text: 'Summary' },
+          { id: 'interactions', text: 'Interactions & Notes' },
+        ]}
+        defaultSelected={0}
+        onSelect={handleTabSelect}
+      />
+      {renderTabContent()}
       {/* <Box direction="Row" gap="100" style={{ flexWrap: 'wrap', justifyContent: 'center' }}>
         {girlTypes.map((type) => (
           <Tag key={type} label={type} />
