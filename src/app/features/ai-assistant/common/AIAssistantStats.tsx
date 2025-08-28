@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 // import { useEffect, useState } from 'react';
-import { Box, Text } from 'folds';
+import { Box, Text, Chip, PopOut, RectCords, Icon, Icons } from 'folds';
 import PropTypes from 'prop-types';
 // import { getDateTypes } from '../data';
 // import { useRoom } from '../../../hooks/useRoom';
+import dayjs from 'dayjs';
+
+import { DatePicker } from '../../../components/time-date';
 import Tabs from '../../../atoms/tabs/Tabs';
-import Chip from '../../../atoms/chip/Chip';
 import Input from '../../../atoms/input/Input';
 import Button from '../../../atoms/button/Button';
 import { useAIAssistant } from '../AIAssistantContext';
@@ -123,17 +125,36 @@ export function AIAssistantStats() {
 
   const topics = ['Chanel', 'Pickleball', 'Bodega', 'Weeknd', 'Blackpink', 'BTS'];
 
-  const interactions = [
-    {
-      date: '2025-02-27',
-      note: 'Met at Bodega with her friends. Danced together for a while',
-    },
+  const [interactions, setInteractions] = useState([
+    { date: '2025-07-02', note: 'Went to Blackpink concert in Bangkok together' },
     {
       date: '2025-04-29',
       note: 'Bumped to each other in Playday Pickleball. Take her to dinner and bring her home',
     },
-    { date: '2025-07-02', note: 'Went to Blackpink concert in Bangkok together' },
-  ];
+    {
+      date: '2025-02-27',
+      note: 'Met at Bodega with her friends. Danced together for a while',
+    },
+  ]);
+
+  const [newNote, setNewNote] = useState('');
+  const [selectedDate, setSelectedDate] = useState(Date.now());
+  const [datePickerCords, setDatePickerCords] = useState<RectCords>();
+
+  const handleAddNote = () => {
+    if (newNote.trim() === '') return;
+    const newInteraction = {
+      date: dayjs(selectedDate).format('YYYY-MM-DD'),
+      note: newNote,
+    };
+    setInteractions([newInteraction, ...interactions]);
+    setNewNote('');
+  };
+
+  const handleDatePicker: React.MouseEventHandler<HTMLButtonElement> = (e) => {
+    const cords = e.currentTarget.getBoundingClientRect();
+    setDatePickerCords(cords);
+  };
 
   const handleTabSelect = (item: { id: string }) => {
     setActiveTab(item.id);
@@ -168,7 +189,9 @@ export function AIAssistantStats() {
               }}
             >
               {topics.map((topic) => (
-                <Chip key={topic} text={topic} />
+                <Chip key={topic}>
+                  <Text>{topic}</Text>
+                </Chip>
               ))}
             </Box>
           </>
@@ -185,8 +208,40 @@ export function AIAssistantStats() {
               </Box>
             ))}
             <Box direction="Column" gap="100" style={{ marginTop: '12px' }}>
-              <Input placeholder="Add a new note..." />
-              <AnyButton variant="primary">Add Note</AnyButton>
+              <Input
+                placeholder="Add a new note..."
+                value={newNote}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewNote(e.target.value)}
+              />
+              <Chip
+                size="500"
+                variant="Surface"
+                fill="None"
+                outlined
+                radii="300"
+                aria-pressed={!!datePickerCords}
+                after={<Icon size="50" src={Icons.ChevronBottom} />}
+                onClick={handleDatePicker}
+              >
+                <Text size="B300">{dayjs(selectedDate).format('DD MMM YYYY')}</Text>
+              </Chip>
+              <PopOut
+                anchor={datePickerCords}
+                offset={5}
+                position="Bottom"
+                align="Center"
+                content={
+                  <DatePicker
+                    min={Date.now() - 31536000000}
+                    max={Date.now()}
+                    value={selectedDate}
+                    onChange={setSelectedDate}
+                  />
+                }
+              />
+              <AnyButton variant="primary" onClick={handleAddNote}>
+                Add Note
+              </AnyButton>
             </Box>
           </Box>
         );
