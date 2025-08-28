@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 // import { getDateTypes } from '../data';
 // import { useRoom } from '../../../hooks/useRoom';
 import dayjs from 'dayjs';
+import FocusTrap from 'focus-trap-react';
 
 import { DatePicker } from '../../../components/time-date';
 import Tabs from '../../../atoms/tabs/Tabs';
@@ -199,14 +200,20 @@ export function AIAssistantStats() {
       case 'interactions':
         return (
           <Box direction="Column" gap="200" style={{ marginTop: '8px', padding: '12px' }}>
-            {interactions.map((interaction) => (
-              <Box key={interaction.note} direction="Column" style={{ marginBottom: '12px' }}>
-                <Text style={{ fontWeight: 'var(--fw-medium)', marginBottom: '4px' }}>
-                  {interaction.date}
-                </Text>
-                <Text>{interaction.note}</Text>
-              </Box>
-            ))}
+            <Box direction="Column" style={{ maxHeight: '250px', overflowY: 'scroll' }}>
+              {interactions.map((interaction) => (
+                <Box
+                  key={interaction.note}
+                  direction="Column"
+                  style={{ paddingRight: '8px', gap: '4px' }}
+                >
+                  <Text style={{ color: 'var(--tc-surface-low)', fontWeight: 'var(--fw-medium)' }}>
+                    {interaction.date}
+                  </Text>
+                  <Text>{interaction.note}</Text>
+                </Box>
+              ))}
+            </Box>
             <Box direction="Column" gap="100" style={{ marginTop: '12px' }}>
               <Input
                 placeholder="Add a new note..."
@@ -231,12 +238,21 @@ export function AIAssistantStats() {
                 position="Bottom"
                 align="Center"
                 content={
-                  <DatePicker
-                    min={Date.now() - 31536000000}
-                    max={Date.now()}
-                    value={selectedDate}
-                    onChange={setSelectedDate}
-                  />
+                  <FocusTrap
+                    focusTrapOptions={{
+                      onDeactivate: () => setDatePickerCords(undefined),
+                      clickOutsideDeactivates: true,
+                    }}
+                  >
+                    <div>
+                      <DatePicker
+                        min={Date.now() - 31536000000}
+                        max={Date.now()}
+                        value={selectedDate}
+                        onChange={setSelectedDate}
+                      />
+                    </div>
+                  </FocusTrap>
                 }
               />
               <AnyButton variant="primary" onClick={handleAddNote}>
@@ -266,7 +282,7 @@ export function AIAssistantStats() {
       <Tabs
         items={[
           { id: 'summary', text: 'Summary' },
-          { id: 'interactions', text: 'Interactions & Notes' },
+          { id: 'interactions', text: 'Notes' },
         ]}
         defaultSelected={0}
         onSelect={handleTabSelect}
