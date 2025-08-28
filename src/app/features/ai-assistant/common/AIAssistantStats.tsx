@@ -7,6 +7,13 @@ import PropTypes from 'prop-types';
 import dayjs from 'dayjs';
 import FocusTrap from 'focus-trap-react';
 
+import {
+  stats as statsData,
+  summary as summaryData,
+  topics as topicsData,
+  interactions as interactionsData,
+  componentTexts,
+} from '../data';
 import { DatePicker } from '../../../components/time-date';
 import Tabs from '../../../atoms/tabs/Tabs';
 import Input from '../../../atoms/input/Input';
@@ -88,55 +95,14 @@ export function AIAssistantStats() {
   const [activeTab, setActiveTab] = useState('summary');
   // const [girlTypes, setGirlTypes] = useState<string[]>([]);
   const { locale } = useAIAssistant();
-  const stats =
-    {
-      VI: [
-        {
-          label: 'Phù hợp',
-          value: '95%',
-          valueColor: 'var(--tc-caution-high)',
-          backgroundColor: 'var(--bg-caution-active)',
-        },
-        {
-          label: 'Sức nóng',
-          value: '🌡️ 70',
-          valueColor: 'var(--tc-danger-high)',
-          backgroundColor: 'var(--bg-caution-active)',
-        },
-      ],
-      EN: [
-        {
-          label: 'Match',
-          value: '75%',
-          valueColor: 'var(--tc-caution-high)',
-          backgroundColor: 'var(--bg-caution-active)',
-        },
-        {
-          label: 'Heat',
-          value: '🌡️ 90',
-          valueColor: 'var(--tc-danger-high)',
-          backgroundColor: 'var(--bg-caution-active)',
-        },
-      ],
-    }[locale] || [];
-  const summary = {
-    VI: 'Hiện tại bạn và cô ấy đang trong giai đoạn thả thính qua lại tinh nghịch, nhiều tò mò nhưng chưa ràng buộc – giống như một “trò chơi hấp dẫn” hơn là một mối quan hệ nghiêm túc.',
-    EN: 'Right now, you and her are in the stage of back and forth flirting, with lots of curiosity but not yet a bond – more of an "enchanting game” than a cohesive relationship.',
-  }[locale];
+  const stats = statsData[locale as keyof typeof statsData] || [];
+  const summary = summaryData[locale as keyof typeof summaryData];
+  const topics = topicsData[locale as keyof typeof topicsData] || [];
+  const texts = componentTexts[locale as keyof typeof componentTexts];
 
-  const topics = ['Chanel', 'Pickleball', 'Bodega', 'Weeknd', 'Blackpink', 'BTS'];
-
-  const [interactions, setInteractions] = useState([
-    { date: '2025-07-02', note: 'Went to Blackpink concert in Bangkok together' },
-    {
-      date: '2025-04-29',
-      note: 'Bumped to each other in Playday Pickleball. Take her to dinner and bring her home',
-    },
-    {
-      date: '2025-02-27',
-      note: 'Met at Bodega with her friends. Danced together for a while',
-    },
-  ]);
+  const [interactions, setInteractions] = useState(
+    interactionsData[locale as keyof typeof interactionsData] || []
+  );
 
   const [newNote, setNewNote] = useState('');
   const [selectedDate, setSelectedDate] = useState(Date.now());
@@ -175,7 +141,7 @@ export function AIAssistantStats() {
                 backgroundColor: 'var(--bg-surface-low)',
               }}
             >
-              <Text size="B400" style={{ textAlign: 'center', color: 'var(--tc-surface)' }}>
+              <Text size="B400" style={{ color: 'var(--tc-surface)' }}>
                 {summary}
               </Text>
             </Box>
@@ -189,7 +155,7 @@ export function AIAssistantStats() {
                 padding: '12px',
               }}
             >
-              {topics.map((topic) => (
+              {topics.map((topic: string) => (
                 <Chip key={topic}>
                   <Text>{topic}</Text>
                 </Chip>
@@ -201,7 +167,7 @@ export function AIAssistantStats() {
         return (
           <Box direction="Column" gap="200" style={{ marginTop: '8px', padding: '12px' }}>
             <Box direction="Column" style={{ maxHeight: '250px', overflowY: 'scroll' }}>
-              {interactions.map((interaction) => (
+              {interactions.map((interaction: { note: string; date: string }) => (
                 <Box
                   key={interaction.note}
                   direction="Column"
@@ -216,7 +182,7 @@ export function AIAssistantStats() {
             </Box>
             <Box direction="Column" gap="100" style={{ marginTop: '12px' }}>
               <Input
-                placeholder="Add a new note..."
+                placeholder={texts.addNotePlaceholder}
                 value={newNote}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewNote(e.target.value)}
               />
@@ -256,7 +222,7 @@ export function AIAssistantStats() {
                 }
               />
               <AnyButton variant="primary" onClick={handleAddNote}>
-                Add Note
+                {texts.addNoteButton}
               </AnyButton>
             </Box>
           </Box>
@@ -269,20 +235,22 @@ export function AIAssistantStats() {
   return (
     <Box direction="Column" gap="200" style={{ padding: '8px 16px' }}>
       <Box direction="Row" gap="200" style={{ justifyContent: 'space-around' }}>
-        {stats.map((stat) => (
-          <StatBox
-            key={stat.label}
-            label={stat.label}
-            value={stat.value}
-            valueColor={stat.valueColor}
-            backgroundColor={stat.backgroundColor}
-          />
-        ))}
+        {stats.map(
+          (stat: { label: string; value: string; valueColor: string; backgroundColor: string }) => (
+            <StatBox
+              key={stat.label}
+              label={stat.label}
+              value={stat.value}
+              valueColor={stat.valueColor}
+              backgroundColor={stat.backgroundColor}
+            />
+          )
+        )}
       </Box>
       <Tabs
         items={[
-          { id: 'summary', text: 'Summary' },
-          { id: 'interactions', text: 'Notes' },
+          { id: 'summary', text: texts.summaryTab },
+          { id: 'interactions', text: texts.notesTab },
         ]}
         defaultSelected={0}
         onSelect={handleTabSelect}
