@@ -13,7 +13,7 @@ import { RoomTimeline } from './RoomTimeline';
 import { RoomViewTyping } from './RoomViewTyping';
 import { RoomTombstone } from './room-tombstone/RoomTombstone';
 import { RoomInput } from './room-input/RoomInput';
-// import { RoomViewFollowing, RoomViewFollowingPlaceholder } from './RoomViewFollowing';
+// import { RoomViewFollowing, RoomViewFollowingPlaceholder } from './room-view-following/RoomViewFollowing';
 import { Page } from '../../components/page';
 import { RoomViewHeader } from './RoomViewHeader';
 import { useKeyDown } from '../../hooks/useKeyDown';
