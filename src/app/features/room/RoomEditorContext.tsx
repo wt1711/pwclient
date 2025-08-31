@@ -1,9 +1,9 @@
 import React, { createContext, useContext, useState, ReactNode, useMemo, useCallback } from 'react';
 import { Editor, Transforms } from 'slate';
+import { useEditor } from '../../components/editor';
 
 type RoomEditorContextType = {
-  editor: Editor | null;
-  setEditor: (editor: Editor | null) => void;
+  editor: Editor;
   insertText: (text: string) => void;
   deleteText: () => void;
 };
@@ -15,7 +15,7 @@ type RoomEditorProviderProps = {
 };
 
 export function RoomEditorProvider({ children }: RoomEditorProviderProps) {
-  const [editor, setEditor] = useState<Editor | null>(null);
+  const editor = useEditor();
 
   const insertText = useCallback(
     (text: string) => {
@@ -51,11 +51,10 @@ export function RoomEditorProvider({ children }: RoomEditorProviderProps) {
   const value: RoomEditorContextType = useMemo(
     () => ({
       editor,
-      setEditor,
       insertText,
       deleteText,
     }),
-    [editor, setEditor, insertText, deleteText]
+    [editor, insertText, deleteText]
   );
 
   return <RoomEditorContext.Provider value={value}>{children}</RoomEditorContext.Provider>;

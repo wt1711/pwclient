@@ -7,7 +7,7 @@ import { useStateEvent } from '../../hooks/useStateEvent';
 import { StateEvent } from '../../../types/matrix/room';
 import { usePowerLevelsAPI, usePowerLevelsContext } from '../../hooks/usePowerLevels';
 import { useMatrixClient } from '../../hooks/useMatrixClient';
-import { useEditor } from '../../components/editor';
+import { useRoomEditor } from './RoomEditorContext';
 import { RoomInputPlaceholder } from './RoomInputPlaceholder';
 import { RoomTimeline } from './RoomTimeline';
 import { RoomViewTyping } from './RoomViewTyping';
@@ -23,6 +23,7 @@ import navigation from '../../../client/state/navigation';
 // import { useSetting } from '../../state/hooks/settings';
 import { useAccessibleTagColors, usePowerLevelTags } from '../../hooks/usePowerLevelTags';
 import { useTheme } from '../../hooks/useTheme';
+import { AIAssistantProvider } from '../ai-assistant/AIAssistantContext';
 
 const FN_KEYS_REGEX = /^F\d+$/;
 const shouldFocusMessageField = (evt: KeyboardEvent): boolean => {
@@ -64,7 +65,7 @@ export function RoomView({ room, eventId }: { room: Room; eventId?: string }) {
   // const [hideActivity] = useSetting(settingsAtom, 'hideActivity');
 
   const { roomId } = room;
-  const editor = useEditor();
+  const { editor } = useRoomEditor();
 
   const mx = useMatrixClient();
 
@@ -125,15 +126,17 @@ export function RoomView({ room, eventId }: { room: Room; eventId?: string }) {
           ) : (
             <>
               {canMessage && (
-                <RoomInput
-                  room={room}
-                  editor={editor}
-                  roomId={roomId}
-                  fileDropContainerRef={roomViewRef}
-                  ref={roomInputRef}
-                  getPowerLevelTag={getPowerLevelTag}
-                  accessibleTagColors={accessibleTagColors}
-                />
+                <AIAssistantProvider isMobile={false}>
+                  <RoomInput
+                    room={room}
+                    editor={editor}
+                    roomId={roomId}
+                    fileDropContainerRef={roomViewRef}
+                    ref={roomInputRef}
+                    getPowerLevelTag={getPowerLevelTag}
+                    accessibleTagColors={accessibleTagColors}
+                  />
+                </AIAssistantProvider>
               )}
               {!canMessage && (
                 <RoomInputPlaceholder
