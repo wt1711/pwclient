@@ -89,7 +89,7 @@ import { openProfileViewer } from '../../../../client/action/navigation';
 import { useMatrixEventRenderer } from '../../../hooks/useMatrixEventRenderer';
 import { Reactions, Message, Event, EncryptedContent } from '../message';
 import { useMemberEventParser } from '../../../hooks/useMemberEventParser';
-import * as customHtmlCss from '../../styles/CustomHtml.css';
+import * as customHtmlCss from '../../../styles/CustomHtml.css';
 import { RoomIntro } from '../../../components/room-intro';
 import {
   getIntersectionObserverEntry,
