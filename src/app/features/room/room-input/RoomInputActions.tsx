@@ -105,7 +105,7 @@ export function RoomInputActions({
                 onStickerSelect={handleStickerSelect}
                 requestClose={() => {
                   if (emojiBoardTab && !mobileOrTablet()) {
-                    ReactEditor.focus(editor);
+                    setTimeout(() => ReactEditor.focus(editor), 0);
                   }
                   setEmojiBoardTab(undefined);
                 }}
