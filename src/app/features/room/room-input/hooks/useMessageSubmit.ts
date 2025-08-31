@@ -103,7 +103,7 @@ export function useMessageSubmit(
         content['m.relates_to'].is_falling_back = false;
       }
     }
-    mx.sendMessage(roomId, content);
+    mx.sendMessage(roomId, content as any);
     resetEditor(editor);
     resetEditorHistory(editor);
     setReplyDraft(undefined);
