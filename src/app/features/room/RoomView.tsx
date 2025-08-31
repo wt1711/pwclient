@@ -10,7 +10,7 @@ import { useMatrixClient } from '../../hooks/useMatrixClient';
 import { useRoomEditor } from './RoomEditorContext';
 import { RoomInputPlaceholder } from './room-input-placeholder/RoomInputPlaceholder';
 import { RoomTimeline } from './RoomTimeline';
-import { RoomViewTyping } from './RoomViewTyping';
+import { RoomViewTyping } from './room-view-typing/RoomViewTyping';
 import { RoomTombstone } from './room-tombstone/RoomTombstone';
 import { RoomInput } from './room-input/RoomInput';
 // import { RoomViewFollowing, RoomViewFollowingPlaceholder } from './room-view-following/RoomViewFollowing';
