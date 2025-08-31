@@ -1,28 +1,12 @@
-import React, {
-  KeyboardEventHandler,
-  RefObject,
-  forwardRef,
-  useCallback,
-  useEffect,
-  useState,
-} from 'react';
+import React, { RefObject, forwardRef, useCallback, useEffect, useState } from 'react';
 import { useAtomValue } from 'jotai';
-import { isKeyHotkey } from 'is-hotkey';
-import { EventType, Room } from 'matrix-js-sdk';
+import { Room } from 'matrix-js-sdk';
 import { Editor } from 'slate';
 import { Icon, IconButton, Icons, Line } from 'folds';
 
 import { useMatrixClient } from '../../../hooks/useMatrixClient';
 import { useRoomEditor } from '../RoomEditorContext';
-import {
-  CustomEditor,
-  Toolbar,
-  createEmoticonElement,
-  moveCursor,
-  isEmptyEditor,
-} from '../../../components/editor';
-import { getImageInfo, mxcUrlToHttp } from '../../../utils/matrix';
-import { getImageUrlBlob, loadImageElement } from '../../../utils/dom';
+import { CustomEditor, Toolbar } from '../../../components/editor';
 import { useTypingStatusUpdater } from '../../../hooks/useTypingStatusUpdater';
 import { useFilePicker } from '../../../hooks/useFilePicker';
 import { useFilePasteHandler } from '../../../hooks/useFilePasteHandler';
@@ -46,6 +30,7 @@ import { useFileUploads } from './hooks/useFileUploads';
 import { useMessageSubmit } from './hooks/useMessageSubmit';
 import { useAutocomplete } from './hooks/useAutocomplete';
 import { useInputState } from './hooks/useInputState';
+import { useEditorEvents } from './hooks/useEditorEvents';
 
 interface RoomInputProps {
   editor: Editor;
@@ -108,6 +93,22 @@ export const RoomInput = forwardRef<HTMLDivElement, RoomInputProps>(
     } = useAutocomplete(editor);
     const replyUserID = replyDraft?.userId;
 
+    const { handleKeyDown, handleKeyUp, handleEmoticonSelect, handleStickerSelect } =
+      useEditorEvents({
+        editor,
+        submit,
+        setReplyDraft,
+        enterForNewline,
+        autocompleteQuery,
+        setAutocompleteQuery,
+        handleAutocompleteKeyUp,
+        hideActivity,
+        sendTypingStatus,
+        mx,
+        useAuthentication,
+        roomId,
+      });
+
     const replyPowerTag = getPowerLevelTag(powerLevelAPI.getPowerLevel(powerLevels, replyUserID));
     const replyPowerColor = replyPowerTag.color
       ? accessibleTagColors.get(replyPowerTag.color)
@@ -125,58 +126,6 @@ export const RoomInput = forwardRef<HTMLDivElement, RoomInputProps>(
     useEffect(() => {
       setRoomEditor(editor);
     }, [editor, setRoomEditor]);
-
-    const handleKeyDown: KeyboardEventHandler = useCallback(
-      (evt) => {
-        if (
-          (isKeyHotkey('mod+enter', evt) || (!enterForNewline && isKeyHotkey('enter', evt))) &&
-          !evt.nativeEvent.isComposing
-        ) {
-          evt.preventDefault();
-          submit();
-        }
-        if (isKeyHotkey('escape', evt)) {
-          evt.preventDefault();
-          if (autocompleteQuery) {
-            setAutocompleteQuery(undefined);
-            return;
-          }
-          setReplyDraft(undefined);
-        }
-      },
-      [submit, setReplyDraft, enterForNewline, autocompleteQuery, setAutocompleteQuery]
-    );
-
-    const handleKeyUp: KeyboardEventHandler = useCallback(
-      (evt) => {
-        handleAutocompleteKeyUp(evt as React.KeyboardEvent<Element>);
-        if (!hideActivity) {
-          sendTypingStatus(!isEmptyEditor(editor));
-        }
-      },
-      [handleAutocompleteKeyUp, hideActivity, sendTypingStatus, editor]
-    );
-
-    const handleEmoticonSelect = (key: string, shortcode: string) => {
-      editor.insertNode(createEmoticonElement(key, shortcode));
-      moveCursor(editor);
-    };
-
-    const handleStickerSelect = async (mxc: string, shortcode: string, label: string) => {
-      const stickerUrl = mxcUrlToHttp(mx, mxc, useAuthentication);
-      if (!stickerUrl) return;
-
-      const info = await getImageInfo(
-        await loadImageElement(stickerUrl),
-        await getImageUrlBlob(stickerUrl)
-      );
-
-      mx.sendEvent(roomId, EventType.Sticker, {
-        body: label,
-        url: mxc,
-        info,
-      });
-    };
 
     return (
       <div ref={ref}>
