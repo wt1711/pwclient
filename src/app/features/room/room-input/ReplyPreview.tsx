@@ -1,24 +1,14 @@
 import React from 'react';
-import { Box, Text, IconButton, Icons, config, Icon } from 'folds';
-import { RelationType, Room } from 'matrix-js-sdk';
+import { Box, Text, IconButton, Icons, config } from 'folds';
+import { RelationType } from 'matrix-js-sdk';
 import { ReplyLayout, ThreadIndicator } from '../../../components/message';
 import { getMemberDisplayName, trimReplyFromBody } from '../../../utils/room';
-import { IReplyDraft } from '../../../state/room/roomInputDrafts';
 import { getMxIdLocalPart } from '../../../utils/matrix';
+import { useRoomInputContext } from './RoomInputContext';
 
-interface ReplyPreviewProps {
-  replyDraft: IReplyDraft | undefined;
-  setReplyDraft: (draft: IReplyDraft | undefined) => void;
-  replyUsernameColor?: string;
-  room: Room;
-}
+export function ReplyPreview() {
+  const { replyDraft, setReplyDraft, replyUsernameColor, room } = useRoomInputContext();
 
-export function ReplyPreview({
-  replyDraft,
-  setReplyDraft,
-  replyUsernameColor,
-  room,
-}: ReplyPreviewProps) {
   if (!replyDraft) {
     return null;
   }
@@ -36,7 +26,7 @@ export function ReplyPreview({
           size="300"
           radii="300"
         >
-          <Icon src={Icons.Cross} size="50" />
+          <Icons.Cross />
         </IconButton>
         <Box direction="Column">
           {replyDraft.relation?.rel_type === RelationType.Thread && <ThreadIndicator />}
