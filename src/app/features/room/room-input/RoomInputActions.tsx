@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Box, Icon, IconButton, Icons, PopOut } from 'folds';
 import { Editor } from 'slate';
 import { ReactEditor } from 'slate-react';
@@ -30,6 +30,25 @@ export function RoomInputActions({
   const aiAssistantBtnRef = useRef<HTMLButtonElement>(null);
   const popoutContentRef = useRef<HTMLDivElement>(null);
   const emojiBtnRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!isAIAssistantOpen) return undefined;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        popoutContentRef.current &&
+        !popoutContentRef.current.contains(event.target as Node) &&
+        aiAssistantBtnRef.current &&
+        !aiAssistantBtnRef.current.contains(event.target as Node)
+      ) {
+        toggleAIAssistant(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isAIAssistantOpen, toggleAIAssistant]);
 
   return (
     <>
