@@ -1,32 +1,17 @@
 import React from 'react';
-import { Editor } from 'slate';
-import { Room } from 'matrix-js-sdk';
 import {
-  AutocompletePrefix,
-  AutocompleteQuery,
+  EmoticonAutocomplete,
   RoomMentionAutocomplete,
   UserMentionAutocomplete,
-  EmoticonAutocomplete,
-} from '../../../components/editor';
+} from '../../../components/editor/autocomplete';
 import { CommandAutocomplete } from '../CommandAutocomplete';
+import { AutocompletePrefix } from '../../../components/editor';
+import { useRoomInputContext } from './RoomInputContext';
 
-interface AutocompleteHandlerProps {
-  autocompleteQuery: AutocompleteQuery<AutocompletePrefix> | undefined;
-  handleCloseAutocomplete: () => void;
-  editor: Editor;
-  room: Room;
-  roomId: string;
-  imagePackRooms: Room[];
-}
+export function AutocompleteHandler() {
+  const { autocompleteQuery, handleCloseAutocomplete, editor, room, roomId, imagePackRooms } =
+    useRoomInputContext();
 
-export function AutocompleteHandler({
-  autocompleteQuery,
-  handleCloseAutocomplete,
-  editor,
-  room,
-  roomId,
-  imagePackRooms,
-}: AutocompleteHandlerProps) {
   if (!autocompleteQuery) {
     return null;
   }

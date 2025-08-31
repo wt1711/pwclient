@@ -1,31 +1,22 @@
 import React, { useEffect, useRef } from 'react';
 import { Box, Icon, IconButton, Icons, PopOut } from 'folds';
-import { Editor } from 'slate';
 import { ReactEditor } from 'slate-react';
-import { Room } from 'matrix-js-sdk';
 import { GeneratedResponseBox } from '../../ai-assistant/common/GeneratedResponseBox';
 import { useAIAssistant } from '../../ai-assistant/AIAssistantContext';
 import { EmojiBoard, EmojiBoardTab } from '../../../components/emoji-board';
 import { UseStateProvider } from '../../../components/UseStateProvider';
 import { mobileOrTablet } from '../../../utils/user-agent';
+import { useRoomInputContext } from './RoomInputContext';
 
-interface RoomInputActionsProps {
-  editor: Editor;
-  submit: () => void;
-  imagePackRooms: Room[];
-  handleEmoticonSelect: (key: string, shortcode: string) => void;
-  handleStickerSelect: (mxc: string, shortcode: string, label: string) => void;
-  hideStickerBtn: boolean;
-}
-
-export function RoomInputActions({
-  editor,
-  submit,
-  imagePackRooms,
-  handleEmoticonSelect,
-  handleStickerSelect,
-  hideStickerBtn,
-}: RoomInputActionsProps) {
+export function RoomInputActions() {
+  const {
+    editor,
+    submit,
+    imagePackRooms,
+    handleEmoticonSelect,
+    handleStickerSelect,
+    hideStickerBtn,
+  } = useRoomInputContext();
   const { isAIAssistantOpen, toggleAIAssistant } = useAIAssistant();
   const aiAssistantBtnRef = useRef<HTMLButtonElement>(null);
   const popoutContentRef = useRef<HTMLDivElement>(null);
@@ -90,14 +81,6 @@ export function RoomInputActions({
           <Icon src={Icons.Pencil} />
         </IconButton>
       </PopOut>
-      {/* <IconButton
-        variant="SurfaceVariant"
-        size="300"
-        radii="300"
-        onClick={() => setToolbar(!toolbar)}
-      >
-        <Icon src={toolbar ? Icons.AlphabetUnderline : Icons.Alphabet} />
-      </IconButton> */}
       <UseStateProvider initial={undefined}>
         {(
           emojiBoardTab: EmojiBoardTab | undefined,
@@ -131,20 +114,6 @@ export function RoomInputActions({
               />
             }
           >
-            {/* {!hideStickerBtn && (
-              <IconButton
-                aria-pressed={emojiBoardTab === EmojiBoardTab.Sticker}
-                onClick={() => setEmojiBoardTab(EmojiBoardTab.Sticker)}
-                variant="SurfaceVariant"
-                size="300"
-                radii="300"
-              >
-                <Icon
-                  src={Icons.Sticker}
-                  filled={emojiBoardTab === EmojiBoardTab.Sticker}
-                />
-              </IconButton>
-            )} */}
             <IconButton
               ref={emojiBtnRef}
               aria-pressed={

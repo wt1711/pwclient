@@ -11,7 +11,6 @@ import {
   Text,
   toRem,
 } from 'folds';
-import { Room } from 'matrix-js-sdk';
 import {
   UploadBoard,
   UploadBoardContent,
@@ -19,36 +18,23 @@ import {
   UploadBoardImperativeHandlers,
 } from '../../../components/upload-board';
 import { UploadCardRenderer } from '../../../components/upload-card';
-import { TUploadContent, TUploadItem, TUploadMetadata } from '../../../state/room/roomInputDrafts';
-import { Upload, UploadSuccess } from '../../../state/upload';
+import { useRoomInputContext } from './RoomInputContext';
 
-interface UploadAreaProps {
-  room?: Room;
-  selectedFiles: TUploadItem[];
-  uploadBoard: boolean;
-  setUploadBoard: (open: boolean) => void;
-  uploadFamilyObserverAtom: any;
-  handleSendUpload: (uploads: UploadSuccess[]) => Promise<void>;
-  uploadBoardHandlers: MutableRefObject<UploadBoardImperativeHandlers | undefined>;
-  handleCancelUpload: (uploads: Upload[]) => void;
-  handleFileMetadata: (fileItem: TUploadItem, metadata: TUploadMetadata) => void;
-  handleRemoveUpload: (upload: TUploadContent | TUploadContent[]) => void;
-  dropZoneVisible: boolean;
-}
+export function UploadArea() {
+  const {
+    room,
+    selectedFiles,
+    uploadBoard,
+    setUploadBoard,
+    uploadFamilyObserverAtom,
+    handleSendUpload,
+    uploadBoardHandlers,
+    handleCancelUpload,
+    handleFileMetadata,
+    handleRemoveUpload,
+    dropZoneVisible,
+  } = useRoomInputContext();
 
-export function UploadArea({
-  room,
-  selectedFiles,
-  uploadBoard,
-  setUploadBoard,
-  uploadFamilyObserverAtom,
-  handleSendUpload,
-  uploadBoardHandlers,
-  handleCancelUpload,
-  handleFileMetadata,
-  handleRemoveUpload,
-  dropZoneVisible,
-}: UploadAreaProps) {
   if (selectedFiles.length === 0) {
     return (
       <Overlay
@@ -104,7 +90,7 @@ export function UploadArea({
                   isEncrypted={!!fileItem.encInfo}
                   fileItem={fileItem}
                   setMetadata={handleFileMetadata}
-                  onRemove={handleRemoveUpload as any}
+                  onRemove={() => handleRemoveUpload(fileItem.file as File)}
                 />
               ))}
           </UploadBoardContent>
