@@ -7,7 +7,6 @@ import { useSetSetting } from '../../../state/hooks/settings';
 import { settingsAtom } from '../../../state/settings';
 import { useAIAssistant } from '../AIAssistantContext';
 
-// Imports from RoomViewHeader.tsx
 import { RoomAvatar, RoomIcon } from '../../../components/room-avatar';
 import { useMatrixClient } from '../../../hooks/useMatrixClient';
 import { useMediaAuthentication } from '../../../hooks/useMediaAuthentication';

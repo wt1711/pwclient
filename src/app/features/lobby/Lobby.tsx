@@ -27,7 +27,7 @@ import {
 } from '../../hooks/useSpaceHierarchy';
 import { VirtualTile } from '../../components/virtualizer';
 import { spaceRoomsAtom } from '../../state/spaceRooms';
-// import { MembersDrawer } from '../room/MembersDrawer';
+// import { MembersDrawer } from '../room/members-drawer/MembersDrawer';
 // import { useSetting } from '../../state/hooks/settings';
 import // ScreenSize,
 // useScreenSizeContext,
