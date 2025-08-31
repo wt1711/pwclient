@@ -15,7 +15,7 @@ import { RoomTombstone } from './room-tombstone/RoomTombstone';
 import { RoomInput } from './room-input/RoomInput';
 // import { RoomViewFollowing, RoomViewFollowingPlaceholder } from './room-view-following/RoomViewFollowing';
 import { Page } from '../../components/page';
-import { RoomViewHeader } from './RoomViewHeader';
+import { RoomViewHeader } from './room-view-header/RoomViewHeader';
 import { useKeyDown } from '../../hooks/useKeyDown';
 import { editableActiveElement } from '../../utils/dom';
 import navigation from '../../../client/state/navigation';

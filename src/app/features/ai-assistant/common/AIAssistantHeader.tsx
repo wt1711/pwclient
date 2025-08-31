@@ -3,8 +3,6 @@ import { Avatar, Box, Header, Text } from 'folds';
 import wingmanPFP from '../wingman.png';
 import { useAIAssistant } from '../AIAssistantContext';
 
-// Imports from RoomViewHeader.tsx
-
 export function AIAssistantHeader() {
   const { locale } = useAIAssistant();
   const TITLES = {
