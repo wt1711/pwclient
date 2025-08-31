@@ -5,7 +5,7 @@ import * as css from './RoomTombstone.css';
 import { useMatrixClient } from '../../hooks/useMatrixClient';
 import { AsyncStatus, useAsyncCallback } from '../../hooks/useAsyncCallback';
 import { Membership } from '../../../types/matrix/room';
-import { RoomInputPlaceholder } from './RoomInputPlaceholder';
+import { RoomInputPlaceholder } from './room-input-placeholder/RoomInputPlaceholder';
 import { useRoomNavigate } from '../../hooks/useRoomNavigate';
 import { getViaServers } from '../../plugins/via-servers';
 

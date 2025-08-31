@@ -8,7 +8,7 @@ import { StateEvent } from '../../../types/matrix/room';
 import { usePowerLevelsAPI, usePowerLevelsContext } from '../../hooks/usePowerLevels';
 import { useMatrixClient } from '../../hooks/useMatrixClient';
 import { useRoomEditor } from './RoomEditorContext';
-import { RoomInputPlaceholder } from './RoomInputPlaceholder';
+import { RoomInputPlaceholder } from './room-input-placeholder/RoomInputPlaceholder';
 import { RoomTimeline } from './RoomTimeline';
 import { RoomViewTyping } from './RoomViewTyping';
 import { RoomTombstone } from './RoomTombstone';
