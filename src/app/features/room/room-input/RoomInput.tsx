@@ -12,22 +12,7 @@ import { isKeyHotkey } from 'is-hotkey';
 import { EventType, IContent, MsgType, RelationType, Room } from 'matrix-js-sdk';
 import { ReactEditor } from 'slate-react';
 import { Transforms, Editor } from 'slate';
-import {
-  Box,
-  Dialog,
-  Icon,
-  IconButton,
-  Icons,
-  Line,
-  Overlay,
-  OverlayBackdrop,
-  OverlayCenter,
-  PopOut,
-  Scroll,
-  Text,
-  config,
-  toRem,
-} from 'folds';
+import { Icon, IconButton, Icons, Line } from 'folds';
 
 import { useMatrixClient } from '../../../hooks/useMatrixClient';
 import { useRoomEditor } from '../RoomEditorContext';
@@ -42,9 +27,6 @@ import {
   getAutocompleteQuery,
   getPrevWorldRange,
   resetEditor,
-  RoomMentionAutocomplete,
-  UserMentionAutocomplete,
-  EmoticonAutocomplete,
   createEmoticonElement,
   moveCursor,
   resetEditorHistory,
@@ -55,15 +37,7 @@ import {
   trimCommand,
   getMentions,
 } from '../../../components/editor';
-import { EmojiBoard, EmojiBoardTab } from '../../../components/emoji-board';
-import { UseStateProvider } from '../../../components/UseStateProvider';
-import {
-  TUploadContent,
-  encryptFile,
-  getImageInfo,
-  getMxIdLocalPart,
-  mxcUrlToHttp,
-} from '../../../utils/matrix';
+import { TUploadContent, encryptFile, getImageInfo, mxcUrlToHttp } from '../../../utils/matrix';
 import { useTypingStatusUpdater } from '../../../hooks/useTypingStatusUpdater';
 import { useFilePicker } from '../../../hooks/useFilePicker';
 import { useFilePasteHandler } from '../../../hooks/useFilePasteHandler';
@@ -76,13 +50,7 @@ import {
   roomIdToUploadItemsAtomFamily,
   roomUploadAtomFamily,
 } from '../../../state/room/roomInputDrafts';
-import { UploadCardRenderer } from '../../../components/upload-card';
-import {
-  UploadBoard,
-  UploadBoardContent,
-  UploadBoardHeader,
-  UploadBoardImperativeHandlers,
-} from '../../../components/upload-board';
+import { UploadBoardImperativeHandlers } from '../../../components/upload-board';
 import {
   Upload,
   UploadStatus,
@@ -95,19 +63,15 @@ import { fulfilledPromiseSettledResult } from '../../../utils/common';
 import { useSetting } from '../../../state/hooks/settings';
 import { settingsAtom } from '../../../state/settings';
 
-import { GeneratedResponseBox } from '../../ai-assistant/common/GeneratedResponseBox';
 import {
   getAudioMsgContent,
   getFileMsgContent,
   getImageMsgContent,
   getVideoMsgContent,
 } from '../msgContent';
-import { getMemberDisplayName, getMentionContent, trimReplyFromBody } from '../../../utils/room';
-import { CommandAutocomplete } from '../CommandAutocomplete';
+import { getMentionContent } from '../../../utils/room';
 import { Command, SHRUG, TABLEFLIP, UNFLIP, useCommands } from '../../../hooks/useCommands';
-import { mobileOrTablet } from '../../../utils/user-agent';
 import { useElementSizeObserver } from '../../../hooks/useElementSizeObserver';
-import { ReplyLayout, ThreadIndicator } from '../../../components/message';
 import { roomToParentsAtom } from '../../../state/room/roomToParents';
 import { useMediaAuthentication } from '../../../hooks/useMediaAuthentication';
 import { useImagePackRooms } from '../../../hooks/useImagePackRooms';
@@ -117,6 +81,10 @@ import colorMXID from '../../../../util/colorMXID';
 import { useIsDirectRoom } from '../../../hooks/useRoom';
 
 import { useAIAssistant } from '../../ai-assistant/AIAssistantContext';
+import { ReplyPreview } from './ReplyPreview';
+import { RoomInputActions } from './RoomInputActions';
+import { UploadArea } from './UploadArea';
+import { AutocompleteHandler } from './AutocompleteHandler';
 
 interface RoomInputProps {
   editor: Editor;
@@ -136,7 +104,6 @@ export const RoomInput = forwardRef<HTMLDivElement, RoomInputProps>(
     const [legacyUsernameColor] = useSetting(settingsAtom, 'legacyUsernameColor');
     const direct = useIsDirectRoom();
     const commands = useCommands(mx, room);
-    const emojiBtnRef = useRef<HTMLButtonElement>(null);
     const roomToParents = useAtomValue(roomToParentsAtom);
     const powerLevels = usePowerLevelsContext();
     const { setEditor: setRoomEditor } = useRoomEditor();
@@ -469,94 +436,27 @@ export const RoomInput = forwardRef<HTMLDivElement, RoomInputProps>(
 
     return (
       <div ref={ref}>
-        {selectedFiles.length > 0 && (
-          <UploadBoard
-            header={
-              <UploadBoardHeader
-                open={uploadBoard}
-                onToggle={() => setUploadBoard(!uploadBoard)}
-                uploadFamilyObserverAtom={uploadFamilyObserverAtom}
-                onSend={handleSendUpload}
-                imperativeHandlerRef={uploadBoardHandlers}
-                onCancel={handleCancelUpload}
-              />
-            }
-          >
-            {uploadBoard && (
-              <Scroll size="300" hideTrack visibility="Hover">
-                <UploadBoardContent>
-                  {Array.from(selectedFiles)
-                    .reverse()
-                    .map((fileItem, index) => (
-                      <UploadCardRenderer
-                        // eslint-disable-next-line react/no-array-index-key
-                        key={index}
-                        isEncrypted={!!fileItem.encInfo}
-                        fileItem={fileItem}
-                        setMetadata={handleFileMetadata}
-                        onRemove={handleRemoveUpload}
-                      />
-                    ))}
-                </UploadBoardContent>
-              </Scroll>
-            )}
-          </UploadBoard>
-        )}
-        <Overlay
-          open={dropZoneVisible}
-          backdrop={<OverlayBackdrop />}
-          style={{ pointerEvents: 'none' }}
-        >
-          <OverlayCenter>
-            <Dialog variant="Primary">
-              <Box
-                direction="Column"
-                justifyContent="Center"
-                alignItems="Center"
-                gap="500"
-                style={{ padding: toRem(60) }}
-              >
-                <Icon size="600" src={Icons.File} />
-                <Text size="H4" align="Center">
-                  {`Drop Files in "${room?.name || 'Room'}"`}
-                </Text>
-                <Text align="Center">Drag and drop files here or click for selection dialog</Text>
-              </Box>
-            </Dialog>
-          </OverlayCenter>
-        </Overlay>
-        {autocompleteQuery?.prefix === AutocompletePrefix.RoomMention && (
-          <RoomMentionAutocomplete
-            roomId={roomId}
-            editor={editor}
-            query={autocompleteQuery}
-            requestClose={handleCloseAutocomplete}
-          />
-        )}
-        {autocompleteQuery?.prefix === AutocompletePrefix.UserMention && (
-          <UserMentionAutocomplete
-            room={room}
-            editor={editor}
-            query={autocompleteQuery}
-            requestClose={handleCloseAutocomplete}
-          />
-        )}
-        {autocompleteQuery?.prefix === AutocompletePrefix.Emoticon && (
-          <EmoticonAutocomplete
-            imagePackRooms={imagePackRooms}
-            editor={editor}
-            query={autocompleteQuery}
-            requestClose={handleCloseAutocomplete}
-          />
-        )}
-        {autocompleteQuery?.prefix === AutocompletePrefix.Command && (
-          <CommandAutocomplete
-            room={room}
-            editor={editor}
-            query={autocompleteQuery}
-            requestClose={handleCloseAutocomplete}
-          />
-        )}
+        <UploadArea
+          room={room}
+          selectedFiles={selectedFiles}
+          uploadBoard={uploadBoard}
+          setUploadBoard={setUploadBoard}
+          uploadFamilyObserverAtom={uploadFamilyObserverAtom}
+          handleSendUpload={handleSendUpload}
+          uploadBoardHandlers={uploadBoardHandlers}
+          handleCancelUpload={handleCancelUpload}
+          handleFileMetadata={handleFileMetadata}
+          handleRemoveUpload={handleRemoveUpload}
+          dropZoneVisible={dropZoneVisible}
+        />
+        <AutocompleteHandler
+          autocompleteQuery={autocompleteQuery}
+          handleCloseAutocomplete={handleCloseAutocomplete}
+          editor={editor}
+          room={room}
+          roomId={roomId}
+          imagePackRooms={imagePackRooms}
+        />
         <CustomEditor
           editableName="RoomInput"
           editor={editor}
@@ -565,43 +465,12 @@ export const RoomInput = forwardRef<HTMLDivElement, RoomInputProps>(
           onKeyUp={handleKeyUp}
           onPaste={handlePaste}
           top={
-            replyDraft && (
-              <div>
-                <Box
-                  alignItems="Center"
-                  gap="300"
-                  style={{ padding: `${config.space.S200} ${config.space.S300} 0` }}
-                >
-                  <IconButton
-                    onClick={() => setReplyDraft(undefined)}
-                    variant="SurfaceVariant"
-                    size="300"
-                    radii="300"
-                  >
-                    <Icon src={Icons.Cross} size="50" />
-                  </IconButton>
-                  <Box direction="Column">
-                    {replyDraft.relation?.rel_type === RelationType.Thread && <ThreadIndicator />}
-                    <ReplyLayout
-                      userColor={replyUsernameColor}
-                      username={
-                        <Text size="T300" truncate>
-                          <b>
-                            {getMemberDisplayName(room, replyDraft.userId) ??
-                              getMxIdLocalPart(replyDraft.userId) ??
-                              replyDraft.userId}
-                          </b>
-                        </Text>
-                      }
-                    >
-                      <Text size="T300" truncate>
-                        {trimReplyFromBody(replyDraft.body)}
-                      </Text>
-                    </ReplyLayout>
-                  </Box>
-                </Box>
-              </div>
-            )
+            <ReplyPreview
+              replyDraft={replyDraft}
+              setReplyDraft={setReplyDraft}
+              replyUsernameColor={replyUsernameColor}
+              room={room}
+            />
           }
           before={
             <IconButton
@@ -614,124 +483,14 @@ export const RoomInput = forwardRef<HTMLDivElement, RoomInputProps>(
             </IconButton>
           }
           after={
-            <>
-              <PopOut
-                offset={16}
-                alignOffset={-44}
-                position="Top"
-                align="End"
-                anchor={
-                  !isAIAssistantOpen
-                    ? undefined
-                    : aiAssistantBtnRef.current?.getBoundingClientRect() ?? undefined
-                }
-                content={
-                  <Box
-                    ref={popoutContentRef}
-                    direction="Column"
-                    style={{
-                      width: '200px',
-                      backgroundColor: 'var(--bg-surface)',
-                      padding: '8px',
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                    }}
-                  >
-                    <GeneratedResponseBox />
-                  </Box>
-                }
-              >
-                <IconButton
-                  ref={aiAssistantBtnRef}
-                  onClick={() => {
-                    toggleAIAssistant();
-                  }}
-                  variant="SurfaceVariant"
-                  size="300"
-                  radii="300"
-                >
-                  <Icon src={Icons.Pencil} />
-                </IconButton>
-              </PopOut>
-              {/* <IconButton
-                variant="SurfaceVariant"
-                size="300"
-                radii="300"
-                onClick={() => setToolbar(!toolbar)}
-              >
-                <Icon src={toolbar ? Icons.AlphabetUnderline : Icons.Alphabet} />
-              </IconButton> */}
-              <UseStateProvider initial={undefined}>
-                {(emojiBoardTab: EmojiBoardTab | undefined, setEmojiBoardTab) => (
-                  <PopOut
-                    offset={16}
-                    alignOffset={-44}
-                    position="Top"
-                    align="End"
-                    anchor={
-                      emojiBoardTab === undefined
-                        ? undefined
-                        : emojiBtnRef.current?.getBoundingClientRect() ?? undefined
-                    }
-                    content={
-                      <EmojiBoard
-                        tab={emojiBoardTab}
-                        onTabChange={setEmojiBoardTab}
-                        imagePackRooms={imagePackRooms}
-                        returnFocusOnDeactivate={false}
-                        onEmojiSelect={handleEmoticonSelect}
-                        onCustomEmojiSelect={handleEmoticonSelect}
-                        onStickerSelect={handleStickerSelect}
-                        requestClose={() => {
-                          setEmojiBoardTab((t) => {
-                            if (t) {
-                              if (!mobileOrTablet()) ReactEditor.focus(editor);
-                              return undefined;
-                            }
-                            return t;
-                          });
-                        }}
-                      />
-                    }
-                  >
-                    {/* {!hideStickerBtn && (
-                      <IconButton
-                        aria-pressed={emojiBoardTab === EmojiBoardTab.Sticker}
-                        onClick={() => setEmojiBoardTab(EmojiBoardTab.Sticker)}
-                        variant="SurfaceVariant"
-                        size="300"
-                        radii="300"
-                      >
-                        <Icon
-                          src={Icons.Sticker}
-                          filled={emojiBoardTab === EmojiBoardTab.Sticker}
-                        />
-                      </IconButton>
-                    )} */}
-                    <IconButton
-                      ref={emojiBtnRef}
-                      aria-pressed={
-                        hideStickerBtn ? !!emojiBoardTab : emojiBoardTab === EmojiBoardTab.Emoji
-                      }
-                      onClick={() => setEmojiBoardTab(EmojiBoardTab.Emoji)}
-                      variant="SurfaceVariant"
-                      size="300"
-                      radii="300"
-                    >
-                      <Icon
-                        src={Icons.Smile}
-                        filled={
-                          hideStickerBtn ? !!emojiBoardTab : emojiBoardTab === EmojiBoardTab.Emoji
-                        }
-                      />
-                    </IconButton>
-                  </PopOut>
-                )}
-              </UseStateProvider>
-              <IconButton onClick={submit} variant="SurfaceVariant" size="300" radii="300">
-                <Icon src={Icons.Send} />
-              </IconButton>
-            </>
+            <RoomInputActions
+              editor={editor}
+              submit={submit}
+              imagePackRooms={imagePackRooms}
+              handleEmoticonSelect={handleEmoticonSelect}
+              handleStickerSelect={handleStickerSelect}
+              hideStickerBtn={hideStickerBtn}
+            />
           }
           bottom={
             toolbar && (
