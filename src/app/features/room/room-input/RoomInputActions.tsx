@@ -71,6 +71,14 @@ export function RoomInputActions({
           <Icon src={Icons.Pencil} />
         </IconButton>
       </PopOut>
+      {/* <IconButton
+        variant="SurfaceVariant"
+        size="300"
+        radii="300"
+        onClick={() => setToolbar(!toolbar)}
+      >
+        <Icon src={toolbar ? Icons.AlphabetUnderline : Icons.Alphabet} />
+      </IconButton> */}
       <UseStateProvider initial={undefined}>
         {(
           emojiBoardTab: EmojiBoardTab | undefined,
@@ -104,6 +112,20 @@ export function RoomInputActions({
               />
             }
           >
+            {/* {!hideStickerBtn && (
+              <IconButton
+                aria-pressed={emojiBoardTab === EmojiBoardTab.Sticker}
+                onClick={() => setEmojiBoardTab(EmojiBoardTab.Sticker)}
+                variant="SurfaceVariant"
+                size="300"
+                radii="300"
+              >
+                <Icon
+                  src={Icons.Sticker}
+                  filled={emojiBoardTab === EmojiBoardTab.Sticker}
+                />
+              </IconButton>
+            )} */}
             <IconButton
               ref={emojiBtnRef}
               aria-pressed={
