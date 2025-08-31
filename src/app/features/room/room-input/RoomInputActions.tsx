@@ -78,7 +78,7 @@ export function RoomInputActions() {
           size="300"
           radii="300"
         >
-          <Icon src={Icons.Pencil} />
+          <Icon src={Icons.Star} />
         </IconButton>
       </PopOut>
       <UseStateProvider initial={undefined}>
