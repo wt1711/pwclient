@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Text, IconButton, Icons, config } from 'folds';
+import { Box, Text, IconButton, Icons, config, Icon } from 'folds';
 import { RelationType } from 'matrix-js-sdk';
 import { ReplyLayout, ThreadIndicator } from '../../../components/message';
 import { getMemberDisplayName, trimReplyFromBody } from '../../../utils/room';
@@ -26,7 +26,7 @@ export function ReplyPreview() {
           size="300"
           radii="300"
         >
-          <Icons.Cross />
+          <Icon src={Icons.Cross} />
         </IconButton>
         <Box direction="Column">
           {replyDraft.relation?.rel_type === RelationType.Thread && <ThreadIndicator />}

@@ -90,7 +90,7 @@ export function UploadArea() {
                   isEncrypted={!!fileItem.encInfo}
                   fileItem={fileItem}
                   setMetadata={handleFileMetadata}
-                  onRemove={() => handleRemoveUpload(fileItem.file)}
+                  onRemove={() => handleRemoveUpload(fileItem.file as File)}
                 />
               ))}
           </UploadBoardContent>
