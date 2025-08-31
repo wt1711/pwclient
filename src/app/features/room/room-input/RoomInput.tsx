@@ -29,8 +29,8 @@ import {
   toRem,
 } from 'folds';
 
-import { useMatrixClient } from '../../hooks/useMatrixClient';
-import { useRoomEditor } from './RoomEditorContext';
+import { useMatrixClient } from '../../../hooks/useMatrixClient';
+import { useRoomEditor } from '../RoomEditorContext';
 import {
   CustomEditor,
   Toolbar,
@@ -54,20 +54,20 @@ import {
   getBeginCommand,
   trimCommand,
   getMentions,
-} from '../../components/editor';
-import { EmojiBoard, EmojiBoardTab } from '../../components/emoji-board';
-import { UseStateProvider } from '../../components/UseStateProvider';
+} from '../../../components/editor';
+import { EmojiBoard, EmojiBoardTab } from '../../../components/emoji-board';
+import { UseStateProvider } from '../../../components/UseStateProvider';
 import {
   TUploadContent,
   encryptFile,
   getImageInfo,
   getMxIdLocalPart,
   mxcUrlToHttp,
-} from '../../utils/matrix';
-import { useTypingStatusUpdater } from '../../hooks/useTypingStatusUpdater';
-import { useFilePicker } from '../../hooks/useFilePicker';
-import { useFilePasteHandler } from '../../hooks/useFilePasteHandler';
-import { useFileDropZone } from '../../hooks/useFileDrop';
+} from '../../../utils/matrix';
+import { useTypingStatusUpdater } from '../../../hooks/useTypingStatusUpdater';
+import { useFilePicker } from '../../../hooks/useFilePicker';
+import { useFilePasteHandler } from '../../../hooks/useFilePasteHandler';
+import { useFileDropZone } from '../../../hooks/useFileDrop';
 import {
   TUploadItem,
   TUploadMetadata,
@@ -75,48 +75,48 @@ import {
   roomIdToReplyDraftAtomFamily,
   roomIdToUploadItemsAtomFamily,
   roomUploadAtomFamily,
-} from '../../state/room/roomInputDrafts';
-import { UploadCardRenderer } from '../../components/upload-card';
+} from '../../../state/room/roomInputDrafts';
+import { UploadCardRenderer } from '../../../components/upload-card';
 import {
   UploadBoard,
   UploadBoardContent,
   UploadBoardHeader,
   UploadBoardImperativeHandlers,
-} from '../../components/upload-board';
+} from '../../../components/upload-board';
 import {
   Upload,
   UploadStatus,
   UploadSuccess,
   createUploadFamilyObserverAtom,
-} from '../../state/upload';
-import { getImageUrlBlob, loadImageElement } from '../../utils/dom';
-import { safeFile } from '../../utils/mimeTypes';
-import { fulfilledPromiseSettledResult } from '../../utils/common';
-import { useSetting } from '../../state/hooks/settings';
-import { settingsAtom } from '../../state/settings';
+} from '../../../state/upload';
+import { getImageUrlBlob, loadImageElement } from '../../../utils/dom';
+import { safeFile } from '../../../utils/mimeTypes';
+import { fulfilledPromiseSettledResult } from '../../../utils/common';
+import { useSetting } from '../../../state/hooks/settings';
+import { settingsAtom } from '../../../state/settings';
 
-import { GeneratedResponseBox } from '../ai-assistant/common/GeneratedResponseBox';
+import { GeneratedResponseBox } from '../../ai-assistant/common/GeneratedResponseBox';
 import {
   getAudioMsgContent,
   getFileMsgContent,
   getImageMsgContent,
   getVideoMsgContent,
-} from './msgContent';
-import { getMemberDisplayName, getMentionContent, trimReplyFromBody } from '../../utils/room';
-import { CommandAutocomplete } from './CommandAutocomplete';
-import { Command, SHRUG, TABLEFLIP, UNFLIP, useCommands } from '../../hooks/useCommands';
-import { mobileOrTablet } from '../../utils/user-agent';
-import { useElementSizeObserver } from '../../hooks/useElementSizeObserver';
-import { ReplyLayout, ThreadIndicator } from '../../components/message';
-import { roomToParentsAtom } from '../../state/room/roomToParents';
-import { useMediaAuthentication } from '../../hooks/useMediaAuthentication';
-import { useImagePackRooms } from '../../hooks/useImagePackRooms';
-import { GetPowerLevelTag } from '../../hooks/usePowerLevelTags';
-import { powerLevelAPI, usePowerLevelsContext } from '../../hooks/usePowerLevels';
-import colorMXID from '../../../util/colorMXID';
-import { useIsDirectRoom } from '../../hooks/useRoom';
+} from '../msgContent';
+import { getMemberDisplayName, getMentionContent, trimReplyFromBody } from '../../../utils/room';
+import { CommandAutocomplete } from '../CommandAutocomplete';
+import { Command, SHRUG, TABLEFLIP, UNFLIP, useCommands } from '../../../hooks/useCommands';
+import { mobileOrTablet } from '../../../utils/user-agent';
+import { useElementSizeObserver } from '../../../hooks/useElementSizeObserver';
+import { ReplyLayout, ThreadIndicator } from '../../../components/message';
+import { roomToParentsAtom } from '../../../state/room/roomToParents';
+import { useMediaAuthentication } from '../../../hooks/useMediaAuthentication';
+import { useImagePackRooms } from '../../../hooks/useImagePackRooms';
+import { GetPowerLevelTag } from '../../../hooks/usePowerLevelTags';
+import { powerLevelAPI, usePowerLevelsContext } from '../../../hooks/usePowerLevels';
+import colorMXID from '../../../../util/colorMXID';
+import { useIsDirectRoom } from '../../../hooks/useRoom';
 
-import { useAIAssistant } from '../ai-assistant/AIAssistantContext';
+import { useAIAssistant } from '../../ai-assistant/AIAssistantContext';
 
 interface RoomInputProps {
   editor: Editor;
