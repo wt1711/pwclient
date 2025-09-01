@@ -9,7 +9,7 @@ import { usePowerLevelsAPI, usePowerLevelsContext } from '../../hooks/usePowerLe
 import { useMatrixClient } from '../../hooks/useMatrixClient';
 import { useRoomEditor } from './RoomEditorContext';
 import { RoomInputPlaceholder } from './room-input-placeholder/RoomInputPlaceholder';
-import { RoomTimeline } from './RoomTimeline';
+import { RoomTimeline } from './room-timeline/RoomTimeline';
 import { RoomViewTyping } from './room-view-typing/RoomViewTyping';
 import { RoomTombstone } from './room-tombstone/RoomTombstone';
 import { RoomInput } from './room-input/RoomInput';
