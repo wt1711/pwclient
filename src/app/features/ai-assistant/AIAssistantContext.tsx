@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useMemo, useCallback } from 'react';
+import { ReactEditor } from 'slate-react';
 import {
   generateResponseFromMessage,
   generateResponseFromHistory,
@@ -56,7 +57,7 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
   const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
   const room = useRoom();
   const mx = useMatrixClient();
-  const { insertText, deleteText } = useRoomEditor();
+  const { editor, insertText, deleteText } = useRoomEditor();
   const setIsAiDrawer = useSetSetting(settingsAtom, 'isAiDrawerOpen');
   const timeline = room.getLiveTimeline().getEvents();
   const roomContext = timeline
@@ -93,12 +94,13 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
         }
         deleteText();
         insertText(cleanedResponse);
+        ReactEditor.focus(editor);
         if (isMobile) {
           setIsAiDrawer(false);
         }
       }
     },
-    [insertText, deleteText, isMobile, setIsAiDrawer]
+    [editor, insertText, deleteText, isMobile, setIsAiDrawer]
   );
 
   const toggleAIAssistant = useCallback((isOpen?: boolean) => {
