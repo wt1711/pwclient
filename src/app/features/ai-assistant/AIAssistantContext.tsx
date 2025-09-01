@@ -115,14 +115,13 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
       const message = lastNonUserMsg ? lastNonUserMsg.text : 'Nói gì cũng được';
 
       const response = await generateResponseFromMessage({ message, context: roomContext });
-      handleUseSuggestion(response);
-      toggleAIAssistant(false);
+      setGeneratedResponse(response);
     } catch (error) {
       setGeneratedResponse('Xin lỗi, đã có lỗi');
     } finally {
       setIsGeneratingResponse(false);
     }
-  }, [roomContext, lastNonUserMsg, handleUseSuggestion, toggleAIAssistant]);
+  }, [roomContext, lastNonUserMsg]);
 
   const generateNewResponseFromHistory = useCallback(async () => {
     setIsGeneratingResponse(true);
@@ -134,13 +133,13 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
 
       const response = await generateResponseFromHistory({ context: roomContext });
       handleUseSuggestion(response);
-      toggleAIAssistant(false);
+      // toggleAIAssistant(false);
     } catch (error) {
       setGeneratedResponse('Xin lỗi, đã có lỗi');
     } finally {
       setIsGeneratingResponse(false);
     }
-  }, [roomContext, handleUseSuggestion, toggleAIAssistant]);
+  }, [roomContext, handleUseSuggestion]);
 
   const handleSend = useCallback(async () => {
     if (inputValue.trim() === '') return;
