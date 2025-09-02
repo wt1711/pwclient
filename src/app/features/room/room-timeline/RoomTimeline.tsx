@@ -1,9 +1,7 @@
 /* eslint-disable react/destructuring-assignment */
 import React, {
-  Dispatch,
   MouseEventHandler,
   RefObject,
-  SetStateAction,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -16,17 +14,13 @@ import {
   EventTimeline,
   EventTimelineSet,
   IContent,
-  MatrixClient,
   MatrixEvent,
   Room,
-  RoomEvent,
-  RoomEventHandlerMap,
 } from 'matrix-js-sdk';
 import { HTMLReactParserOptions } from 'html-react-parser';
 import classNames from 'classnames';
 import { ReactEditor } from 'slate-react';
 import { Editor } from 'slate';
-import to from 'await-to-js';
 import { useAtomValue, useSetAtom } from 'jotai';
 import {
   Badge,
@@ -73,7 +67,6 @@ import {
 } from '../../../plugins/react-custom-html-parser';
 import {
   canEditEvent,
-  decryptAllTimelineEvent,
   getEditedEvent,
   getEventReactions,
   getLatestEditableEvt,
@@ -98,8 +91,21 @@ import { markAsRead } from '../../../../client/action/notifications';
 import { useDebounce } from '../../../hooks/useDebounce';
 import { getResizeObserverEntry, useResizeObserver } from '../../../hooks/useResizeObserver';
 import * as css from './RoomTimeline.css';
-import { getLiveTimeline } from './RoomTimelineContext';
+import {
+  getEventIdAbsoluteIndex,
+  getEventTimeline,
+  getFirstLinkedTimeline,
+  getLiveTimeline,
+  getTimelineAndBaseIndex,
+  getTimelineEvent,
+  getTimelineRelativeIndex,
+  getTimelinesEventsCount,
+  getLinkedTimelines,
+} from './RoomTimelineContext';
 import { useLiveEventArrive } from './hooks/useLiveEventArrive';
+import { useEventTimelineLoader } from './hooks/useEventTimelineLoader';
+import { useTimelinePagination } from './hooks/useTimelinePagination';
+import { useLiveTimelineRefresh } from './hooks/useLiveTimelineRefresh';
 import {
   inSameDay,
   minuteDifference,
@@ -154,76 +160,6 @@ const TimelineDivider = as<'div', { variant?: ContainerColor | 'Inherit' }>(
   )
 );
 
-export const getEventTimeline = (room: Room, eventId: string): EventTimeline | undefined => {
-  const timelineSet = room.getUnfilteredTimelineSet();
-  return timelineSet.getTimelineForEvent(eventId) ?? undefined;
-};
-
-export const getFirstLinkedTimeline = (
-  timeline: EventTimeline,
-  direction: Direction
-): EventTimeline => {
-  const linkedTm = timeline.getNeighbouringTimeline(direction);
-  if (!linkedTm) return timeline;
-  return getFirstLinkedTimeline(linkedTm, direction);
-};
-
-export const getLinkedTimelines = (timeline: EventTimeline): EventTimeline[] => {
-  const firstTimeline = getFirstLinkedTimeline(timeline, Direction.Backward);
-  const timelines: EventTimeline[] = [];
-
-  for (
-    let nextTimeline: EventTimeline | null = firstTimeline;
-    nextTimeline;
-    nextTimeline = nextTimeline.getNeighbouringTimeline(Direction.Forward)
-  ) {
-    timelines.push(nextTimeline);
-  }
-  return timelines;
-};
-
-export const timelineToEventsCount = (t: EventTimeline) => t.getEvents().length;
-export const getTimelinesEventsCount = (timelines: EventTimeline[]): number => {
-  const timelineEventCountReducer = (count: number, tm: EventTimeline) =>
-    count + timelineToEventsCount(tm);
-  return timelines.reduce(timelineEventCountReducer, 0);
-};
-
-export const getTimelineAndBaseIndex = (
-  timelines: EventTimeline[],
-  index: number
-): [EventTimeline | undefined, number] => {
-  let uptoTimelineLen = 0;
-  const timeline = timelines.find((t) => {
-    uptoTimelineLen += t.getEvents().length;
-    if (index < uptoTimelineLen) return true;
-    return false;
-  });
-  if (!timeline) return [undefined, 0];
-  return [timeline, uptoTimelineLen - timeline.getEvents().length];
-};
-
-export const getTimelineRelativeIndex = (absoluteIndex: number, timelineBaseIndex: number) =>
-  absoluteIndex - timelineBaseIndex;
-
-export const getTimelineEvent = (timeline: EventTimeline, index: number): MatrixEvent | undefined =>
-  timeline.getEvents()[index];
-
-export const getEventIdAbsoluteIndex = (
-  timelines: EventTimeline[],
-  eventTimeline: EventTimeline,
-  eventId: string
-): number | undefined => {
-  const timelineIndex = timelines.findIndex((t) => t === eventTimeline);
-  if (timelineIndex === -1) return undefined;
-  const eventIndex = eventTimeline.getEvents().findIndex((evt) => evt.getId() === eventId);
-  if (eventIndex === -1) return undefined;
-  const baseIndex = timelines
-    .slice(0, timelineIndex)
-    .reduce((accValue, timeline) => timeline.getEvents().length + accValue, 0);
-  return baseIndex + eventIndex;
-};
-
 type RoomTimelineProps = {
   room: Room;
   eventId?: string;
@@ -238,144 +174,6 @@ const PAGINATION_LIMIT = 80;
 type Timeline = {
   linkedTimelines: EventTimeline[];
   range: ItemRange;
-};
-
-const useEventTimelineLoader = (
-  mx: MatrixClient,
-  room: Room,
-  onLoad: (eventId: string, linkedTimelines: EventTimeline[], evtAbsIndex: number) => void,
-  onError: (err: Error | null) => void
-) => {
-  const loadEventTimeline = useCallback(
-    async (eventId: string) => {
-      const [err, replyEvtTimeline] = await to(
-        mx.getEventTimeline(room.getUnfilteredTimelineSet(), eventId)
-      );
-      if (!replyEvtTimeline) {
-        onError(err ?? null);
-        return;
-      }
-      const linkedTimelines = getLinkedTimelines(replyEvtTimeline);
-      const absIndex = getEventIdAbsoluteIndex(linkedTimelines, replyEvtTimeline, eventId);
-
-      if (absIndex === undefined) {
-        onError(err ?? null);
-        return;
-      }
-
-      onLoad(eventId, linkedTimelines, absIndex);
-    },
-    [mx, room, onLoad, onError]
-  );
-
-  return loadEventTimeline;
-};
-
-const useTimelinePagination = (
-  mx: MatrixClient,
-  timeline: Timeline,
-  setTimeline: Dispatch<SetStateAction<Timeline>>,
-  limit: number
-) => {
-  const timelineRef = useRef(timeline);
-  timelineRef.current = timeline;
-  const alive = useAlive();
-
-  const handleTimelinePagination = useMemo(() => {
-    let fetching = false;
-
-    const recalibratePagination = (
-      linkedTimelines: EventTimeline[],
-      timelinesEventsCount: number[],
-      backwards: boolean
-    ) => {
-      const topTimeline = linkedTimelines[0];
-      const timelineMatch = (mt: EventTimeline) => (t: EventTimeline) => t === mt;
-
-      const newLTimelines = getLinkedTimelines(topTimeline);
-      const topTmIndex = newLTimelines.findIndex(timelineMatch(topTimeline));
-      const topAddedTm = topTmIndex === -1 ? [] : newLTimelines.slice(0, topTmIndex);
-
-      const topTmAddedEvt =
-        timelineToEventsCount(newLTimelines[topTmIndex]) - timelinesEventsCount[0];
-      const offsetRange = getTimelinesEventsCount(topAddedTm) + (backwards ? topTmAddedEvt : 0);
-
-      setTimeline((currentTimeline) => ({
-        linkedTimelines: newLTimelines,
-        range:
-          offsetRange > 0
-            ? {
-                start: currentTimeline.range.start + offsetRange,
-                end: currentTimeline.range.end + offsetRange,
-              }
-            : { ...currentTimeline.range },
-      }));
-    };
-
-    return async (backwards: boolean) => {
-      if (fetching) return;
-      const { linkedTimelines: lTimelines } = timelineRef.current;
-      const timelinesEventsCount = lTimelines.map(timelineToEventsCount);
-
-      const timelineToPaginate = backwards ? lTimelines[0] : lTimelines[lTimelines.length - 1];
-      if (!timelineToPaginate) return;
-
-      const paginationToken = timelineToPaginate.getPaginationToken(
-        backwards ? Direction.Backward : Direction.Forward
-      );
-      if (
-        !paginationToken &&
-        getTimelinesEventsCount(lTimelines) !==
-          getTimelinesEventsCount(getLinkedTimelines(timelineToPaginate))
-      ) {
-        recalibratePagination(lTimelines, timelinesEventsCount, backwards);
-        return;
-      }
-
-      fetching = true;
-      const [err] = await to(
-        mx.paginateEventTimeline(timelineToPaginate, {
-          backwards,
-          limit,
-        })
-      );
-      if (err) {
-        // TODO: handle pagination error.
-        return;
-      }
-      const fetchedTimeline =
-        timelineToPaginate.getNeighbouringTimeline(
-          backwards ? Direction.Backward : Direction.Forward
-        ) ?? timelineToPaginate;
-      // Decrypt all event ahead of render cycle
-      const roomId = fetchedTimeline.getRoomId();
-      const room = roomId ? mx.getRoom(roomId) : null;
-
-      if (room?.hasEncryptionStateEvent()) {
-        await to(decryptAllTimelineEvent(mx, fetchedTimeline));
-      }
-
-      fetching = false;
-      if (alive()) {
-        recalibratePagination(lTimelines, timelinesEventsCount, backwards);
-      }
-    };
-  }, [mx, alive, setTimeline, limit]);
-  return handleTimelinePagination;
-};
-
-const useLiveTimelineRefresh = (room: Room, onRefresh: () => void) => {
-  useEffect(() => {
-    const handleTimelineRefresh: RoomEventHandlerMap[RoomEvent.TimelineRefresh] = (r) => {
-      if (r.roomId !== room.roomId) return;
-      onRefresh();
-    };
-
-    room.on(RoomEvent.TimelineRefresh, handleTimelineRefresh);
-    return () => {
-      room.removeListener(RoomEvent.TimelineRefresh, handleTimelineRefresh);
-    };
-  }, [room, onRefresh]);
 };
 
 const getInitialTimeline = (room: Room) => {
