@@ -90,3 +90,15 @@ export const getEmptyTimeline = () => ({
   range: { start: 0, end: 0 },
   linkedTimelines: [],
 });
+
+export const getRoomUnreadInfo = (room: Room, scrollTo = false) => {
+  const readUptoEventId = room.getEventReadUpTo(room.client.getUserId() ?? '');
+  if (!readUptoEventId) return undefined;
+  const evtTimeline = getEventTimeline(room, readUptoEventId);
+  const latestTimeline = evtTimeline && getFirstLinkedTimeline(evtTimeline, Direction.Forward);
+  return {
+    readUptoEventId,
+    inLiveTimeline: latestTimeline === room.getLiveTimeline(),
+    scrollTo,
+  };
+};

@@ -131,6 +131,7 @@ import {
   getTimelineRelativeIndex,
   getEmptyTimeline,
   getInitialTimeline,
+  getRoomUnreadInfo,
 } from './hooks/getEventAndTimeline';
 import { Message as MessageType } from '../../ai-assistant/ai';
 import { isFromMe } from '../../ai-assistant/utils';
@@ -165,18 +166,6 @@ type RoomTimelineProps = {
   editor: Editor;
   getPowerLevelTag: GetPowerLevelTag;
   accessibleTagColors: Map<string, string>;
-};
-
-const getRoomUnreadInfo = (room: Room, scrollTo = false) => {
-  const readUptoEventId = room.getEventReadUpTo(room.client.getUserId() ?? '');
-  if (!readUptoEventId) return undefined;
-  const evtTimeline = getEventTimeline(room, readUptoEventId);
-  const latestTimeline = evtTimeline && getFirstLinkedTimeline(evtTimeline, Direction.Forward);
-  return {
-    readUptoEventId,
-    inLiveTimeline: latestTimeline === room.getLiveTimeline(),
-    scrollTo,
-  };
 };
 
 export function RoomTimeline({
