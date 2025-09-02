@@ -15,7 +15,6 @@ import {
   Direction,
   EventTimeline,
   EventTimelineSet,
-  EventTimelineSetHandlerMap,
   IContent,
   MatrixClient,
   MatrixEvent,
@@ -100,6 +99,7 @@ import { useDebounce } from '../../../hooks/useDebounce';
 import { getResizeObserverEntry, useResizeObserver } from '../../../hooks/useResizeObserver';
 import * as css from './RoomTimeline.css';
 import { getLiveTimeline } from './RoomTimelineContext';
+import { useLiveEventArrive } from './hooks/useLiveEventArrive';
 import {
   inSameDay,
   minuteDifference,
@@ -362,32 +362,6 @@ const useTimelinePagination = (
     };
   }, [mx, alive, setTimeline, limit]);
   return handleTimelinePagination;
-};
-
-const useLiveEventArrive = (room: Room, onArrive: (mEvent: MatrixEvent) => void) => {
-  useEffect(() => {
-    const handleTimelineEvent: EventTimelineSetHandlerMap[RoomEvent.Timeline] = (
-      mEvent,
-      eventRoom,
-      toStartOfTimeline,
-      removed,
-      data
-    ) => {
-      if (eventRoom?.roomId !== room.roomId || !data.liveEvent) return;
-      onArrive(mEvent);
-    };
-    const handleRedaction: RoomEventHandlerMap[RoomEvent.Redaction] = (mEvent, eventRoom) => {
-      if (eventRoom?.roomId !== room.roomId) return;
-      onArrive(mEvent);
-    };
-
-    room.on(RoomEvent.Timeline, handleTimelineEvent);
-    room.on(RoomEvent.Redaction, handleRedaction);
-    return () => {
-      room.removeListener(RoomEvent.Timeline, handleTimelineEvent);
-      room.removeListener(RoomEvent.Redaction, handleRedaction);
-    };
-  }, [room, onArrive]);
 };
 
 const useLiveTimelineRefresh = (room: Room, onRefresh: () => void) => {
