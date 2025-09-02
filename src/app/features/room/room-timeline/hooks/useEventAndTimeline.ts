@@ -20,7 +20,7 @@ import {
   getEventIdAbsoluteIndex,
   timelineToEventsCount,
   getTimelinesEventsCount,
-} from '../RoomTimeline';
+} from './getEventAndTimeline';
 
 export const useLiveEventArrive = (room: Room, onArrive: (mEvent: MatrixEvent) => void) => {
   useEffect(() => {
