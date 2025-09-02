@@ -119,6 +119,7 @@ import { useImagePackRooms } from '../../../hooks/useImagePackRooms';
 import { GetPowerLevelTag } from '../../../hooks/usePowerLevelTags';
 import { useIsDirectRoom } from '../../../hooks/useRoom';
 import { useRoomMessage } from '../RoomMessageContext';
+import { PAGINATION_LIMIT } from './RoomTimelineContext';
 import {
   useLiveEventArrive,
   useEventTimelineLoader,
@@ -232,8 +233,6 @@ type RoomTimelineProps = {
   getPowerLevelTag: GetPowerLevelTag;
   accessibleTagColors: Map<string, string>;
 };
-
-const PAGINATION_LIMIT = 80;
 
 export type Timeline = {
   linkedTimelines: EventTimeline[];
