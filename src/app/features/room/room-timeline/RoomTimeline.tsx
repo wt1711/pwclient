@@ -99,6 +99,7 @@ import { markAsRead } from '../../../../client/action/notifications';
 import { useDebounce } from '../../../hooks/useDebounce';
 import { getResizeObserverEntry, useResizeObserver } from '../../../hooks/useResizeObserver';
 import * as css from './RoomTimeline.css';
+import { getLiveTimeline } from './RoomTimelineContext';
 import {
   inSameDay,
   minuteDifference,
@@ -152,9 +153,6 @@ const TimelineDivider = as<'div', { variant?: ContainerColor | 'Inherit' }>(
     </Box>
   )
 );
-
-export const getLiveTimeline = (room: Room): EventTimeline =>
-  room.getUnfilteredTimelineSet().getLiveTimeline();
 
 export const getEventTimeline = (room: Room, eventId: string): EventTimeline | undefined => {
   const timelineSet = room.getUnfilteredTimelineSet();
@@ -430,7 +428,7 @@ const getRoomUnreadInfo = (room: Room, scrollTo = false) => {
   const latestTimeline = evtTimeline && getFirstLinkedTimeline(evtTimeline, Direction.Forward);
   return {
     readUptoEventId,
-    inLiveTimeline: latestTimeline === room.getLiveTimeline(),
+    inLiveTimeline: latestTimeline === getLiveTimeline(room),
     scrollTo,
   };
 };
@@ -710,7 +708,7 @@ export function RoomTimeline({
     }
     const evtTimeline = getEventTimeline(room, readUptoEventId);
     const latestTimeline = evtTimeline && getFirstLinkedTimeline(evtTimeline, Direction.Forward);
-    if (latestTimeline === room.getLiveTimeline()) {
+    if (latestTimeline === getLiveTimeline(room)) {
       requestAnimationFrame(() => markAsRead(mx, room.roomId, hideActivity));
     }
   }, [mx, room, hideActivity]);
@@ -779,7 +777,7 @@ export function RoomTimeline({
           document.activeElement?.getAttribute('data-editable-name') === 'RoomInput' &&
           isEmptyEditor(editor)
         ) {
-          const editableEvt = getLatestEditableEvt(room.getLiveTimeline(), (mEvt) =>
+          const editableEvt = getLatestEditableEvt(getLiveTimeline(room), (mEvt) =>
             canEditEvent(mx, mEvt)
           );
           const editableEvtId = editableEvt?.getId();
