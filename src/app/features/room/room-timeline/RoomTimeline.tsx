@@ -54,8 +54,7 @@ import {
   isMembershipChanged,
   reactionOrEditEvent,
 } from '../../../utils/room';
-import { useSetting } from '../../../state/hooks/settings';
-import { MessageLayout, settingsAtom } from '../../../state/settings';
+import { MessageLayout } from '../../../state/settings';
 import { openProfileViewer } from '../../../../client/action/navigation';
 import { useMatrixEventRenderer } from '../../../hooks/useMatrixEventRenderer';
 import { Reactions, Message, Event, EncryptedContent } from '../message';
@@ -136,22 +135,25 @@ type RoomTimelineInternalProps = Omit<RoomTimelineProps, 'room'>;
 
 const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProps>(
   ({ eventId, roomInputRef, editor, getPowerLevelTag, accessibleTagColors }, ref) => {
-    const { room } = useRoomTimelineContext();
+    const {
+      room,
+      hideActivity,
+      messageLayout,
+      messageSpacing,
+      legacyUsernameColor,
+      encUrlPreview,
+      urlPreview,
+      showDeveloperTools,
+      mediaAutoLoad,
+      hideMembershipEvents,
+      hideNickAvatarEvents,
+      showHiddenEvents,
+    } = useRoomTimelineContext();
     const mx = useMatrixClient();
     const useAuthentication = useMediaAuthentication();
-    const [hideActivity] = useSetting(settingsAtom, 'hideActivity');
-    const [messageLayout] = useSetting(settingsAtom, 'messageLayout');
-    const [messageSpacing] = useSetting(settingsAtom, 'messageSpacing');
-    const [legacyUsernameColor] = useSetting(settingsAtom, 'legacyUsernameColor');
     const direct = useIsDirectRoom();
-    const [hideMembershipEvents] = useSetting(settingsAtom, 'hideMembershipEvents');
-    const [hideNickAvatarEvents] = useSetting(settingsAtom, 'hideNickAvatarEvents');
-    const [mediaAutoLoad] = useSetting(settingsAtom, 'mediaAutoLoad');
-    const [urlPreview] = useSetting(settingsAtom, 'urlPreview');
-    const [encUrlPreview] = useSetting(settingsAtom, 'encUrlPreview');
+
     const showUrlPreview = room.hasEncryptionStateEvent() ? encUrlPreview : urlPreview;
-    const [showHiddenEvents] = useSetting(settingsAtom, 'showHiddenEvents');
-    const [showDeveloperTools] = useSetting(settingsAtom, 'developerTools');
 
     const ignoredUsersList = useIgnoredUsers();
     const ignoredUsersSet = useMemo(() => new Set(ignoredUsersList), [ignoredUsersList]);
