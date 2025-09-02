@@ -126,6 +126,11 @@ import {
   useTimelinePagination,
   useLiveTimelineRefresh,
 } from './hooks/useEventAndTimeline';
+import {
+  getEventTimeline,
+  getFirstLinkedTimeline,
+  getLiveTimeline,
+} from './hooks/getEventAndTimeline';
 import { Message as MessageType } from '../../ai-assistant/ai';
 import { isFromMe } from '../../ai-assistant/utils';
 
@@ -151,23 +156,6 @@ const TimelineDivider = as<'div', { variant?: ContainerColor | 'Inherit' }>(
     </Box>
   )
 );
-
-export const getLiveTimeline = (room: Room): EventTimeline =>
-  room.getUnfilteredTimelineSet().getLiveTimeline();
-
-export const getEventTimeline = (room: Room, eventId: string): EventTimeline | undefined => {
-  const timelineSet = room.getUnfilteredTimelineSet();
-  return timelineSet.getTimelineForEvent(eventId) ?? undefined;
-};
-
-export const getFirstLinkedTimeline = (
-  timeline: EventTimeline,
-  direction: Direction
-): EventTimeline => {
-  const linkedTm = timeline.getNeighbouringTimeline(direction);
-  if (!linkedTm) return timeline;
-  return getFirstLinkedTimeline(linkedTm, direction);
-};
 
 export const getLinkedTimelines = (timeline: EventTimeline): EventTimeline[] => {
   const firstTimeline = getFirstLinkedTimeline(timeline, Direction.Backward);
