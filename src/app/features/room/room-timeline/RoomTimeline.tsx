@@ -112,7 +112,7 @@ import { useImagePackRooms } from '../../../hooks/useImagePackRooms';
 import { GetPowerLevelTag } from '../../../hooks/usePowerLevelTags';
 import { useIsDirectRoom } from '../../../hooks/useRoom';
 import { useRoomMessage } from '../RoomMessageContext';
-import { PAGINATION_LIMIT } from './RoomTimelineContext';
+import { PAGINATION_LIMIT, Timeline } from './constants';
 import {
   useLiveEventArrive,
   useEventTimelineLoader,
@@ -126,7 +126,6 @@ import {
   getLinkedTimelines,
   getTimelinesEventsCount,
   getEventIdAbsoluteIndex,
-  Timeline,
   getTimelineAndBaseIndex,
   getTimelineEvent,
   getTimelineRelativeIndex,

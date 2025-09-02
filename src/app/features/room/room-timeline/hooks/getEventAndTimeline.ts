@@ -1,11 +1,5 @@
 import { Direction, EventTimeline, Room, MatrixEvent } from 'matrix-js-sdk';
-import { ItemRange } from '~/app/hooks/useVirtualPaginator';
-import { PAGINATION_LIMIT } from '../RoomTimelineContext';
-
-export type Timeline = {
-  linkedTimelines: EventTimeline[];
-  range: ItemRange;
-};
+import { PAGINATION_LIMIT } from '../constants';
 
 export const getLiveTimeline = (room: Room): EventTimeline =>
   room.getUnfilteredTimelineSet().getLiveTimeline();

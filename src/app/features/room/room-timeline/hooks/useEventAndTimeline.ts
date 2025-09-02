@@ -15,12 +15,12 @@ import { useEffect, useCallback, useMemo, useRef, Dispatch, SetStateAction } fro
 import { decryptAllTimelineEvent } from '../../../../utils/room';
 import { useAlive } from '../../../../hooks/useAlive';
 import {
-  Timeline,
   getLinkedTimelines,
   getEventIdAbsoluteIndex,
   timelineToEventsCount,
   getTimelinesEventsCount,
 } from './getEventAndTimeline';
+import { Timeline } from '../constants';
 
 export const useLiveEventArrive = (room: Room, onArrive: (mEvent: MatrixEvent) => void) => {
   useEffect(() => {
