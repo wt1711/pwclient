@@ -989,7 +989,7 @@ export function RoomTimeline({
         (reactions.find(eventWithShortcode)?.getContent().shortcode as string | undefined);
       mx.sendEvent(
         room.roomId,
-        MessageEvent.Reaction,
+        MessageEvent.Reaction as any,
         getReactionContent(targetEventId, key, rShortcode)
       );
     },
@@ -1004,8 +1004,8 @@ export function RoomTimeline({
         // Create a Message object from the clicked message
         const messageEvent = evt.currentTarget.closest('[data-message-id]');
         if (messageEvent) {
-          const eventId = messageEvent.getAttribute('data-message-id');
-          const roomEvent = room.findEventById(eventId || '');
+          const messageEventId = messageEvent.getAttribute('data-message-id');
+          const roomEvent = room.findEventById(messageEventId || '');
           if (roomEvent) {
             const sender = roomEvent.getSender() || '';
             const content = roomEvent.getContent();
