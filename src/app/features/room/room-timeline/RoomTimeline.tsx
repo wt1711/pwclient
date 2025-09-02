@@ -130,6 +130,8 @@ import {
   getTimelineAndBaseIndex,
   getTimelineEvent,
   getTimelineRelativeIndex,
+  getEmptyTimeline,
+  getInitialTimeline,
 } from './hooks/getEventAndTimeline';
 import { Message as MessageType } from '../../ai-assistant/ai';
 import { isFromMe } from '../../ai-assistant/utils';
@@ -165,23 +167,6 @@ type RoomTimelineProps = {
   getPowerLevelTag: GetPowerLevelTag;
   accessibleTagColors: Map<string, string>;
 };
-
-const getInitialTimeline = (room: Room) => {
-  const linkedTimelines = getLinkedTimelines(getLiveTimeline(room));
-  const evLength = getTimelinesEventsCount(linkedTimelines);
-  return {
-    linkedTimelines,
-    range: {
-      start: Math.max(evLength - PAGINATION_LIMIT, 0),
-      end: evLength,
-    },
-  };
-};
-
-const getEmptyTimeline = () => ({
-  range: { start: 0, end: 0 },
-  linkedTimelines: [],
-});
 
 const getRoomUnreadInfo = (room: Room, scrollTo = false) => {
   const readUptoEventId = room.getEventReadUpTo(room.client.getUserId() ?? '');
