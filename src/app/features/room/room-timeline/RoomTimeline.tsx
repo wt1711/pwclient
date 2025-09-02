@@ -12,25 +12,10 @@ import React, {
 } from 'react';
 import { Direction, EventTimelineSet, IContent, MatrixEvent, Room } from 'matrix-js-sdk';
 import { HTMLReactParserOptions } from 'html-react-parser';
-import classNames from 'classnames';
 import { ReactEditor } from 'slate-react';
 import { Editor } from 'slate';
 import { useAtomValue, useSetAtom } from 'jotai';
-import {
-  Badge,
-  Box,
-  Chip,
-  ContainerColor,
-  Icon,
-  Icons,
-  Line,
-  Scroll,
-  Text,
-  as,
-  color,
-  config,
-  toRem,
-} from 'folds';
+import { Badge, Box, Chip, Icon, Icons, Scroll, Text, color, config, toRem } from 'folds';
 import { isKeyHotkey } from 'is-hotkey';
 import { Opts as LinkifyOpts } from 'linkifyjs';
 
@@ -84,7 +69,6 @@ import {
 import { markAsRead } from '../../../../client/action/notifications';
 import { useDebounce } from '../../../hooks/useDebounce';
 import { getResizeObserverEntry, useResizeObserver } from '../../../hooks/useResizeObserver';
-import * as css from './RoomTimeline.css';
 import { PAGINATION_LIMIT, Timeline } from './constants';
 import {
   useLiveEventArrive,
@@ -137,29 +121,7 @@ import { GetPowerLevelTag } from '../../../hooks/usePowerLevelTags';
 import { useIsDirectRoom } from '../../../hooks/useRoom';
 import { useRoomMessage } from '../RoomMessageContext';
 import { RoomTimelineProvider, useRoomTimelineContext } from './RoomTimelineContext';
-
-const TimelineFloat = as<'div', css.TimelineFloatVariants>(
-  ({ position, className, ...props }, ref) => (
-    <Box
-      className={classNames(css.TimelineFloat({ position }), className)}
-      justifyContent="Center"
-      alignItems="Center"
-      gap="200"
-      {...props}
-      ref={ref}
-    />
-  )
-);
-
-const TimelineDivider = as<'div', { variant?: ContainerColor | 'Inherit' }>(
-  ({ variant, children, ...props }, ref) => (
-    <Box gap="100" justifyContent="Center" alignItems="Center" {...props} ref={ref}>
-      <Line style={{ flexGrow: 1 }} variant={variant} size="300" />
-      {children}
-      <Line style={{ flexGrow: 1 }} variant={variant} size="300" />
-    </Box>
-  )
-);
+import { TimelineFloat, TimelineDivider } from './components/TimelineExtra';
 
 type RoomTimelineProps = {
   room: Room;
