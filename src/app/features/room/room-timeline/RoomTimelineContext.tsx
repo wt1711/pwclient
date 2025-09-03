@@ -31,6 +31,7 @@ import {
   getInitialTimeline,
   getRoomUnreadInfo,
 } from './hooks/getEventAndTimeline';
+import { useTimelinePagination } from './hooks/useEventAndTimeline';
 import {
   useHandleEdit,
   useHandleMessageClick,
@@ -39,7 +40,7 @@ import {
   useHandleUsernameClick,
   useHandleMarkAsRead,
 } from './hooks/useHandleActions';
-import { Timeline } from './constants';
+import { PAGINATION_LIMIT, Timeline } from './constants';
 import { roomToParentsAtom } from '../../../state/room/roomToParents';
 import { useImagePackRooms } from '../../../hooks/useImagePackRooms';
 import { MemberEventParser, useMemberEventParser } from '../../../hooks/useMemberEventParser';
@@ -78,6 +79,7 @@ interface RoomTimelineContextType {
   handleReactionToggle: (targetEventId: string, key: string, shortcode?: string) => void;
   handleMessageClick: (evt: React.MouseEvent<HTMLDivElement>) => void;
   handleMarkAsRead: () => void;
+  handleTimelinePagination: (direction: any, limit?: number | undefined) => Promise<void>;
   linkifyOpts: LinkifyOpts;
   htmlReactParserOptions: HTMLReactParserOptions;
   getPowerLevelTag: GetPowerLevelTag;
@@ -154,6 +156,12 @@ export function RoomTimelineProvider({
   const handleReplyClick = useHandleReplyClick(room, editor);
   const handleMessageClick = useHandleMessageClick(room);
   const handleMarkAsRead = useHandleMarkAsRead(room, hideActivity);
+  const handleTimelinePagination = useTimelinePagination(
+    mx,
+    timeline,
+    setTimeline,
+    PAGINATION_LIMIT
+  );
 
   const handleReactionToggle = useCallback(
     (targetEventId: string, key: string, shortcode?: string) => {
@@ -235,6 +243,7 @@ export function RoomTimelineProvider({
       handleReactionToggle,
       handleMessageClick,
       handleMarkAsRead,
+      handleTimelinePagination,
       linkifyOpts,
       htmlReactParserOptions,
       getPowerLevelTag,
@@ -275,6 +284,7 @@ export function RoomTimelineProvider({
       handleReactionToggle,
       handleMessageClick,
       handleMarkAsRead,
+      handleTimelinePagination,
       linkifyOpts,
       htmlReactParserOptions,
       getPowerLevelTag,

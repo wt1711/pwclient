@@ -34,7 +34,6 @@ import { PAGINATION_LIMIT } from './constants';
 import {
   useLiveEventArrive,
   useEventTimelineLoader,
-  useTimelinePagination,
   useLiveTimelineRefresh,
 } from './hooks/useEventAndTimeline';
 import {
@@ -106,6 +105,7 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
       focusItem,
       setFocusItem,
       mx,
+      handleTimelinePagination,
     } = useRoomTimelineContext();
 
     const ignoredUsersList = useIgnoredUsers();
@@ -140,13 +140,6 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
     const rangeAtEnd = timeline.range.end === eventsLength;
     const atLiveEndRef = useRef(liveTimelineLinked && rangeAtEnd);
     atLiveEndRef.current = liveTimelineLinked && rangeAtEnd;
-
-    const handleTimelinePagination = useTimelinePagination(
-      mx,
-      timeline,
-      setTimeline,
-      PAGINATION_LIMIT
-    );
 
     const getScrollElement = useCallback(() => scrollRef.current, []);
 
