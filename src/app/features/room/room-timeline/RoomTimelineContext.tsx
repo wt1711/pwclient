@@ -38,6 +38,8 @@ import {
   makeMentionCustomProps,
   renderMatrixMention,
 } from '../../../plugins/react-custom-html-parser';
+import { GetPowerLevelTag } from '../../../hooks/usePowerLevelTags';
+import { useIsDirectRoom } from '../../../hooks/useRoom';
 
 interface RoomTimelineContextType {
   room: Room;
@@ -69,6 +71,9 @@ interface RoomTimelineContextType {
   handleMarkAsRead: () => void;
   linkifyOpts: LinkifyOpts;
   htmlReactParserOptions: HTMLReactParserOptions;
+  getPowerLevelTag: GetPowerLevelTag;
+  accessibleTagColors: Map<string, string>;
+  direct: boolean;
 }
 
 const RoomTimelineContext = createContext<RoomTimelineContextType | null>(null);
@@ -77,9 +82,17 @@ interface RoomTimelineProviderProps {
   children: React.ReactNode;
   room: Room;
   editor: Editor;
+  getPowerLevelTag: GetPowerLevelTag;
+  accessibleTagColors: Map<string, string>;
 }
 
-export function RoomTimelineProvider({ children, room, editor }: RoomTimelineProviderProps) {
+export function RoomTimelineProvider({
+  children,
+  room,
+  editor,
+  getPowerLevelTag,
+  accessibleTagColors,
+}: RoomTimelineProviderProps) {
   const [hideActivity] = useSetting(settingsAtom, 'hideActivity');
   const [messageLayout] = useSetting(settingsAtom, 'messageLayout');
   const [messageSpacing] = useSetting(settingsAtom, 'messageSpacing');
@@ -108,6 +121,7 @@ export function RoomTimelineProvider({ children, room, editor }: RoomTimelinePro
   const useAuthentication = useMediaAuthentication();
   const mentionClickHandler = useMentionClickHandler(room.roomId);
   const spoilerClickHandler = useSpoilerClickHandler();
+  const direct = useIsDirectRoom();
 
   const linkifyOpts = useMemo<LinkifyOpts>(
     () => ({
@@ -302,6 +316,9 @@ export function RoomTimelineProvider({ children, room, editor }: RoomTimelinePro
       handleMarkAsRead,
       linkifyOpts,
       htmlReactParserOptions,
+      getPowerLevelTag,
+      accessibleTagColors,
+      direct,
     }),
     [
       room,
@@ -331,6 +348,9 @@ export function RoomTimelineProvider({ children, room, editor }: RoomTimelinePro
       handleMarkAsRead,
       linkifyOpts,
       htmlReactParserOptions,
+      getPowerLevelTag,
+      accessibleTagColors,
+      direct,
     ]
   );
 

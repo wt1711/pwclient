@@ -24,7 +24,6 @@ import { editableActiveElement, scrollToBottom } from '../../../utils/dom';
 import {
   DefaultPlaceholder,
   CompactPlaceholder,
-  Reply,
   MessageBase,
   MessageUnsupportedContent,
   Time,
@@ -96,9 +95,9 @@ import { useRoomNavigate } from '../../../hooks/useRoomNavigate';
 import { useIgnoredUsers } from '../../../hooks/useIgnoredUsers';
 import { useImagePackRooms } from '../../../hooks/useImagePackRooms';
 import { GetPowerLevelTag } from '../../../hooks/usePowerLevelTags';
-import { useIsDirectRoom } from '../../../hooks/useRoom';
 import { RoomTimelineProvider, useRoomTimelineContext } from './RoomTimelineContext';
 import { TimelineFloat, TimelineDivider } from './components/TimelineExtra';
+import { TimelineReply } from './components/TimelineReply';
 
 type RoomTimelineProps = {
   room: Room;
@@ -109,10 +108,13 @@ type RoomTimelineProps = {
   accessibleTagColors: Map<string, string>;
 };
 
-type RoomTimelineInternalProps = Omit<RoomTimelineProps, 'room'>;
+type RoomTimelineInternalProps = Omit<
+  RoomTimelineProps,
+  'room' | 'getPowerLevelTag' | 'accessibleTagColors'
+>;
 
 const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProps>(
-  ({ eventId, roomInputRef, editor, getPowerLevelTag, accessibleTagColors }, ref) => {
+  ({ eventId, roomInputRef, editor }, ref) => {
     const {
       room,
       hideActivity,
@@ -143,9 +145,11 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
       handleMarkAsRead,
       linkifyOpts,
       htmlReactParserOptions,
+      getPowerLevelTag,
+      accessibleTagColors,
+      direct,
     } = useRoomTimelineContext();
     const mx = useMatrixClient();
-    const direct = useIsDirectRoom();
 
     const showUrlPreview = room.hasEncryptionStateEvent() ? encUrlPreview : urlPreview;
 
@@ -604,16 +608,11 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
               onClick={handleMessageClick}
               reply={
                 replyEventId && (
-                  <Reply
-                    room={room}
+                  <TimelineReply
                     timelineSet={timelineSet}
                     replyEventId={replyEventId}
                     threadRootId={threadRootId}
                     onClick={handleOpenReply}
-                    getPowerLevel={getPowerLevel}
-                    getPowerLevelTag={getPowerLevelTag}
-                    accessibleTagColors={accessibleTagColors}
-                    legacyUsernameColor={legacyUsernameColor || direct}
                   />
                 )
               }
@@ -686,16 +685,11 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
               onEditId={handleEdit}
               reply={
                 replyEventId && (
-                  <Reply
-                    room={room}
+                  <TimelineReply
                     timelineSet={timelineSet}
                     replyEventId={replyEventId}
                     threadRootId={threadRootId}
                     onClick={handleOpenReply}
-                    getPowerLevel={getPowerLevel}
-                    getPowerLevelTag={getPowerLevelTag}
-                    accessibleTagColors={accessibleTagColors}
-                    legacyUsernameColor={legacyUsernameColor || direct}
                   />
                 )
               }
@@ -1309,7 +1303,12 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
 
 export function RoomTimeline(props: RoomTimelineProps) {
   return (
-    <RoomTimelineProvider room={props.room} editor={props.editor}>
+    <RoomTimelineProvider
+      room={props.room}
+      editor={props.editor}
+      getPowerLevelTag={props.getPowerLevelTag}
+      accessibleTagColors={props.accessibleTagColors}
+    >
       <RoomTimelineInternal {...props} />
     </RoomTimelineProvider>
   );
