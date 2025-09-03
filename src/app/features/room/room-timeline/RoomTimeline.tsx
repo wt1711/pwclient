@@ -657,7 +657,6 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
         )}
         <Scroll ref={scrollRef} visibility="Hover">
           <Box
-            key={scrollRef.current?.id}
             direction="Column"
             justifyContent="End"
             style={{ minHeight: '100%', padding: `${config.space.S600} 0` }}
