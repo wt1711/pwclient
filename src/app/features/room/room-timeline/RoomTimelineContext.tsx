@@ -1,8 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { IContent, Room } from 'matrix-js-sdk';
+import { Room } from 'matrix-js-sdk';
 import { Editor } from 'slate';
-import { ReactEditor } from 'slate-react';
-import { useSetAtom } from 'jotai';
 import { HTMLReactParserOptions } from 'html-react-parser';
 import { Opts as LinkifyOpts } from 'linkifyjs';
 
@@ -13,19 +11,8 @@ import { roomToUnreadAtom } from '../../../state/room/roomToUnread';
 import { usePowerLevelsAPI, usePowerLevelsContext } from '../../../hooks/usePowerLevels';
 import { useMatrixClient } from '../../../hooks/useMatrixClient';
 import { MessageEvent, StateEvent } from '../../../../types/matrix/room';
-import { openProfileViewer } from '../../../../client/action/navigation';
-import { eventWithShortcode, factoryEventSentBy, getMxIdLocalPart } from '../../../utils/matrix';
-import {
-  getEditedEvent,
-  getEventReactions,
-  getMemberDisplayName,
-  getReactionContent,
-} from '../../../utils/room';
-import { createMentionElement, moveCursor } from '../../../components/editor';
-import { roomIdToReplyDraftAtomFamily } from '../../../state/room/roomInputDrafts';
-import { useRoomMessage } from '../RoomMessageContext';
-import { Message as MessageType } from '../../ai-assistant/ai';
-import { isFromMe } from '../../ai-assistant/utils';
+import { eventWithShortcode, factoryEventSentBy } from '../../../utils/matrix';
+import { getEventReactions, getReactionContent } from '../../../utils/room';
 import { markAsRead } from '../../../../client/action/notifications';
 import { useMediaAuthentication } from '../../../hooks/useMediaAuthentication';
 import { useMentionClickHandler } from '../../../hooks/useMentionClickHandler';
@@ -44,6 +31,13 @@ import {
   getInitialTimeline,
   getRoomUnreadInfo,
 } from './hooks/getEventAndTimeline';
+import {
+  useHandleEdit,
+  useHandleMessageClick,
+  useHandleReplyClick,
+  useHandleUserClick,
+  useHandleUsernameClick,
+} from './hooks/useHandleActions';
 import { Timeline } from './constants';
 
 interface FocusItem {
@@ -136,13 +130,17 @@ export function RoomTimelineProvider({
   const canRedact = canDoAction('redact', myPowerLevel);
   const canSendReaction = canSendEvent(MessageEvent.Reaction, myPowerLevel);
   const canPinEvent = canSendStateEvent(StateEvent.RoomPinnedEvents, myPowerLevel);
-  const setReplyDraft = useSetAtom(roomIdToReplyDraftAtomFamily(room.roomId));
-  const { setSelectedMessage } = useRoomMessage();
 
   const useAuthentication = useMediaAuthentication();
   const mentionClickHandler = useMentionClickHandler(room.roomId);
   const spoilerClickHandler = useSpoilerClickHandler();
   const direct = useIsDirectRoom();
+
+  const handleUserClick = useHandleUserClick(room);
+  const handleUsernameClick = useHandleUsernameClick(room, editor);
+  const handleEdit = useHandleEdit(editor, setEditId);
+  const handleReplyClick = useHandleReplyClick(room, editor);
+  const handleMessageClick = useHandleMessageClick(room);
 
   const linkifyOpts = useMemo<LinkifyOpts>(
     () => ({
@@ -162,113 +160,6 @@ export function RoomTimelineProvider({
         handleMentionClick: mentionClickHandler,
       }),
     [mx, room, linkifyOpts, spoilerClickHandler, mentionClickHandler, useAuthentication]
-  );
-
-  const handleUserClick = useCallback(
-    (evt: React.MouseEvent<HTMLButtonElement>) => {
-      evt.preventDefault();
-      evt.stopPropagation();
-      const userId = evt.currentTarget.getAttribute('data-user-id');
-      if (!userId) {
-        console.warn('Button should have "data-user-id" attribute!');
-        return;
-      }
-      openProfileViewer(userId, room.roomId);
-    },
-    [room]
-  );
-  const handleUsernameClick = useCallback(
-    (evt: React.MouseEvent<HTMLButtonElement>) => {
-      evt.preventDefault();
-      const userId = evt.currentTarget.getAttribute('data-user-id');
-      if (!userId) {
-        console.warn('Button should have "data-user-id" attribute!');
-        return;
-      }
-      const name = getMemberDisplayName(room, userId) ?? getMxIdLocalPart(userId) ?? userId;
-      editor.insertNode(
-        createMentionElement(
-          userId,
-          name.startsWith('@') ? name : `@${name}`,
-          userId === mx.getUserId()
-        )
-      );
-      ReactEditor.focus(editor);
-      moveCursor(editor);
-    },
-    [mx, room, editor]
-  );
-
-  const handleEdit = useCallback(
-    (editEvtId?: string) => {
-      if (editEvtId) {
-        setEditId(editEvtId);
-        return;
-      }
-      setEditId(undefined);
-      ReactEditor.focus(editor);
-    },
-    [editor, setEditId]
-  );
-
-  const handleReplyClick = useCallback(
-    (evt: React.MouseEvent<HTMLButtonElement>, startThread = false) => {
-      const replyId = evt.currentTarget.getAttribute('data-event-id');
-      if (!replyId) {
-        console.warn('Button should have "data-event-id" attribute!');
-        return;
-      }
-      const replyEvt = room.findEventById(replyId);
-      if (!replyEvt) return;
-      const editedReply = getEditedEvent(replyId, replyEvt, room.getUnfilteredTimelineSet());
-      const content: IContent = editedReply?.getContent()['m.new_content'] ?? replyEvt.getContent();
-      const { body, formatted_body: formattedBody } = content;
-      const { 'm.relates_to': relation } = startThread
-        ? { 'm.relates_to': { rel_type: 'm.thread', event_id: replyId } }
-        : replyEvt.getWireContent();
-      const senderId = replyEvt.getSender();
-      if (senderId && typeof body === 'string') {
-        setReplyDraft({
-          userId: senderId,
-          eventId: replyId,
-          body,
-          formattedBody,
-          relation,
-        });
-        setTimeout(() => ReactEditor.focus(editor), 100);
-      }
-    },
-    [room, setReplyDraft, editor]
-  );
-
-  const handleMessageClick = useCallback(
-    (evt: React.MouseEvent<HTMLDivElement>) => {
-      const messageElement = evt.currentTarget;
-      const messageText = messageElement.textContent?.trim();
-      if (messageText) {
-        // Create a Message object from the clicked message
-        const messageEvent = evt.currentTarget.closest('[data-message-id]');
-        if (messageEvent) {
-          const messageEventId = messageEvent.getAttribute('data-message-id');
-          const roomEvent = room.findEventById(messageEventId || '');
-          if (roomEvent) {
-            const sender = roomEvent.getSender() || '';
-            const content = roomEvent.getContent();
-            const body = content.body || messageText;
-
-            const message: MessageType = {
-              sender,
-              text: body,
-              timestamp: new Date(roomEvent.getTs()).toISOString(),
-              is_from_me: isFromMe(sender, mx.getUserId() as string),
-            };
-
-            setSelectedMessage(message);
-          }
-        }
-      }
-    },
-    [setSelectedMessage, room, mx]
   );
 
   const handleMarkAsRead = useCallback(() => {
