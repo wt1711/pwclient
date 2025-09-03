@@ -55,7 +55,7 @@ import {
 import { markAsRead } from '../../../../client/action/notifications';
 import { useDebounce } from '../../../hooks/useDebounce';
 import { getResizeObserverEntry, useResizeObserver } from '../../../hooks/useResizeObserver';
-import { PAGINATION_LIMIT, Timeline } from './constants';
+import { PAGINATION_LIMIT } from './constants';
 import {
   useLiveEventArrive,
   useEventTimelineLoader,
@@ -148,6 +148,10 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
       getPowerLevelTag,
       accessibleTagColors,
       direct,
+      timeline,
+      setTimeline,
+      focusItem,
+      setFocusItem,
     } = useRoomTimelineContext();
     const mx = useMatrixClient();
 
@@ -177,21 +181,10 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
       smooth: true,
     });
 
-    const [focusItem, setFocusItem] = useState<
-      | {
-          index: number;
-          scrollTo: boolean;
-          highlight: boolean;
-        }
-      | undefined
-    >();
     const alive = useAlive();
 
     const parseMemberEvent = useMemberEventParser();
 
-    const [timeline, setTimeline] = useState<Timeline>(() =>
-      eventId ? getEmptyTimeline() : getInitialTimeline(room)
-    );
     const eventsLength = getTimelinesEventsCount(timeline.linkedTimelines);
     const liveTimelineLinked =
       timeline.linkedTimelines[timeline.linkedTimelines.length - 1] === getLiveTimeline(room);
@@ -216,7 +209,10 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
         count: eventsLength,
         limit: PAGINATION_LIMIT,
         range: timeline.range,
-        onRangeChange: useCallback((r) => setTimeline((cs) => ({ ...cs, range: r })), []),
+        onRangeChange: useCallback(
+          (r) => setTimeline((cs) => ({ ...cs, range: r })),
+          [setTimeline]
+        ),
         getScrollElement,
         getItemElement: useCallback(
           (index: number) =>
@@ -248,14 +244,14 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
             },
           });
         },
-        [alive]
+        [alive, setTimeline, setFocusItem]
       ),
       useCallback(() => {
         if (!alive()) return;
         setTimeline(getInitialTimeline(room));
         scrollToBottomRef.current.count += 1;
         scrollToBottomRef.current.smooth = false;
-      }, [alive, room])
+      }, [alive, room, setTimeline])
     );
 
     useLiveEventArrive(
@@ -295,7 +291,7 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
             setUnreadInfo(getRoomUnreadInfo(room));
           }
         },
-        [mx, room, unreadInfo, setUnreadInfo, hideActivity]
+        [mx, room, unreadInfo, setUnreadInfo, hideActivity, setTimeline]
       )
     );
 
@@ -326,7 +322,7 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
           loadEventTimeline(evtId);
         }
       },
-      [room, timeline, scrollToItem, loadEventTimeline]
+      [room, timeline, scrollToItem, loadEventTimeline, setTimeline, setFocusItem]
     );
 
     useLiveTimelineRefresh(
@@ -335,7 +331,7 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
         if (liveTimelineLinked) {
           setTimeline(getInitialTimeline(room));
         }
-      }, [room, liveTimelineLinked])
+      }, [room, liveTimelineLinked, setTimeline])
     );
 
     // Stay at bottom when room editor resize
@@ -456,7 +452,7 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
         setTimeline(getEmptyTimeline());
         loadEventTimeline(eventId);
       }
-    }, [eventId, loadEventTimeline]);
+    }, [eventId, loadEventTimeline, setTimeline]);
 
     // Scroll to bottom on initial timeline load
     useLayoutEffect(() => {
@@ -502,7 +498,7 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
           return currentItem;
         });
       }, 2000);
-    }, [alive, focusItem, scrollToItem]);
+    }, [alive, focusItem, scrollToItem, setFocusItem]);
 
     // scroll to bottom of timeline
     const scrollToBottomCount = scrollToBottomRef.current.count;
@@ -1308,6 +1304,7 @@ export function RoomTimeline(props: RoomTimelineProps) {
       editor={props.editor}
       getPowerLevelTag={props.getPowerLevelTag}
       accessibleTagColors={props.accessibleTagColors}
+      eventId={props.eventId}
     >
       <RoomTimelineInternal {...props} />
     </RoomTimelineProvider>

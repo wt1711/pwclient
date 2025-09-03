@@ -8,7 +8,6 @@ import { Opts as LinkifyOpts } from 'linkifyjs';
 
 import { MessageLayout, MessageSpacing, settingsAtom } from '../../../state/settings';
 import { useSetting } from '../../../state/hooks/settings';
-import { getRoomUnreadInfo } from './hooks/getEventAndTimeline';
 import { useRoomUnread } from '../../../state/hooks/unread';
 import { roomToUnreadAtom } from '../../../state/room/roomToUnread';
 import { usePowerLevelsAPI, usePowerLevelsContext } from '../../../hooks/usePowerLevels';
@@ -40,6 +39,18 @@ import {
 } from '../../../plugins/react-custom-html-parser';
 import { GetPowerLevelTag } from '../../../hooks/usePowerLevelTags';
 import { useIsDirectRoom } from '../../../hooks/useRoom';
+import {
+  getEmptyTimeline,
+  getInitialTimeline,
+  getRoomUnreadInfo,
+} from './hooks/getEventAndTimeline';
+import { Timeline } from './constants';
+
+interface FocusItem {
+  index: number;
+  scrollTo: boolean;
+  highlight: boolean;
+}
 
 interface RoomTimelineContextType {
   room: Room;
@@ -74,6 +85,10 @@ interface RoomTimelineContextType {
   getPowerLevelTag: GetPowerLevelTag;
   accessibleTagColors: Map<string, string>;
   direct: boolean;
+  timeline: Timeline;
+  setTimeline: React.Dispatch<React.SetStateAction<Timeline>>;
+  focusItem?: FocusItem;
+  setFocusItem: React.Dispatch<React.SetStateAction<FocusItem | undefined>>;
 }
 
 const RoomTimelineContext = createContext<RoomTimelineContextType | null>(null);
@@ -84,6 +99,7 @@ interface RoomTimelineProviderProps {
   editor: Editor;
   getPowerLevelTag: GetPowerLevelTag;
   accessibleTagColors: Map<string, string>;
+  eventId?: string;
 }
 
 export function RoomTimelineProvider({
@@ -92,6 +108,7 @@ export function RoomTimelineProvider({
   editor,
   getPowerLevelTag,
   accessibleTagColors,
+  eventId,
 }: RoomTimelineProviderProps) {
   const [hideActivity] = useSetting(settingsAtom, 'hideActivity');
   const [messageLayout] = useSetting(settingsAtom, 'messageLayout');
@@ -106,6 +123,10 @@ export function RoomTimelineProvider({
   const [showDeveloperTools] = useSetting(settingsAtom, 'developerTools');
   const [editId, setEditId] = useState<string>();
   const [unreadInfo, setUnreadInfo] = useState(() => getRoomUnreadInfo(room, true));
+  const [timeline, setTimeline] = useState<Timeline>(() =>
+    eventId ? getEmptyTimeline() : getInitialTimeline(room)
+  );
+  const [focusItem, setFocusItem] = useState<FocusItem | undefined>();
 
   const mx = useMatrixClient();
   const powerLevels = usePowerLevelsContext();
@@ -319,6 +340,10 @@ export function RoomTimelineProvider({
       getPowerLevelTag,
       accessibleTagColors,
       direct,
+      timeline,
+      setTimeline,
+      focusItem,
+      setFocusItem,
     }),
     [
       room,
@@ -351,6 +376,8 @@ export function RoomTimelineProvider({
       getPowerLevelTag,
       accessibleTagColors,
       direct,
+      timeline,
+      focusItem,
     ]
   );
 
