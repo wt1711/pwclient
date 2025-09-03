@@ -12,7 +12,7 @@ import React, {
 } from 'react';
 import { Direction, EventTimelineSet, MatrixEvent, Room } from 'matrix-js-sdk';
 import { Editor } from 'slate';
-import { Badge, Box, Chip, Icon, Icons, Scroll, Text, color, config, toRem } from 'folds';
+import { Box, Chip, Icon, Icons, Scroll, Text, config, toRem } from 'folds';
 import { isKeyHotkey } from 'is-hotkey';
 
 import { useVirtualPaginator } from '../../../hooks/useVirtualPaginator';
@@ -51,13 +51,7 @@ import {
   getInitialTimeline,
   getRoomUnreadInfo,
 } from './hooks/getEventAndTimeline';
-import {
-  inSameDay,
-  minuteDifference,
-  timeDayMonthYear,
-  today,
-  yesterday,
-} from '../../../utils/time';
+import { inSameDay, minuteDifference } from '../../../utils/time';
 import { isEmptyEditor } from '../../../components/editor';
 import { MessageEvent, StateEvent } from '../../../../types/matrix/room';
 import { useKeyDown } from '../../../hooks/useKeyDown';
@@ -66,7 +60,11 @@ import { useRoomNavigate } from '../../../hooks/useRoomNavigate';
 import { useIgnoredUsers } from '../../../hooks/useIgnoredUsers';
 import { GetPowerLevelTag } from '../../../hooks/usePowerLevelTags';
 import { RoomTimelineProvider, useRoomTimelineContext } from './RoomTimelineContext';
-import { TimelineFloat, TimelineDivider } from './components/TimelineExtra';
+import {
+  TimelineFloat,
+  NewMessagesDivider,
+  DayDivider,
+} from './components/TimelineFloatAndDividers';
 import { TimelineMessage } from './components/TimelineMessage';
 import { TimelineEncryptedMessage } from './components/TimelineEncryptedMessage';
 import { TimelineStickerMessage } from './components/TimelineStickerMessage';
@@ -97,7 +95,6 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
       room,
       hideActivity,
       messageLayout,
-      messageSpacing,
       showHiddenEvents,
       editId,
       setEditId,
@@ -613,32 +610,9 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
       isPrevRendered = !!eventJSX;
 
       const newDividerJSX =
-        newDivider && eventJSX && eventSender !== mx.getUserId() ? (
-          <MessageBase space={messageSpacing}>
-            <TimelineDivider style={{ color: color.Success.Main }} variant="Inherit">
-              <Badge as="span" size="500" variant="Success" fill="Solid" radii="300">
-                <Text size="L400">New Messages</Text>
-              </Badge>
-            </TimelineDivider>
-          </MessageBase>
-        ) : null;
+        newDivider && eventJSX && eventSender !== mx.getUserId() ? <NewMessagesDivider /> : null;
 
-      const dayDividerJSX =
-        dayDivider && eventJSX ? (
-          <MessageBase space={messageSpacing}>
-            <TimelineDivider variant="Surface">
-              <Badge as="span" size="500" variant="Secondary" fill="None" radii="300">
-                <Text size="L400">
-                  {(() => {
-                    if (today(mEvent.getTs())) return 'Today';
-                    if (yesterday(mEvent.getTs())) return 'Yesterday';
-                    return timeDayMonthYear(mEvent.getTs());
-                  })()}
-                </Text>
-              </Badge>
-            </TimelineDivider>
-          </MessageBase>
-        ) : null;
+      const dayDividerJSX = dayDivider && eventJSX ? <DayDivider ts={mEvent.getTs()} /> : null;
 
       if (eventJSX && (newDividerJSX || dayDividerJSX)) {
         if (newDividerJSX) newDivider = false;
