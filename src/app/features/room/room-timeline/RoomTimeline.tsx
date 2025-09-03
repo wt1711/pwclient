@@ -12,41 +12,16 @@ import React, {
 } from 'react';
 import { Direction, EventTimelineSet, MatrixEvent, Room } from 'matrix-js-sdk';
 import { Editor } from 'slate';
-import { useAtomValue } from 'jotai';
 import { Badge, Box, Chip, Icon, Icons, Scroll, Text, color, config, toRem } from 'folds';
 import { isKeyHotkey } from 'is-hotkey';
 
-import { getMxIdLocalPart } from '../../../utils/matrix';
-import { useMatrixClient } from '../../../hooks/useMatrixClient';
 import { useVirtualPaginator } from '../../../hooks/useVirtualPaginator';
 import { useAlive } from '../../../hooks/useAlive';
 import { editableActiveElement, scrollToBottom } from '../../../utils/dom';
-import {
-  DefaultPlaceholder,
-  CompactPlaceholder,
-  MessageBase,
-  MessageUnsupportedContent,
-  Time,
-  MessageNotDecryptedContent,
-  RedactedContent,
-  MSticker,
-  ImageContent,
-  EventContent,
-} from '../../../components/message';
-import {
-  canEditEvent,
-  getEditedEvent,
-  getEventReactions,
-  getLatestEditableEvt,
-  getMemberDisplayName,
-  isMembershipChanged,
-  reactionOrEditEvent,
-} from '../../../utils/room';
+import { DefaultPlaceholder, CompactPlaceholder, MessageBase } from '../../../components/message';
+import { canEditEvent, getLatestEditableEvt, reactionOrEditEvent } from '../../../utils/room';
 import { MessageLayout } from '../../../state/settings';
 import { useMatrixEventRenderer } from '../../../hooks/useMatrixEventRenderer';
-import { Reactions, Message, Event, EncryptedContent } from '../message';
-import { useMemberEventParser } from '../../../hooks/useMemberEventParser';
-import * as customHtmlCss from '../../../styles/CustomHtml.css';
 import { RoomIntro } from '../../../components/room-intro';
 import {
   getIntersectionObserverEntry,
@@ -84,20 +59,23 @@ import {
   yesterday,
 } from '../../../utils/time';
 import { isEmptyEditor } from '../../../components/editor';
-import { GetContentCallback, MessageEvent, StateEvent } from '../../../../types/matrix/room';
+import { MessageEvent, StateEvent } from '../../../../types/matrix/room';
 import { useKeyDown } from '../../../hooks/useKeyDown';
 import { useDocumentFocusChange } from '../../../hooks/useDocumentFocusChange';
-import { RenderMessageContent } from '../../../components/RenderMessageContent';
-import { Image } from '../../../components/media';
-import { ImageViewer } from '../../../components/image-viewer';
-import { roomToParentsAtom } from '../../../state/room/roomToParents';
 import { useRoomNavigate } from '../../../hooks/useRoomNavigate';
 import { useIgnoredUsers } from '../../../hooks/useIgnoredUsers';
-import { useImagePackRooms } from '../../../hooks/useImagePackRooms';
 import { GetPowerLevelTag } from '../../../hooks/usePowerLevelTags';
 import { RoomTimelineProvider, useRoomTimelineContext } from './RoomTimelineContext';
 import { TimelineFloat, TimelineDivider } from './components/TimelineExtra';
-import { TimelineReply } from './components/TimelineReply';
+import { TimelineMessage } from './components/TimelineMessage';
+import { TimelineEncryptedMessage } from './components/TimelineEncryptedMessage';
+import { TimelineStickerMessage } from './components/TimelineStickerMessage';
+import { TimelineRoomMemberEvent } from './components/TimelineRoomMemberEvent';
+import { TimelineRoomNameEvent } from './components/TimelineRoomNameEvent';
+import { TimelineRoomTopicEvent } from './components/TimelineRoomTopicEvent';
+import { TimelineRoomAvatarEvent } from './components/TimelineRoomAvatarEvent';
+import { TimelineHiddenStateEvent } from './components/TimelineHiddenStateEvent';
+import { TimelineUnknownEvent } from './components/TimelineUnknownEvent';
 
 type RoomTimelineProps = {
   room: Room;
@@ -120,50 +98,23 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
       hideActivity,
       messageLayout,
       messageSpacing,
-      legacyUsernameColor,
-      encUrlPreview,
-      urlPreview,
-      showDeveloperTools,
-      mediaAutoLoad,
-      hideMembershipEvents,
-      hideNickAvatarEvents,
       showHiddenEvents,
       editId,
       setEditId,
       unreadInfo,
       setUnreadInfo,
-      canRedact,
-      canSendReaction,
-      canPinEvent,
-      getPowerLevel,
-      handleUserClick,
-      handleUsernameClick,
-      handleEdit,
-      handleReplyClick,
-      handleReactionToggle,
-      handleMessageClick,
       handleMarkAsRead,
-      linkifyOpts,
-      htmlReactParserOptions,
-      getPowerLevelTag,
-      accessibleTagColors,
-      direct,
       timeline,
       setTimeline,
       focusItem,
       setFocusItem,
+      mx,
     } = useRoomTimelineContext();
-    const mx = useMatrixClient();
-
-    const showUrlPreview = room.hasEncryptionStateEvent() ? encUrlPreview : urlPreview;
 
     const ignoredUsersList = useIgnoredUsers();
     const ignoredUsersSet = useMemo(() => new Set(ignoredUsersList), [ignoredUsersList]);
 
-    const roomToParents = useAtomValue(roomToParentsAtom);
     const { navigateRoom } = useRoomNavigate();
-
-    const imagePackRooms: Room[] = useImagePackRooms(room.roomId, roomToParents);
 
     const readUptoEventIdRef = useRef<string>();
     if (unreadInfo) {
@@ -182,8 +133,6 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
     });
 
     const alive = useAlive();
-
-    const parseMemberEvent = useMemberEventParser();
 
     const eventsLength = getTimelinesEventsCount(timeline.linkedTimelines);
     const liveTimelineLinked =
@@ -562,514 +511,54 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
       [string, MatrixEvent, number, EventTimelineSet, boolean]
     >(
       {
-        [MessageEvent.RoomMessage]: (mEventId, mEvent, item, timelineSet, collapse) => {
-          const reactionRelations = getEventReactions(timelineSet, mEventId);
-          const reactions = reactionRelations && reactionRelations.getSortedAnnotationsByKey();
-          const hasReactions = reactions && reactions.length > 0;
-          const { replyEventId, threadRootId } = mEvent;
-          const highlighted = focusItem?.index === item && focusItem.highlight;
-
-          const editedEvent = getEditedEvent(mEventId, mEvent, timelineSet);
-          const getContent = (() =>
-            editedEvent?.getContent()['m.new_content'] ??
-            mEvent.getContent()) as GetContentCallback;
-
-          const senderId = mEvent.getSender() ?? '';
-          const senderPowerLevel = getPowerLevel(mEvent.getSender());
-          const senderDisplayName =
-            getMemberDisplayName(room, senderId) ?? getMxIdLocalPart(senderId) ?? senderId;
-
-          return (
-            <Message
-              key={mEvent.getId()}
-              data-message-item={item}
-              data-message-id={mEventId}
-              room={room}
-              mEvent={mEvent}
-              messageSpacing={messageSpacing}
-              messageLayout={messageLayout}
-              collapse={collapse}
-              highlight={highlighted}
-              edit={editId === mEventId}
-              canDelete={canRedact || mEvent.getSender() === mx.getUserId()}
-              canSendReaction={canSendReaction}
-              canPinEvent={canPinEvent}
-              imagePackRooms={imagePackRooms}
-              relations={hasReactions ? reactionRelations : undefined}
-              onUserClick={handleUserClick}
-              onUsernameClick={handleUsernameClick}
-              onReplyClick={handleReplyClick}
-              onReactionToggle={handleReactionToggle}
-              onEditId={handleEdit}
-              onClick={handleMessageClick}
-              reply={
-                replyEventId && (
-                  <TimelineReply
-                    timelineSet={timelineSet}
-                    replyEventId={replyEventId}
-                    threadRootId={threadRootId}
-                    onClick={handleOpenReply}
-                  />
-                )
-              }
-              reactions={
-                reactionRelations && (
-                  <Reactions
-                    style={{ marginTop: config.space.S200 }}
-                    room={room}
-                    relations={reactionRelations}
-                    mEventId={mEventId}
-                    canSendReaction={canSendReaction}
-                    onReactionToggle={handleReactionToggle}
-                  />
-                )
-              }
-              hideReadReceipts={hideActivity}
-              showDeveloperTools={showDeveloperTools}
-              powerLevelTag={getPowerLevelTag(senderPowerLevel)}
-              accessibleTagColors={accessibleTagColors}
-              legacyUsernameColor={legacyUsernameColor || direct}
-            >
-              {mEvent.isRedacted() ? (
-                <RedactedContent reason={mEvent.getUnsigned().redacted_because?.content.reason} />
-              ) : (
-                <RenderMessageContent
-                  displayName={senderDisplayName}
-                  msgType={mEvent.getContent().msgtype ?? ''}
-                  ts={mEvent.getTs()}
-                  edited={!!editedEvent}
-                  getContent={getContent}
-                  mediaAutoLoad={mediaAutoLoad}
-                  urlPreview={showUrlPreview}
-                  htmlReactParserOptions={htmlReactParserOptions}
-                  linkifyOpts={linkifyOpts}
-                  outlineAttachment={messageLayout === MessageLayout.Bubble}
-                />
-              )}
-            </Message>
-          );
-        },
-        [MessageEvent.RoomMessageEncrypted]: (mEventId, mEvent, item, timelineSet, collapse) => {
-          const reactionRelations = getEventReactions(timelineSet, mEventId);
-          const reactions = reactionRelations && reactionRelations.getSortedAnnotationsByKey();
-          const hasReactions = reactions && reactions.length > 0;
-          const { replyEventId, threadRootId } = mEvent;
-          const highlighted = focusItem?.index === item && focusItem.highlight;
-          const senderPowerLevel = getPowerLevel(mEvent.getSender());
-
-          return (
-            <Message
-              key={mEvent.getId()}
-              data-message-item={item}
-              data-message-id={mEventId}
-              room={room}
-              mEvent={mEvent}
-              messageSpacing={messageSpacing}
-              messageLayout={messageLayout}
-              collapse={collapse}
-              highlight={highlighted}
-              edit={editId === mEventId}
-              canDelete={canRedact || mEvent.getSender() === mx.getUserId()}
-              canSendReaction={canSendReaction}
-              canPinEvent={canPinEvent}
-              imagePackRooms={imagePackRooms}
-              relations={hasReactions ? reactionRelations : undefined}
-              onUserClick={handleUserClick}
-              onUsernameClick={handleUsernameClick}
-              onReplyClick={handleReplyClick}
-              onReactionToggle={handleReactionToggle}
-              onEditId={handleEdit}
-              reply={
-                replyEventId && (
-                  <TimelineReply
-                    timelineSet={timelineSet}
-                    replyEventId={replyEventId}
-                    threadRootId={threadRootId}
-                    onClick={handleOpenReply}
-                  />
-                )
-              }
-              reactions={
-                reactionRelations && (
-                  <Reactions
-                    style={{ marginTop: config.space.S200 }}
-                    room={room}
-                    relations={reactionRelations}
-                    mEventId={mEventId}
-                    canSendReaction={canSendReaction}
-                    onReactionToggle={handleReactionToggle}
-                  />
-                )
-              }
-              hideReadReceipts={hideActivity}
-              showDeveloperTools={showDeveloperTools}
-              powerLevelTag={getPowerLevelTag(senderPowerLevel)}
-              accessibleTagColors={accessibleTagColors}
-              legacyUsernameColor={legacyUsernameColor || direct}
-            >
-              <EncryptedContent mEvent={mEvent}>
-                {() => {
-                  if (mEvent.isRedacted()) return <RedactedContent />;
-                  if (mEvent.getType() === MessageEvent.Sticker)
-                    return (
-                      <MSticker
-                        content={mEvent.getContent()}
-                        renderImageContent={(props) => (
-                          <ImageContent
-                            {...props}
-                            autoPlay={mediaAutoLoad}
-                            renderImage={(p) => <Image {...p} loading="lazy" />}
-                            renderViewer={(p) => <ImageViewer {...p} />}
-                          />
-                        )}
-                      />
-                    );
-                  if (mEvent.getType() === MessageEvent.RoomMessage) {
-                    const editedEvent = getEditedEvent(mEventId, mEvent, timelineSet);
-                    const getContent = (() =>
-                      editedEvent?.getContent()['m.new_content'] ??
-                      mEvent.getContent()) as GetContentCallback;
-
-                    const senderId = mEvent.getSender() ?? '';
-                    const senderDisplayName =
-                      getMemberDisplayName(room, senderId) ??
-                      getMxIdLocalPart(senderId) ??
-                      senderId;
-                    return (
-                      <RenderMessageContent
-                        displayName={senderDisplayName}
-                        msgType={mEvent.getContent().msgtype ?? ''}
-                        ts={mEvent.getTs()}
-                        edited={!!editedEvent}
-                        getContent={getContent}
-                        mediaAutoLoad={mediaAutoLoad}
-                        urlPreview={showUrlPreview}
-                        htmlReactParserOptions={htmlReactParserOptions}
-                        linkifyOpts={linkifyOpts}
-                        outlineAttachment={messageLayout === MessageLayout.Bubble}
-                      />
-                    );
-                  }
-                  if (mEvent.getType() === MessageEvent.RoomMessageEncrypted)
-                    return (
-                      <Text>
-                        <MessageNotDecryptedContent />
-                      </Text>
-                    );
-                  return (
-                    <Text>
-                      <MessageUnsupportedContent />
-                    </Text>
-                  );
-                }}
-              </EncryptedContent>
-            </Message>
-          );
-        },
-        [MessageEvent.Sticker]: (mEventId, mEvent, item, timelineSet, collapse) => {
-          const reactionRelations = getEventReactions(timelineSet, mEventId);
-          const reactions = reactionRelations && reactionRelations.getSortedAnnotationsByKey();
-          const hasReactions = reactions && reactions.length > 0;
-          const highlighted = focusItem?.index === item && focusItem.highlight;
-          const senderPowerLevel = getPowerLevel(mEvent.getSender());
-
-          return (
-            <Message
-              key={mEvent.getId()}
-              data-message-item={item}
-              data-message-id={mEventId}
-              room={room}
-              mEvent={mEvent}
-              messageSpacing={messageSpacing}
-              messageLayout={messageLayout}
-              collapse={collapse}
-              highlight={highlighted}
-              canDelete={canRedact || mEvent.getSender() === mx.getUserId()}
-              canSendReaction={canSendReaction}
-              canPinEvent={canPinEvent}
-              imagePackRooms={imagePackRooms}
-              relations={hasReactions ? reactionRelations : undefined}
-              onUserClick={handleUserClick}
-              onUsernameClick={handleUsernameClick}
-              onReplyClick={handleReplyClick}
-              onReactionToggle={handleReactionToggle}
-              reactions={
-                reactionRelations && (
-                  <Reactions
-                    style={{ marginTop: config.space.S200 }}
-                    room={room}
-                    relations={reactionRelations}
-                    mEventId={mEventId}
-                    canSendReaction={canSendReaction}
-                    onReactionToggle={handleReactionToggle}
-                  />
-                )
-              }
-              hideReadReceipts={hideActivity}
-              showDeveloperTools={showDeveloperTools}
-              powerLevelTag={getPowerLevelTag(senderPowerLevel)}
-              accessibleTagColors={accessibleTagColors}
-              legacyUsernameColor={legacyUsernameColor || direct}
-            >
-              {mEvent.isRedacted() ? (
-                <RedactedContent reason={mEvent.getUnsigned().redacted_because?.content.reason} />
-              ) : (
-                <MSticker
-                  content={mEvent.getContent()}
-                  renderImageContent={(props) => (
-                    <ImageContent
-                      {...props}
-                      autoPlay={mediaAutoLoad}
-                      renderImage={(p) => <Image {...p} loading="lazy" />}
-                      renderViewer={(p) => <ImageViewer {...p} />}
-                    />
-                  )}
-                />
-              )}
-            </Message>
-          );
-        },
-        [StateEvent.RoomMember]: (mEventId, mEvent, item) => {
-          const membershipChanged = isMembershipChanged(mEvent);
-          if (membershipChanged && hideMembershipEvents) return null;
-          if (!membershipChanged && hideNickAvatarEvents) return null;
-
-          const highlighted = focusItem?.index === item && focusItem.highlight;
-          const parsed = parseMemberEvent(mEvent);
-
-          const timeJSX = (
-            <Time ts={mEvent.getTs()} compact={messageLayout === MessageLayout.Compact} />
-          );
-
-          return (
-            <Event
-              key={mEvent.getId()}
-              data-message-item={item}
-              data-message-id={mEventId}
-              room={room}
-              mEvent={mEvent}
-              highlight={highlighted}
-              messageSpacing={messageSpacing}
-              canDelete={canRedact || mEvent.getSender() === mx.getUserId()}
-              hideReadReceipts={hideActivity}
-              showDeveloperTools={showDeveloperTools}
-            >
-              <EventContent
-                messageLayout={messageLayout}
-                time={timeJSX}
-                iconSrc={parsed.icon}
-                content={
-                  <Box grow="Yes" direction="Column">
-                    <Text size="T300" priority="300">
-                      {parsed.body}
-                    </Text>
-                  </Box>
-                }
-              />
-            </Event>
-          );
-        },
-        [StateEvent.RoomName]: (mEventId, mEvent, item) => {
-          const highlighted = focusItem?.index === item && focusItem.highlight;
-          const senderId = mEvent.getSender() ?? '';
-          const senderName = getMemberDisplayName(room, senderId) || getMxIdLocalPart(senderId);
-
-          const timeJSX = (
-            <Time ts={mEvent.getTs()} compact={messageLayout === MessageLayout.Compact} />
-          );
-
-          return (
-            <Event
-              key={mEvent.getId()}
-              data-message-item={item}
-              data-message-id={mEventId}
-              room={room}
-              mEvent={mEvent}
-              highlight={highlighted}
-              messageSpacing={messageSpacing}
-              canDelete={canRedact || mEvent.getSender() === mx.getUserId()}
-              hideReadReceipts={hideActivity}
-              showDeveloperTools={showDeveloperTools}
-            >
-              <EventContent
-                messageLayout={messageLayout}
-                time={timeJSX}
-                iconSrc={Icons.Hash}
-                content={
-                  <Box grow="Yes" direction="Column">
-                    <Text size="T300" priority="300">
-                      <b>{senderName}</b>
-                      {' changed room name'}
-                    </Text>
-                  </Box>
-                }
-              />
-            </Event>
-          );
-        },
-        [StateEvent.RoomTopic]: (mEventId, mEvent, item) => {
-          const highlighted = focusItem?.index === item && focusItem.highlight;
-          const senderId = mEvent.getSender() ?? '';
-          const senderName = getMemberDisplayName(room, senderId) || getMxIdLocalPart(senderId);
-
-          const timeJSX = (
-            <Time ts={mEvent.getTs()} compact={messageLayout === MessageLayout.Compact} />
-          );
-
-          return (
-            <Event
-              key={mEvent.getId()}
-              data-message-item={item}
-              data-message-id={mEventId}
-              room={room}
-              mEvent={mEvent}
-              highlight={highlighted}
-              messageSpacing={messageSpacing}
-              canDelete={canRedact || mEvent.getSender() === mx.getUserId()}
-              hideReadReceipts={hideActivity}
-              showDeveloperTools={showDeveloperTools}
-            >
-              <EventContent
-                messageLayout={messageLayout}
-                time={timeJSX}
-                iconSrc={Icons.Hash}
-                content={
-                  <Box grow="Yes" direction="Column">
-                    <Text size="T300" priority="300">
-                      <b>{senderName}</b>
-                      {' changed room topic'}
-                    </Text>
-                  </Box>
-                }
-              />
-            </Event>
-          );
-        },
-        [StateEvent.RoomAvatar]: (mEventId, mEvent, item) => {
-          const highlighted = focusItem?.index === item && focusItem.highlight;
-          const senderId = mEvent.getSender() ?? '';
-          const senderName = getMemberDisplayName(room, senderId) || getMxIdLocalPart(senderId);
-
-          const timeJSX = (
-            <Time ts={mEvent.getTs()} compact={messageLayout === MessageLayout.Compact} />
-          );
-
-          return (
-            <Event
-              key={mEvent.getId()}
-              data-message-item={item}
-              data-message-id={mEventId}
-              room={room}
-              mEvent={mEvent}
-              highlight={highlighted}
-              messageSpacing={messageSpacing}
-              canDelete={canRedact || mEvent.getSender() === mx.getUserId()}
-              hideReadReceipts={hideActivity}
-              showDeveloperTools={showDeveloperTools}
-            >
-              <EventContent
-                messageLayout={messageLayout}
-                time={timeJSX}
-                iconSrc={Icons.Hash}
-                content={
-                  <Box grow="Yes" direction="Column">
-                    <Text size="T300" priority="300">
-                      <b>{senderName}</b>
-                      {' changed room avatar'}
-                    </Text>
-                  </Box>
-                }
-              />
-            </Event>
-          );
-        },
-      },
-      (mEventId, mEvent, item) => {
-        if (!showHiddenEvents) return null;
-        const highlighted = focusItem?.index === item && focusItem.highlight;
-        const senderId = mEvent.getSender() ?? '';
-        const senderName = getMemberDisplayName(room, senderId) || getMxIdLocalPart(senderId);
-
-        const timeJSX = (
-          <Time ts={mEvent.getTs()} compact={messageLayout === MessageLayout.Compact} />
-        );
-
-        return (
-          <Event
-            key={mEvent.getId()}
-            data-message-item={item}
-            data-message-id={mEventId}
-            room={room}
+        [MessageEvent.RoomMessage]: (mEventId, mEvent, item, timelineSet, collapse) => (
+          <TimelineMessage
+            mEventId={mEventId}
             mEvent={mEvent}
-            highlight={highlighted}
-            messageSpacing={messageSpacing}
-            canDelete={canRedact || mEvent.getSender() === mx.getUserId()}
-            hideReadReceipts={hideActivity}
-            showDeveloperTools={showDeveloperTools}
-          >
-            <EventContent
-              messageLayout={messageLayout}
-              time={timeJSX}
-              iconSrc={Icons.Code}
-              content={
-                <Box grow="Yes" direction="Column">
-                  <Text size="T300" priority="300">
-                    <b>{senderName}</b>
-                    {' sent '}
-                    <code className={customHtmlCss.Code}>{mEvent.getType()}</code>
-                    {' state event'}
-                  </Text>
-                </Box>
-              }
-            />
-          </Event>
-        );
-      },
-      (mEventId, mEvent, item) => {
-        if (!showHiddenEvents) return null;
-        if (Object.keys(mEvent.getContent()).length === 0) return null;
-        if (mEvent.getRelation()) return null;
-        if (mEvent.isRedaction()) return null;
-
-        const highlighted = focusItem?.index === item && focusItem.highlight;
-        const senderId = mEvent.getSender() ?? '';
-        const senderName = getMemberDisplayName(room, senderId) || getMxIdLocalPart(senderId);
-
-        const timeJSX = (
-          <Time ts={mEvent.getTs()} compact={messageLayout === MessageLayout.Compact} />
-        );
-
-        return (
-          <Event
-            key={mEvent.getId()}
-            data-message-item={item}
-            data-message-id={mEventId}
-            room={room}
+            item={item}
+            timelineSet={timelineSet}
+            collapse={collapse}
+            handleOpenReply={handleOpenReply}
+          />
+        ),
+        [MessageEvent.RoomMessageEncrypted]: (mEventId, mEvent, item, timelineSet, collapse) => (
+          <TimelineEncryptedMessage
+            mEventId={mEventId}
             mEvent={mEvent}
-            highlight={highlighted}
-            messageSpacing={messageSpacing}
-            canDelete={canRedact || mEvent.getSender() === mx.getUserId()}
-            hideReadReceipts={hideActivity}
-            showDeveloperTools={showDeveloperTools}
-          >
-            <EventContent
-              messageLayout={messageLayout}
-              time={timeJSX}
-              iconSrc={Icons.Code}
-              content={
-                <Box grow="Yes" direction="Column">
-                  <Text size="T300" priority="300">
-                    <b>{senderName}</b>
-                    {' sent '}
-                    <code className={customHtmlCss.Code}>{mEvent.getType()}</code>
-                    {' event'}
-                  </Text>
-                </Box>
-              }
-            />
-          </Event>
-        );
-      }
+            item={item}
+            timelineSet={timelineSet}
+            collapse={collapse}
+            handleOpenReply={handleOpenReply}
+          />
+        ),
+        [MessageEvent.Sticker]: (mEventId, mEvent, item, timelineSet, collapse) => (
+          <TimelineStickerMessage
+            mEventId={mEventId}
+            mEvent={mEvent}
+            item={item}
+            timelineSet={timelineSet}
+            collapse={collapse}
+          />
+        ),
+        [StateEvent.RoomMember]: (mEventId, mEvent, item) => (
+          <TimelineRoomMemberEvent mEventId={mEventId} mEvent={mEvent} item={item} />
+        ),
+        [StateEvent.RoomName]: (mEventId, mEvent, item) => (
+          <TimelineRoomNameEvent mEventId={mEventId} mEvent={mEvent} item={item} />
+        ),
+        [StateEvent.RoomTopic]: (mEventId, mEvent, item) => (
+          <TimelineRoomTopicEvent mEventId={mEventId} mEvent={mEvent} item={item} />
+        ),
+        [StateEvent.RoomAvatar]: (mEventId, mEvent, item) => (
+          <TimelineRoomAvatarEvent mEventId={mEventId} mEvent={mEvent} item={item} />
+        ),
+      },
+      (mEventId, mEvent, item) => (
+        <TimelineHiddenStateEvent mEventId={mEventId} mEvent={mEvent} item={item} />
+      ),
+      (mEventId, mEvent, item) => (
+        <TimelineUnknownEvent mEventId={mEventId} mEvent={mEvent} item={item} />
+      )
     );
 
     let prevEvent: MatrixEvent | undefined;

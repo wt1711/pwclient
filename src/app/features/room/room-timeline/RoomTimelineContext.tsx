@@ -1,8 +1,9 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { Room } from 'matrix-js-sdk';
+import { Room, MatrixClient } from 'matrix-js-sdk';
 import { Editor } from 'slate';
 import { HTMLReactParserOptions } from 'html-react-parser';
 import { Opts as LinkifyOpts } from 'linkifyjs';
+import { useAtomValue } from 'jotai';
 
 import { MessageLayout, MessageSpacing, settingsAtom } from '../../../state/settings';
 import { useSetting } from '../../../state/hooks/settings';
@@ -13,7 +14,6 @@ import { useMatrixClient } from '../../../hooks/useMatrixClient';
 import { MessageEvent, StateEvent } from '../../../../types/matrix/room';
 import { eventWithShortcode, factoryEventSentBy } from '../../../utils/matrix';
 import { getEventReactions, getReactionContent } from '../../../utils/room';
-import { markAsRead } from '../../../../client/action/notifications';
 import { useMediaAuthentication } from '../../../hooks/useMediaAuthentication';
 import { useMentionClickHandler } from '../../../hooks/useMentionClickHandler';
 import { useSpoilerClickHandler } from '../../../hooks/useSpoilerClickHandler';
@@ -37,8 +37,12 @@ import {
   useHandleReplyClick,
   useHandleUserClick,
   useHandleUsernameClick,
+  useHandleMarkAsRead,
 } from './hooks/useHandleActions';
 import { Timeline } from './constants';
+import { roomToParentsAtom } from '../../../state/room/roomToParents';
+import { useImagePackRooms } from '../../../hooks/useImagePackRooms';
+import { MemberEventParser, useMemberEventParser } from '../../../hooks/useMemberEventParser';
 
 interface FocusItem {
   index: number;
@@ -83,6 +87,10 @@ interface RoomTimelineContextType {
   setTimeline: React.Dispatch<React.SetStateAction<Timeline>>;
   focusItem?: FocusItem;
   setFocusItem: React.Dispatch<React.SetStateAction<FocusItem | undefined>>;
+  showUrlPreview: boolean;
+  imagePackRooms: Room[];
+  mx: MatrixClient;
+  parseMemberEvent: MemberEventParser;
 }
 
 const RoomTimelineContext = createContext<RoomTimelineContextType | null>(null);
@@ -135,36 +143,17 @@ export function RoomTimelineProvider({
   const mentionClickHandler = useMentionClickHandler(room.roomId);
   const spoilerClickHandler = useSpoilerClickHandler();
   const direct = useIsDirectRoom();
+  const roomToParents = useAtomValue(roomToParentsAtom);
+  const imagePackRooms = useImagePackRooms(room.roomId, roomToParents);
+  const showUrlPreview = room.hasEncryptionStateEvent() ? encUrlPreview : urlPreview;
+  const parseMemberEvent = useMemberEventParser();
 
   const handleUserClick = useHandleUserClick(room);
   const handleUsernameClick = useHandleUsernameClick(room, editor);
   const handleEdit = useHandleEdit(editor, setEditId);
   const handleReplyClick = useHandleReplyClick(room, editor);
   const handleMessageClick = useHandleMessageClick(room);
-
-  const linkifyOpts = useMemo<LinkifyOpts>(
-    () => ({
-      ...LINKIFY_OPTS,
-      render: factoryRenderLinkifyWithMention((href) =>
-        renderMatrixMention(mx, room.roomId, href, makeMentionCustomProps(mentionClickHandler))
-      ),
-    }),
-    [mx, room, mentionClickHandler]
-  );
-  const htmlReactParserOptions = useMemo<HTMLReactParserOptions>(
-    () =>
-      getReactCustomHtmlParser(mx, room.roomId, {
-        linkifyOpts,
-        useAuthentication,
-        handleSpoilerClick: spoilerClickHandler,
-        handleMentionClick: mentionClickHandler,
-      }),
-    [mx, room, linkifyOpts, spoilerClickHandler, mentionClickHandler, useAuthentication]
-  );
-
-  const handleMarkAsRead = useCallback(() => {
-    markAsRead(mx, room.roomId, hideActivity);
-  }, [mx, room, hideActivity]);
+  const handleMarkAsRead = useHandleMarkAsRead(room, hideActivity);
 
   const handleReactionToggle = useCallback(
     (targetEventId: string, key: string, shortcode?: string) => {
@@ -188,6 +177,26 @@ export function RoomTimelineProvider({
       );
     },
     [mx, room]
+  );
+
+  const linkifyOpts = useMemo<LinkifyOpts>(
+    () => ({
+      ...LINKIFY_OPTS,
+      render: factoryRenderLinkifyWithMention((href) =>
+        renderMatrixMention(mx, room.roomId, href, makeMentionCustomProps(mentionClickHandler))
+      ),
+    }),
+    [mx, room, mentionClickHandler]
+  );
+  const htmlReactParserOptions = useMemo<HTMLReactParserOptions>(
+    () =>
+      getReactCustomHtmlParser(mx, room.roomId, {
+        linkifyOpts,
+        useAuthentication,
+        handleSpoilerClick: spoilerClickHandler,
+        handleMentionClick: mentionClickHandler,
+      }),
+    [mx, room, linkifyOpts, spoilerClickHandler, mentionClickHandler, useAuthentication]
   );
 
   const unread = useRoomUnread(room.roomId, roomToUnreadAtom);
@@ -235,6 +244,10 @@ export function RoomTimelineProvider({
       setTimeline,
       focusItem,
       setFocusItem,
+      showUrlPreview,
+      imagePackRooms,
+      mx,
+      parseMemberEvent,
     }),
     [
       room,
@@ -269,6 +282,10 @@ export function RoomTimelineProvider({
       direct,
       timeline,
       focusItem,
+      showUrlPreview,
+      imagePackRooms,
+      mx,
+      parseMemberEvent,
     ]
   );
 

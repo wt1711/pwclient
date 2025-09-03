@@ -13,6 +13,7 @@ import { roomIdToReplyDraftAtomFamily } from '../../../../state/room/roomInputDr
 import { useRoomMessage } from '../../RoomMessageContext';
 import { Message as MessageType } from '../../../ai-assistant/ai';
 import { isFromMe } from '../../../ai-assistant/utils';
+import { markAsRead } from '../../../../../client/action/notifications';
 
 export function useHandleUserClick(room: Room) {
   return useCallback(
@@ -28,6 +29,13 @@ export function useHandleUserClick(room: Room) {
     },
     [room]
   );
+}
+
+export function useHandleMarkAsRead(room: Room, hideActivity: boolean) {
+  const mx = useMatrixClient();
+  return useCallback(() => {
+    markAsRead(mx, room.roomId, hideActivity);
+  }, [mx, room, hideActivity]);
 }
 
 export function useHandleUsernameClick(room: Room, editor: Editor) {
