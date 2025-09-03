@@ -10,16 +10,15 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Direction, EventTimelineSet, IContent, MatrixEvent, Room } from 'matrix-js-sdk';
+import { Direction, EventTimelineSet, MatrixEvent, Room } from 'matrix-js-sdk';
 import { HTMLReactParserOptions } from 'html-react-parser';
-import { ReactEditor } from 'slate-react';
 import { Editor } from 'slate';
-import { useAtomValue, useSetAtom } from 'jotai';
+import { useAtomValue } from 'jotai';
 import { Badge, Box, Chip, Icon, Icons, Scroll, Text, color, config, toRem } from 'folds';
 import { isKeyHotkey } from 'is-hotkey';
 import { Opts as LinkifyOpts } from 'linkifyjs';
 
-import { eventWithShortcode, factoryEventSentBy, getMxIdLocalPart } from '../../../utils/matrix';
+import { getMxIdLocalPart } from '../../../utils/matrix';
 import { useMatrixClient } from '../../../hooks/useMatrixClient';
 import { useVirtualPaginator } from '../../../hooks/useVirtualPaginator';
 import { useAlive } from '../../../hooks/useAlive';
@@ -50,12 +49,10 @@ import {
   getEventReactions,
   getLatestEditableEvt,
   getMemberDisplayName,
-  getReactionContent,
   isMembershipChanged,
   reactionOrEditEvent,
 } from '../../../utils/room';
 import { MessageLayout } from '../../../state/settings';
-import { openProfileViewer } from '../../../../client/action/navigation';
 import { useMatrixEventRenderer } from '../../../hooks/useMatrixEventRenderer';
 import { Reactions, Message, Event, EncryptedContent } from '../message';
 import { useMemberEventParser } from '../../../hooks/useMemberEventParser';
@@ -89,8 +86,6 @@ import {
   getInitialTimeline,
   getRoomUnreadInfo,
 } from './hooks/getEventAndTimeline';
-import { Message as MessageType } from '../../ai-assistant/ai';
-import { isFromMe } from '../../ai-assistant/utils';
 import {
   inSameDay,
   minuteDifference,
@@ -98,8 +93,7 @@ import {
   today,
   yesterday,
 } from '../../../utils/time';
-import { createMentionElement, isEmptyEditor, moveCursor } from '../../../components/editor';
-import { roomIdToReplyDraftAtomFamily } from '../../../state/room/roomInputDrafts';
+import { isEmptyEditor } from '../../../components/editor';
 import { GetContentCallback, MessageEvent, StateEvent } from '../../../../types/matrix/room';
 import { useKeyDown } from '../../../hooks/useKeyDown';
 import { useDocumentFocusChange } from '../../../hooks/useDocumentFocusChange';
@@ -115,7 +109,6 @@ import { useIgnoredUsers } from '../../../hooks/useIgnoredUsers';
 import { useImagePackRooms } from '../../../hooks/useImagePackRooms';
 import { GetPowerLevelTag } from '../../../hooks/usePowerLevelTags';
 import { useIsDirectRoom } from '../../../hooks/useRoom';
-import { useRoomMessage } from '../RoomMessageContext';
 import { RoomTimelineProvider, useRoomTimelineContext } from './RoomTimelineContext';
 import { TimelineFloat, TimelineDivider } from './components/TimelineExtra';
 
@@ -153,6 +146,13 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
       canSendReaction,
       canPinEvent,
       getPowerLevel,
+      handleUserClick,
+      handleUsernameClick,
+      handleEdit,
+      handleReplyClick,
+      handleReactionToggle,
+      handleMessageClick,
+      handleMarkAsRead,
     } = useRoomTimelineContext();
     const mx = useMatrixClient();
     const useAuthentication = useMediaAuthentication();
@@ -163,13 +163,10 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
     const ignoredUsersList = useIgnoredUsers();
     const ignoredUsersSet = useMemo(() => new Set(ignoredUsersList), [ignoredUsersList]);
 
-    const setReplyDraft = useSetAtom(roomIdToReplyDraftAtomFamily(room.roomId));
-
     const roomToParents = useAtomValue(roomToParentsAtom);
     const { navigateRoom } = useRoomNavigate();
     const mentionClickHandler = useMentionClickHandler(room.roomId);
     const spoilerClickHandler = useSpoilerClickHandler();
-    const { setSelectedMessage } = useRoomMessage();
 
     const imagePackRooms: Room[] = useImagePackRooms(room.roomId, roomToParents);
 
@@ -584,10 +581,6 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
       }
     };
 
-    const handleMarkAsRead = () => {
-      markAsRead(mx, room.roomId, hideActivity);
-    };
-
     const handleOpenReply: MouseEventHandler<HTMLButtonElement> = useCallback(
       async (evt) => {
         const targetId = evt.currentTarget.getAttribute('data-event-id');
@@ -595,137 +588,6 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
         handleOpenEvent(targetId);
       },
       [handleOpenEvent]
-    );
-
-    const handleUserClick: MouseEventHandler<HTMLButtonElement> = useCallback(
-      (evt) => {
-        evt.preventDefault();
-        evt.stopPropagation();
-        const userId = evt.currentTarget.getAttribute('data-user-id');
-        if (!userId) {
-          console.warn('Button should have "data-user-id" attribute!');
-          return;
-        }
-        openProfileViewer(userId, room.roomId);
-      },
-      [room]
-    );
-    const handleUsernameClick: MouseEventHandler<HTMLButtonElement> = useCallback(
-      (evt) => {
-        evt.preventDefault();
-        const userId = evt.currentTarget.getAttribute('data-user-id');
-        if (!userId) {
-          console.warn('Button should have "data-user-id" attribute!');
-          return;
-        }
-        const name = getMemberDisplayName(room, userId) ?? getMxIdLocalPart(userId) ?? userId;
-        editor.insertNode(
-          createMentionElement(
-            userId,
-            name.startsWith('@') ? name : `@${name}`,
-            userId === mx.getUserId()
-          )
-        );
-        ReactEditor.focus(editor);
-        moveCursor(editor);
-      },
-      [mx, room, editor]
-    );
-
-    const handleReplyClick: MouseEventHandler<HTMLButtonElement> = useCallback(
-      (evt, startThread = false) => {
-        const replyId = evt.currentTarget.getAttribute('data-event-id');
-        if (!replyId) {
-          console.warn('Button should have "data-event-id" attribute!');
-          return;
-        }
-        const replyEvt = room.findEventById(replyId);
-        if (!replyEvt) return;
-        const editedReply = getEditedEvent(replyId, replyEvt, room.getUnfilteredTimelineSet());
-        const content: IContent =
-          editedReply?.getContent()['m.new_content'] ?? replyEvt.getContent();
-        const { body, formatted_body: formattedBody } = content;
-        const { 'm.relates_to': relation } = startThread
-          ? { 'm.relates_to': { rel_type: 'm.thread', event_id: replyId } }
-          : replyEvt.getWireContent();
-        const senderId = replyEvt.getSender();
-        if (senderId && typeof body === 'string') {
-          setReplyDraft({
-            userId: senderId,
-            eventId: replyId,
-            body,
-            formattedBody,
-            relation,
-          });
-          setTimeout(() => ReactEditor.focus(editor), 100);
-        }
-      },
-      [room, setReplyDraft, editor]
-    );
-
-    const handleReactionToggle = useCallback(
-      (targetEventId: string, key: string, shortcode?: string) => {
-        const relations = getEventReactions(room.getUnfilteredTimelineSet(), targetEventId);
-        const allReactions = relations?.getSortedAnnotationsByKey() ?? [];
-        const [, reactionsSet] = allReactions.find(([k]) => k === key) ?? [];
-        const reactions = reactionsSet ? Array.from(reactionsSet) : [];
-        const myReaction = reactions.find(factoryEventSentBy(mx.getUserId() ?? ''));
-
-        if (myReaction && !!myReaction?.isRelation()) {
-          mx.redactEvent(room.roomId, myReaction.getId() ?? '');
-          return;
-        }
-        const rShortcode =
-          shortcode ||
-          (reactions.find(eventWithShortcode)?.getContent().shortcode as string | undefined);
-        mx.sendEvent(
-          room.roomId,
-          MessageEvent.Reaction as any,
-          getReactionContent(targetEventId, key, rShortcode)
-        );
-      },
-      [mx, room]
-    );
-
-    const handleMessageClick: MouseEventHandler<HTMLDivElement> = useCallback(
-      (evt) => {
-        const messageElement = evt.currentTarget;
-        const messageText = messageElement.textContent?.trim();
-        if (messageText) {
-          // Create a Message object from the clicked message
-          const messageEvent = evt.currentTarget.closest('[data-message-id]');
-          if (messageEvent) {
-            const messageEventId = messageEvent.getAttribute('data-message-id');
-            const roomEvent = room.findEventById(messageEventId || '');
-            if (roomEvent) {
-              const sender = roomEvent.getSender() || '';
-              const content = roomEvent.getContent();
-              const body = content.body || messageText;
-
-              const message: MessageType = {
-                sender,
-                text: body,
-                timestamp: new Date(roomEvent.getTs()).toISOString(),
-                is_from_me: isFromMe(sender, mx.getUserId() as string),
-              };
-
-              setSelectedMessage(message);
-            }
-          }
-        }
-      },
-      [setSelectedMessage, room, mx]
-    );
-    const handleEdit = useCallback(
-      (editEvtId?: string) => {
-        if (editEvtId) {
-          setEditId(editEvtId);
-          return;
-        }
-        setEditId(undefined);
-        ReactEditor.focus(editor);
-      },
-      [editor, setEditId]
     );
 
     const renderMatrixEvent = useMatrixEventRenderer<
@@ -1479,7 +1341,7 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
 
 export function RoomTimeline(props: RoomTimelineProps) {
   return (
-    <RoomTimelineProvider room={props.room}>
+    <RoomTimelineProvider room={props.room} editor={props.editor}>
       <RoomTimelineInternal {...props} />
     </RoomTimelineProvider>
   );
