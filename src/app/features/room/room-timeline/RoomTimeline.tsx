@@ -29,11 +29,7 @@ import { markAsRead } from '../../../../client/action/notifications';
 import { useDebounce } from '../../../hooks/useDebounce';
 import { getResizeObserverEntry, useResizeObserver } from '../../../hooks/useResizeObserver';
 import { PAGINATION_LIMIT } from './constants';
-import {
-  useLiveEventArrive,
-  useEventTimelineLoader,
-  useLiveTimelineRefresh,
-} from './hooks/useEventAndTimeline';
+import { useLiveEventArrive, useLiveTimelineRefresh } from './hooks/useEventAndTimeline';
 import {
   getEventTimeline,
   getFirstLinkedTimeline,
@@ -53,7 +49,6 @@ import { isEmptyEditor } from '../../../components/editor';
 import { MessageEvent, StateEvent } from '../../../../types/matrix/room';
 import { useKeyDown } from '../../../hooks/useKeyDown';
 import { useDocumentFocusChange } from '../../../hooks/useDocumentFocusChange';
-import { useRoomNavigate } from '../../../hooks/useRoomNavigate';
 import { useIgnoredUsers } from '../../../hooks/useIgnoredUsers';
 import { GetPowerLevelTag } from '../../../hooks/usePowerLevelTags';
 import { RoomTimelineProvider, useRoomTimelineContext } from './RoomTimelineContext';
@@ -112,12 +107,13 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
       atBottomRef,
       readUptoEventIdRef,
       atLiveEndRef,
+      handleJumpToLatest,
+      handleJumpToUnread,
+      loadEventTimeline,
     } = useRoomTimelineContext();
 
     const ignoredUsersList = useIgnoredUsers();
     const ignoredUsersSet = useMemo(() => new Set(ignoredUsersList), [ignoredUsersList]);
-
-    const { navigateRoom } = useRoomNavigate();
 
     const alive = useAlive();
 
@@ -149,37 +145,6 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
         ),
         onEnd: handleTimelinePagination,
       });
-
-    const loadEventTimeline = useEventTimelineLoader(
-      mx,
-      room,
-      useCallback(
-        (evtId, lTimelines, evtAbsIndex) => {
-          if (!alive()) return;
-          const evLength = getTimelinesEventsCount(lTimelines);
-
-          setFocusItem({
-            index: evtAbsIndex,
-            scrollTo: true,
-            highlight: evtId !== readUptoEventIdRef.current,
-          });
-          setTimeline({
-            linkedTimelines: lTimelines,
-            range: {
-              start: Math.max(evtAbsIndex - PAGINATION_LIMIT, 0),
-              end: Math.min(evtAbsIndex + PAGINATION_LIMIT, evLength),
-            },
-          });
-        },
-        [alive, setTimeline, setFocusItem, readUptoEventIdRef]
-      ),
-      useCallback(() => {
-        if (!alive()) return;
-        setTimeline(getInitialTimeline(room));
-        scrollToBottomRef.current.count += 1;
-        scrollToBottomRef.current.smooth = false;
-      }, [alive, room, setTimeline, scrollToBottomRef])
-    );
 
     useLiveEventArrive(
       room,
@@ -258,7 +223,7 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
           loadEventTimeline(evtId);
         }
       },
-      [room, timeline, scrollToItem, loadEventTimeline, setTimeline, setFocusItem]
+      [room, timeline, scrollToItem, setTimeline, setFocusItem, loadEventTimeline]
     );
 
     useLiveTimelineRefresh(
@@ -471,22 +436,6 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
         }
       }
     }, [scrollToElement, editId, scrollRef]);
-
-    const handleJumpToLatest = () => {
-      if (eventId) {
-        navigateRoom(room.roomId, undefined, { replace: true });
-      }
-      setTimeline(getInitialTimeline(room));
-      scrollToBottomRef.current.count += 1;
-      scrollToBottomRef.current.smooth = false;
-    };
-
-    const handleJumpToUnread = () => {
-      if (unreadInfo?.readUptoEventId) {
-        setTimeline(getEmptyTimeline());
-        loadEventTimeline(unreadInfo.readUptoEventId);
-      }
-    };
 
     const handleOpenReply: MouseEventHandler<HTMLButtonElement> = useCallback(
       async (evt) => {
