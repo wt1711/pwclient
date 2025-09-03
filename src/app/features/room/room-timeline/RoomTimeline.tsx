@@ -11,12 +11,10 @@ import React, {
   useState,
 } from 'react';
 import { Direction, EventTimelineSet, MatrixEvent, Room } from 'matrix-js-sdk';
-import { HTMLReactParserOptions } from 'html-react-parser';
 import { Editor } from 'slate';
 import { useAtomValue } from 'jotai';
 import { Badge, Box, Chip, Icon, Icons, Scroll, Text, color, config, toRem } from 'folds';
 import { isKeyHotkey } from 'is-hotkey';
-import { Opts as LinkifyOpts } from 'linkifyjs';
 
 import { getMxIdLocalPart } from '../../../utils/matrix';
 import { useMatrixClient } from '../../../hooks/useMatrixClient';
@@ -36,13 +34,6 @@ import {
   ImageContent,
   EventContent,
 } from '../../../components/message';
-import {
-  factoryRenderLinkifyWithMention,
-  getReactCustomHtmlParser,
-  LINKIFY_OPTS,
-  makeMentionCustomProps,
-  renderMatrixMention,
-} from '../../../plugins/react-custom-html-parser';
 import {
   canEditEvent,
   getEditedEvent,
@@ -101,10 +92,7 @@ import { RenderMessageContent } from '../../../components/RenderMessageContent';
 import { Image } from '../../../components/media';
 import { ImageViewer } from '../../../components/image-viewer';
 import { roomToParentsAtom } from '../../../state/room/roomToParents';
-import { useMentionClickHandler } from '../../../hooks/useMentionClickHandler';
-import { useSpoilerClickHandler } from '../../../hooks/useSpoilerClickHandler';
 import { useRoomNavigate } from '../../../hooks/useRoomNavigate';
-import { useMediaAuthentication } from '../../../hooks/useMediaAuthentication';
 import { useIgnoredUsers } from '../../../hooks/useIgnoredUsers';
 import { useImagePackRooms } from '../../../hooks/useImagePackRooms';
 import { GetPowerLevelTag } from '../../../hooks/usePowerLevelTags';
@@ -153,9 +141,10 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
       handleReactionToggle,
       handleMessageClick,
       handleMarkAsRead,
+      linkifyOpts,
+      htmlReactParserOptions,
     } = useRoomTimelineContext();
     const mx = useMatrixClient();
-    const useAuthentication = useMediaAuthentication();
     const direct = useIsDirectRoom();
 
     const showUrlPreview = room.hasEncryptionStateEvent() ? encUrlPreview : urlPreview;
@@ -165,8 +154,6 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
 
     const roomToParents = useAtomValue(roomToParentsAtom);
     const { navigateRoom } = useRoomNavigate();
-    const mentionClickHandler = useMentionClickHandler(room.roomId);
-    const spoilerClickHandler = useSpoilerClickHandler();
 
     const imagePackRooms: Room[] = useImagePackRooms(room.roomId, roomToParents);
 
@@ -196,25 +183,6 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
     >();
     const alive = useAlive();
 
-    const linkifyOpts = useMemo<LinkifyOpts>(
-      () => ({
-        ...LINKIFY_OPTS,
-        render: factoryRenderLinkifyWithMention((href) =>
-          renderMatrixMention(mx, room.roomId, href, makeMentionCustomProps(mentionClickHandler))
-        ),
-      }),
-      [mx, room, mentionClickHandler]
-    );
-    const htmlReactParserOptions = useMemo<HTMLReactParserOptions>(
-      () =>
-        getReactCustomHtmlParser(mx, room.roomId, {
-          linkifyOpts,
-          useAuthentication,
-          handleSpoilerClick: spoilerClickHandler,
-          handleMentionClick: mentionClickHandler,
-        }),
-      [mx, room, linkifyOpts, spoilerClickHandler, mentionClickHandler, useAuthentication]
-    );
     const parseMemberEvent = useMemberEventParser();
 
     const [timeline, setTimeline] = useState<Timeline>(() =>
