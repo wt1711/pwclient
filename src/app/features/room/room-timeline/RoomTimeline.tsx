@@ -100,7 +100,6 @@ import {
 } from '../../../utils/time';
 import { createMentionElement, isEmptyEditor, moveCursor } from '../../../components/editor';
 import { roomIdToReplyDraftAtomFamily } from '../../../state/room/roomInputDrafts';
-import { usePowerLevelsAPI, usePowerLevelsContext } from '../../../hooks/usePowerLevels';
 import { GetContentCallback, MessageEvent, StateEvent } from '../../../../types/matrix/room';
 import { useKeyDown } from '../../../hooks/useKeyDown';
 import { useDocumentFocusChange } from '../../../hooks/useDocumentFocusChange';
@@ -108,8 +107,6 @@ import { RenderMessageContent } from '../../../components/RenderMessageContent';
 import { Image } from '../../../components/media';
 import { ImageViewer } from '../../../components/image-viewer';
 import { roomToParentsAtom } from '../../../state/room/roomToParents';
-import { useRoomUnread } from '../../../state/hooks/unread';
-import { roomToUnreadAtom } from '../../../state/room/roomToUnread';
 import { useMentionClickHandler } from '../../../hooks/useMentionClickHandler';
 import { useSpoilerClickHandler } from '../../../hooks/useSpoilerClickHandler';
 import { useRoomNavigate } from '../../../hooks/useRoomNavigate';
@@ -148,6 +145,14 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
       hideMembershipEvents,
       hideNickAvatarEvents,
       showHiddenEvents,
+      editId,
+      setEditId,
+      unreadInfo,
+      setUnreadInfo,
+      canRedact,
+      canSendReaction,
+      canPinEvent,
+      getPowerLevel,
     } = useRoomTimelineContext();
     const mx = useMatrixClient();
     const useAuthentication = useMediaAuthentication();
@@ -159,18 +164,8 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
     const ignoredUsersSet = useMemo(() => new Set(ignoredUsersList), [ignoredUsersList]);
 
     const setReplyDraft = useSetAtom(roomIdToReplyDraftAtomFamily(room.roomId));
-    const powerLevels = usePowerLevelsContext();
-    const { canDoAction, canSendEvent, canSendStateEvent, getPowerLevel } =
-      usePowerLevelsAPI(powerLevels);
-
-    const myPowerLevel = getPowerLevel(mx.getUserId() ?? '');
-    const canRedact = canDoAction('redact', myPowerLevel);
-    const canSendReaction = canSendEvent(MessageEvent.Reaction, myPowerLevel);
-    const canPinEvent = canSendStateEvent(StateEvent.RoomPinnedEvents, myPowerLevel);
-    const [editId, setEditId] = useState<string>();
 
     const roomToParents = useAtomValue(roomToParentsAtom);
-    const unread = useRoomUnread(room.roomId, roomToUnreadAtom);
     const { navigateRoom } = useRoomNavigate();
     const mentionClickHandler = useMentionClickHandler(room.roomId);
     const spoilerClickHandler = useSpoilerClickHandler();
@@ -178,7 +173,6 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
 
     const imagePackRooms: Room[] = useImagePackRooms(room.roomId, roomToParents);
 
-    const [unreadInfo, setUnreadInfo] = useState(() => getRoomUnreadInfo(room, true));
     const readUptoEventIdRef = useRef<string>();
     if (unreadInfo) {
       readUptoEventIdRef.current = unreadInfo.readUptoEventId;
@@ -332,7 +326,7 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
             setUnreadInfo(getRoomUnreadInfo(room));
           }
         },
-        [mx, room, unreadInfo, hideActivity]
+        [mx, room, unreadInfo, setUnreadInfo, hideActivity]
       )
     );
 
@@ -484,7 +478,7 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
             evt.preventDefault();
           }
         },
-        [mx, room, editor]
+        [mx, room, editor, setEditId]
       )
     );
 
@@ -553,10 +547,10 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
 
     // Remove unreadInfo on mark as read
     useEffect(() => {
-      if (!unread) {
+      if (unreadInfo === undefined) {
         setUnreadInfo(undefined);
       }
-    }, [unread]);
+    }, [unreadInfo, setUnreadInfo]);
 
     // scroll out of view msg editor in view.
     useEffect(() => {
@@ -731,7 +725,7 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
         setEditId(undefined);
         ReactEditor.focus(editor);
       },
-      [editor]
+      [editor, setEditId]
     );
 
     const renderMatrixEvent = useMatrixEventRenderer<

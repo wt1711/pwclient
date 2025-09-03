@@ -1,7 +1,13 @@
-import React, { createContext, useContext, useMemo } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { Room } from 'matrix-js-sdk';
 import { MessageLayout, MessageSpacing, settingsAtom } from '../../../state/settings';
 import { useSetting } from '../../../state/hooks/settings';
+import { getRoomUnreadInfo } from './hooks/getEventAndTimeline';
+import { useRoomUnread } from '../../../state/hooks/unread';
+import { roomToUnreadAtom } from '../../../state/room/roomToUnread';
+import { usePowerLevelsAPI, usePowerLevelsContext } from '../../../hooks/usePowerLevels';
+import { useMatrixClient } from '../../../hooks/useMatrixClient';
+import { MessageEvent, StateEvent } from '../../../../types/matrix/room';
 
 interface RoomTimelineContextType {
   room: Room;
@@ -16,6 +22,14 @@ interface RoomTimelineContextType {
   encUrlPreview: boolean;
   showHiddenEvents: boolean;
   showDeveloperTools: boolean;
+  editId?: string;
+  setEditId: (id?: string) => void;
+  unreadInfo?: any;
+  setUnreadInfo: React.Dispatch<React.SetStateAction<any | undefined>>;
+  getPowerLevel: (userId?: string | undefined, atRoomState?: boolean | undefined) => number;
+  canRedact: boolean;
+  canSendReaction: boolean;
+  canPinEvent: boolean;
 }
 
 const RoomTimelineContext = createContext<RoomTimelineContextType | null>(null);
@@ -37,6 +51,24 @@ export function RoomTimelineProvider({ children, room }: RoomTimelineProviderPro
   const [encUrlPreview] = useSetting(settingsAtom, 'encUrlPreview');
   const [showHiddenEvents] = useSetting(settingsAtom, 'showHiddenEvents');
   const [showDeveloperTools] = useSetting(settingsAtom, 'developerTools');
+  const [editId, setEditId] = useState<string>();
+  const [unreadInfo, setUnreadInfo] = useState(() => getRoomUnreadInfo(room, true));
+
+  const mx = useMatrixClient();
+  const powerLevels = usePowerLevelsContext();
+  const { canDoAction, canSendEvent, canSendStateEvent, getPowerLevel } =
+    usePowerLevelsAPI(powerLevels);
+  const myPowerLevel = getPowerLevel(mx.getUserId() ?? '');
+  const canRedact = canDoAction('redact', myPowerLevel);
+  const canSendReaction = canSendEvent(MessageEvent.Reaction, myPowerLevel);
+  const canPinEvent = canSendStateEvent(StateEvent.RoomPinnedEvents, myPowerLevel);
+
+  const unread = useRoomUnread(room.roomId, roomToUnreadAtom);
+  useEffect(() => {
+    if (!unread) {
+      setUnreadInfo(undefined);
+    }
+  }, [unread]);
 
   const value = useMemo(
     () => ({
@@ -52,6 +84,14 @@ export function RoomTimelineProvider({ children, room }: RoomTimelineProviderPro
       encUrlPreview,
       showHiddenEvents,
       showDeveloperTools,
+      editId,
+      setEditId,
+      unreadInfo,
+      setUnreadInfo,
+      getPowerLevel,
+      canRedact,
+      canSendReaction,
+      canPinEvent,
     }),
     [
       room,
@@ -66,6 +106,12 @@ export function RoomTimelineProvider({ children, room }: RoomTimelineProviderPro
       encUrlPreview,
       showHiddenEvents,
       showDeveloperTools,
+      editId,
+      unreadInfo,
+      getPowerLevel,
+      canRedact,
+      canSendReaction,
+      canPinEvent,
     ]
   );
 
