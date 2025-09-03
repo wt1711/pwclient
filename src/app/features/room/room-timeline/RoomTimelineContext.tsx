@@ -1,4 +1,12 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Room, MatrixClient } from 'matrix-js-sdk';
 import { Editor } from 'slate';
 import { HTMLReactParserOptions } from 'html-react-parser';
@@ -30,6 +38,8 @@ import {
   getEmptyTimeline,
   getInitialTimeline,
   getRoomUnreadInfo,
+  getLiveTimeline,
+  getTimelinesEventsCount,
 } from './hooks/getEventAndTimeline';
 import { useTimelinePagination } from './hooks/useEventAndTimeline';
 import {
@@ -93,6 +103,17 @@ interface RoomTimelineContextType {
   imagePackRooms: Room[];
   mx: MatrixClient;
   parseMemberEvent: MemberEventParser;
+  scrollToBottomRef: React.MutableRefObject<{
+    count: number;
+    smooth: boolean;
+  }>;
+  scrollRef: React.RefObject<HTMLDivElement>;
+  atBottomAnchorRef: React.RefObject<HTMLElement>;
+  atBottom: boolean;
+  setAtBottom: React.Dispatch<React.SetStateAction<boolean>>;
+  atBottomRef: React.MutableRefObject<boolean>;
+  readUptoEventIdRef: React.MutableRefObject<string | undefined>;
+  atLiveEndRef: React.MutableRefObject<boolean>;
 }
 
 const RoomTimelineContext = createContext<RoomTimelineContextType | null>(null);
@@ -131,6 +152,37 @@ export function RoomTimelineProvider({
     eventId ? getEmptyTimeline() : getInitialTimeline(room)
   );
   const [focusItem, setFocusItem] = useState<FocusItem | undefined>();
+  const scrollToBottomRef = useRef({
+    count: 0,
+    smooth: true,
+  });
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const atBottomAnchorRef = useRef<HTMLElement>(null);
+  const [atBottom, setAtBottom] = useState<boolean>(true);
+  const atBottomRef = useRef(atBottom);
+  atBottomRef.current = atBottom;
+
+  const readUptoEventIdRef = useRef<string>();
+  useEffect(() => {
+    readUptoEventIdRef.current = unreadInfo?.readUptoEventId;
+  }, [unreadInfo]);
+
+  const eventsLength = useMemo(
+    () => getTimelinesEventsCount(timeline.linkedTimelines),
+    [timeline.linkedTimelines]
+  );
+  const liveTimelineLinked = useMemo(
+    () =>
+      timeline.linkedTimelines.length > 0 &&
+      timeline.linkedTimelines[timeline.linkedTimelines.length - 1] === getLiveTimeline(room),
+    [room, timeline.linkedTimelines]
+  );
+  const rangeAtEnd = useMemo(
+    () => timeline.range.end === eventsLength,
+    [timeline.range.end, eventsLength]
+  );
+  const atLiveEndRef = useRef(liveTimelineLinked && rangeAtEnd);
+  atLiveEndRef.current = liveTimelineLinked && rangeAtEnd;
 
   const mx = useMatrixClient();
   const powerLevels = usePowerLevelsContext();
@@ -257,6 +309,14 @@ export function RoomTimelineProvider({
       imagePackRooms,
       mx,
       parseMemberEvent,
+      scrollToBottomRef,
+      scrollRef,
+      atBottomAnchorRef,
+      atBottom,
+      setAtBottom,
+      atBottomRef,
+      readUptoEventIdRef,
+      atLiveEndRef,
     }),
     [
       room,
@@ -296,6 +356,7 @@ export function RoomTimelineProvider({
       imagePackRooms,
       mx,
       parseMemberEvent,
+      atBottom,
     ]
   );
 
