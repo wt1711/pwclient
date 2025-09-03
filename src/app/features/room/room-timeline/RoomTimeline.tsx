@@ -586,7 +586,7 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
         dayDivider = prevEvent ? !inSameDay(prevEvent.getTs(), mEvent.getTs()) : false;
       }
 
-      const collapsed =
+      const collapsed: boolean =
         isPrevRendered &&
         !dayDivider &&
         (!newDivider || eventSender === mx.getUserId()) &&
