@@ -41,6 +41,8 @@ import {
   getRoomUnreadInfo,
   getLiveTimeline,
   getTimelinesEventsCount,
+  getEventTimeline,
+  getEventIdAbsoluteIndex,
 } from './hooks/getEventAndTimeline';
 import {
   useHandleEdit,
@@ -147,6 +149,12 @@ interface RoomTimelineContextType {
   ) => void;
   observeBackAnchor: (element: HTMLElement | null) => void;
   observeFrontAnchor: (element: HTMLElement | null) => void;
+  handleOpenEvent: (
+    evtId: string,
+    highlight?: boolean,
+    onScroll?: (scrolled: boolean) => void
+  ) => Promise<void>;
+  handleOpenReply: React.MouseEventHandler<HTMLButtonElement>;
 }
 
 const RoomTimelineContext = createContext<RoomTimelineContextType | null>(null);
@@ -251,6 +259,22 @@ export function RoomTimelineProvider({
     PAGINATION_LIMIT
   );
 
+  const { getItems, scrollToItem, scrollToElement, observeBackAnchor, observeFrontAnchor } =
+    useVirtualPaginator({
+      count: eventsLength,
+      limit: PAGINATION_LIMIT,
+      range: timeline.range,
+      onRangeChange: useCallback((r) => setTimeline((cs) => ({ ...cs, range: r })), [setTimeline]),
+      getScrollElement,
+      getItemElement: useCallback(
+        (index: number) =>
+          (scrollRef.current?.querySelector(`[data-message-item="${index}"]`) as HTMLElement) ??
+          undefined,
+        [scrollRef]
+      ),
+      onEnd: handleTimelinePagination,
+    });
+
   const handleReactionToggle = useCallback(
     (targetEventId: string, key: string, shortcode?: string) => {
       const relations = getEventReactions(room.getUnfilteredTimelineSet(), targetEventId);
@@ -274,22 +298,6 @@ export function RoomTimelineProvider({
     },
     [mx, room]
   );
-
-  const { getItems, scrollToItem, scrollToElement, observeBackAnchor, observeFrontAnchor } =
-    useVirtualPaginator({
-      count: eventsLength,
-      limit: PAGINATION_LIMIT,
-      range: timeline.range,
-      onRangeChange: useCallback((r) => setTimeline((cs) => ({ ...cs, range: r })), [setTimeline]),
-      getScrollElement,
-      getItemElement: useCallback(
-        (index: number) =>
-          (scrollRef.current?.querySelector(`[data-message-item="${index}"]`) as HTMLElement) ??
-          undefined,
-        [scrollRef]
-      ),
-      onEnd: handleTimelinePagination,
-    });
 
   const loadEventTimeline = useEventTimelineLoader(
     mx,
@@ -320,6 +328,45 @@ export function RoomTimelineProvider({
       scrollToBottomRef.current.count += 1;
       scrollToBottomRef.current.smooth = false;
     }, [alive, room, setTimeline, scrollToBottomRef])
+  );
+
+  const handleOpenEvent = useCallback(
+    async (
+      evtId: string,
+      highlight = true,
+      onScroll: ((scrolled: boolean) => void) | undefined = undefined
+    ) => {
+      const evtTimeline = getEventTimeline(room, evtId);
+      const absoluteIndex =
+        evtTimeline && getEventIdAbsoluteIndex(timeline.linkedTimelines, evtTimeline, evtId);
+
+      if (typeof absoluteIndex === 'number') {
+        const scrolled = scrollToItem(absoluteIndex, {
+          behavior: 'smooth',
+          align: 'center',
+          stopInView: true,
+        });
+        if (onScroll) onScroll(scrolled);
+        setFocusItem({
+          index: absoluteIndex,
+          scrollTo: false,
+          highlight,
+        });
+      } else {
+        setTimeline(getEmptyTimeline());
+        loadEventTimeline(evtId);
+      }
+    },
+    [room, timeline, scrollToItem, setTimeline, setFocusItem, loadEventTimeline]
+  );
+
+  const handleOpenReply = useCallback<React.MouseEventHandler<HTMLButtonElement>>(
+    async (evt) => {
+      const targetId = evt.currentTarget.getAttribute('data-event-id');
+      if (!targetId) return;
+      handleOpenEvent(targetId);
+    },
+    [handleOpenEvent]
   );
 
   const handleJumpToLatest = useCallback(() => {
@@ -437,6 +484,8 @@ export function RoomTimelineProvider({
       scrollToElement,
       observeBackAnchor,
       observeFrontAnchor,
+      handleOpenEvent,
+      handleOpenReply,
     }),
     [
       room,
@@ -492,6 +541,8 @@ export function RoomTimelineProvider({
       scrollToElement,
       observeBackAnchor,
       observeFrontAnchor,
+      handleOpenEvent,
+      handleOpenReply,
     ]
   );
 

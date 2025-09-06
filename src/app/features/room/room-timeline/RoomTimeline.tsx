@@ -1,7 +1,6 @@
 /* eslint-disable react/destructuring-assignment */
 import React, {
   forwardRef,
-  MouseEventHandler,
   RefObject,
   useCallback,
   useEffect,
@@ -115,6 +114,8 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
       scrollToElement,
       observeBackAnchor,
       observeFrontAnchor,
+      handleOpenEvent,
+      handleOpenReply,
     } = useRoomTimelineContext();
 
     useLiveEventArrive(
@@ -165,36 +166,6 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
           atBottomRef,
         ]
       )
-    );
-
-    const handleOpenEvent = useCallback(
-      async (
-        evtId: string,
-        highlight = true,
-        onScroll: ((scrolled: boolean) => void) | undefined = undefined
-      ) => {
-        const evtTimeline = getEventTimeline(room, evtId);
-        const absoluteIndex =
-          evtTimeline && getEventIdAbsoluteIndex(timeline.linkedTimelines, evtTimeline, evtId);
-
-        if (typeof absoluteIndex === 'number') {
-          const scrolled = scrollToItem(absoluteIndex, {
-            behavior: 'smooth',
-            align: 'center',
-            stopInView: true,
-          });
-          if (onScroll) onScroll(scrolled);
-          setFocusItem({
-            index: absoluteIndex,
-            scrollTo: false,
-            highlight,
-          });
-        } else {
-          setTimeline(getEmptyTimeline());
-          loadEventTimeline(evtId);
-        }
-      },
-      [room, timeline, scrollToItem, setTimeline, setFocusItem, loadEventTimeline]
     );
 
     useLiveTimelineRefresh(
@@ -407,15 +378,6 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
         }
       }
     }, [scrollToElement, editId, scrollRef]);
-
-    const handleOpenReply: MouseEventHandler<HTMLButtonElement> = useCallback(
-      async (evt) => {
-        const targetId = evt.currentTarget.getAttribute('data-event-id');
-        if (!targetId) return;
-        handleOpenEvent(targetId);
-      },
-      [handleOpenEvent]
-    );
 
     const renderMatrixEvent = useMatrixEventRenderer<
       [string, MatrixEvent, number, EventTimelineSet, boolean]
