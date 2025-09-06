@@ -1,5 +1,5 @@
-import React, { RefObject, forwardRef } from 'react';
-import { Editor } from 'slate';
+import React, { RefObject, forwardRef, useCallback, useState } from 'react';
+import { Descendant, Editor, Node } from 'slate';
 import { Room } from 'matrix-js-sdk';
 import { Icon, IconButton, Icons, Line } from 'folds';
 
@@ -11,10 +11,24 @@ import { RoomInputActions } from './RoomInputActions';
 import { UploadArea } from './UploadArea';
 import { AutocompleteHandler } from './AutocompleteHandler';
 import { RoomInputProvider, useRoomInputContext } from './RoomInputContext';
+import { PredictiveMessage } from './predictive-message/PredictiveMessage';
+import { useDebounceValue } from '../../../hooks/useDebounceValue';
 
 const RoomInputInternal = forwardRef<HTMLDivElement>((props, ref) => {
   const { editor, handleKeyDown, handleKeyUp, handlePaste, pickFile, toolbar } =
     useRoomInputContext();
+
+  const [editorText, setEditorText] = useState('');
+  const debouncedEditorText = useDebounceValue(editorText, 500);
+
+  const handleEditorChange = useCallback(
+    (value: Descendant[]) => {
+      const text = value.map((n) => Node.string(n)).join('\n');
+      setEditorText(text);
+    },
+    [setEditorText]
+  );
+  const hasText = debouncedEditorText.trim().length > 0;
 
   return (
     <div ref={ref}>
@@ -27,7 +41,13 @@ const RoomInputInternal = forwardRef<HTMLDivElement>((props, ref) => {
         onKeyDown={handleKeyDown}
         onKeyUp={handleKeyUp}
         onPaste={handlePaste}
-        top={<ReplyPreview />}
+        onChange={handleEditorChange}
+        top={
+          <>
+            {hasText && <PredictiveMessage editorText={debouncedEditorText} />}
+            <ReplyPreview />
+          </>
+        }
         before={
           <IconButton onClick={() => pickFile('*')} variant="SurfaceVariant" size="300" radii="300">
             <Icon src={Icons.PlusCircle} />
