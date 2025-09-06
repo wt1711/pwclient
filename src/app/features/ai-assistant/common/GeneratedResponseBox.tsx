@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Box, Text, Spinner, Button } from 'folds';
 import { useAIAssistant } from '../AIAssistantContext';
-import { Slider } from '../../../atoms/slider/Slider';
+import { Slider } from './slider/Slider';
 import { useDebouncedCallback } from '../../../hooks/useDebouncedCallback';
 
 export function GeneratedResponseBox() {
