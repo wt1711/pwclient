@@ -49,7 +49,6 @@ import { isEmptyEditor } from '../../../components/editor';
 import { MessageEvent, StateEvent } from '../../../../types/matrix/room';
 import { useKeyDown } from '../../../hooks/useKeyDown';
 import { useDocumentFocusChange } from '../../../hooks/useDocumentFocusChange';
-import { useIgnoredUsers } from '../../../hooks/useIgnoredUsers';
 import { GetPowerLevelTag } from '../../../hooks/usePowerLevelTags';
 import { RoomTimelineProvider, useRoomTimelineContext } from './RoomTimelineContext';
 import {
@@ -110,10 +109,8 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
       handleJumpToLatest,
       handleJumpToUnread,
       loadEventTimeline,
+      ignoredUsersSet,
     } = useRoomTimelineContext();
-
-    const ignoredUsersList = useIgnoredUsers();
-    const ignoredUsersSet = useMemo(() => new Set(ignoredUsersList), [ignoredUsersList]);
 
     const alive = useAlive();
 

@@ -56,6 +56,7 @@ import { MemberEventParser, useMemberEventParser } from '../../../hooks/useMembe
 import { useRoomNavigate } from '../../../hooks/useRoomNavigate';
 import { useAlive } from '../../../hooks/useAlive';
 import { useEventTimelineLoader, useTimelinePagination } from './hooks/useEventAndTimeline';
+import { useIgnoredUsers } from '../../../hooks/useIgnoredUsers';
 
 interface FocusItem {
   index: number;
@@ -119,6 +120,7 @@ interface RoomTimelineContextType {
   handleJumpToLatest: () => void;
   handleJumpToUnread: () => void;
   loadEventTimeline: (eventId: string) => void;
+  ignoredUsersSet: Set<string>;
 }
 
 const RoomTimelineContext = createContext<RoomTimelineContextType | null>(null);
@@ -167,6 +169,8 @@ export function RoomTimelineProvider({
   const atBottomRef = useRef(atBottom);
   atBottomRef.current = atBottom;
 
+  const ignoredUsersList = useIgnoredUsers();
+  const ignoredUsersSet = useMemo(() => new Set(ignoredUsersList), [ignoredUsersList]);
   const alive = useAlive();
   const { navigateRoom } = useRoomNavigate();
 
@@ -381,6 +385,7 @@ export function RoomTimelineProvider({
       handleJumpToLatest,
       handleJumpToUnread,
       loadEventTimeline,
+      ignoredUsersSet,
     }),
     [
       room,
@@ -424,6 +429,7 @@ export function RoomTimelineProvider({
       handleJumpToLatest,
       handleJumpToUnread,
       loadEventTimeline,
+      ignoredUsersSet,
     ]
   );
 
