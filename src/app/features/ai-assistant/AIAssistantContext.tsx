@@ -32,7 +32,7 @@ type AIAssistantContextType = {
   // Actions
   setInputValue: (value: string) => void;
   handleSend: () => void;
-  generateNewResponseFromMessage: () => void;
+  generateNewResponseFromMessage: (tone?: string) => void;
   generateNewResponseFromHistory: () => void;
   handleUseSuggestion: (response: string) => void;
   clearChatHistory: () => void;
@@ -111,24 +111,27 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
     });
   }, []);
 
-  const generateNewResponseFromMessage = useCallback(async () => {
-    setIsGeneratingResponse(true);
-    toggleAIAssistant(true);
+  const generateNewResponseFromMessage = useCallback(
+    async (tone = 'Neutral') => {
+      setIsGeneratingResponse(true);
+      toggleAIAssistant(true);
 
-    try {
-      // Get the actual room conversation from timeline
+      try {
+        // Get the actual room conversation from timeline
 
-      // Find the last message in the room conversation that is not from the current user
-      const message = lastNonUserMsg ? lastNonUserMsg.text : 'Nói gì cũng được';
+        // Find the last message in the room conversation that is not from the current user
+        const message = lastNonUserMsg ? lastNonUserMsg.text : 'Nói gì cũng được';
 
-      const response = await generateResponseFromMessage({ message, context: roomContext });
-      setGeneratedResponse(response);
-    } catch (error) {
-      setGeneratedResponse('Xin lỗi, đã có lỗi');
-    } finally {
-      setIsGeneratingResponse(false);
-    }
-  }, [roomContext, lastNonUserMsg, toggleAIAssistant]);
+        const response = await generateResponseFromMessage({ message, context: roomContext, tone });
+        setGeneratedResponse(response);
+      } catch (error) {
+        setGeneratedResponse('Xin lỗi, đã có lỗi');
+      } finally {
+        setIsGeneratingResponse(false);
+      }
+    },
+    [roomContext, lastNonUserMsg, toggleAIAssistant]
+  );
 
   const generateNewResponseFromHistory = useCallback(async () => {
     setIsGeneratingResponse(true);

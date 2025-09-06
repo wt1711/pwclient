@@ -2,10 +2,23 @@ import React, { useState } from 'react';
 import { Box, Text, Spinner, Button } from 'folds';
 import { useAIAssistant } from '../AIAssistantContext';
 import { Slider } from '../../../atoms/slider/Slider';
+import { useDebouncedCallback } from '../../../hooks/useDebouncedCallback';
 
 export function GeneratedResponseBox() {
-  const { isGeneratingResponse, locale, generatedResponse, handleUseSuggestion } = useAIAssistant();
-  const [sliderValue, setSliderValue] = useState(50);
+  const {
+    isGeneratingResponse,
+    locale,
+    generatedResponse,
+    handleUseSuggestion,
+    generateNewResponseFromMessage,
+  } = useAIAssistant();
+  const [sliderValue, setSliderValue] = useState(1);
+
+  // Fix: Ensure the debounced function accepts any arguments to match the expected type
+  const debouncedGenerateResponse = useDebouncedCallback((...args: unknown[]) => {
+    // Forward only the first argument as tone, since generateNewResponseFromMessage expects (tone?: string)
+    generateNewResponseFromMessage(args[0] as string | undefined);
+  }, 500);
 
   const TITLES = {
     EN: ['Use Suggestion'],
@@ -14,9 +27,14 @@ export function GeneratedResponseBox() {
   const [useSuggestionTitle] = TITLES[locale as keyof typeof TITLES] || [''];
 
   const getSliderLabel = (value: number) => {
-    if (value < 25) return 'Safe';
-    if (value < 75) return 'Fun';
+    if (value === 0) return 'Safe';
+    if (value === 1) return 'Fun';
     return 'Wild';
+  };
+
+  const handleSliderChange = (value: number) => {
+    setSliderValue(value);
+    debouncedGenerateResponse(getSliderLabel(value));
   };
 
   const renderContent = () => {
@@ -32,7 +50,7 @@ export function GeneratedResponseBox() {
         <Box direction="Column" style={{ width: '100%', gap: '8px' }}>
           <Box direction="Row" alignItems="Center" style={{ gap: '8px' }}>
             <span>❄️</span>
-            <Slider value={sliderValue} onChange={setSliderValue} />
+            <Slider value={sliderValue} onChange={handleSliderChange} min={0} max={2} step={1} />
             <span>🔥</span>
           </Box>
           <Text size="T500" style={{ textAlign: 'center', color: 'white' }}>
