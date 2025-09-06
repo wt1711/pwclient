@@ -1,4 +1,12 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Room, MatrixClient } from 'matrix-js-sdk';
 import { Editor } from 'slate';
 import { HTMLReactParserOptions } from 'html-react-parser';
@@ -30,6 +38,8 @@ import {
   getEmptyTimeline,
   getInitialTimeline,
   getRoomUnreadInfo,
+  getLiveTimeline,
+  getTimelinesEventsCount,
 } from './hooks/getEventAndTimeline';
 import {
   useHandleEdit,
@@ -39,10 +49,13 @@ import {
   useHandleUsernameClick,
   useHandleMarkAsRead,
 } from './hooks/useHandleActions';
-import { Timeline } from './constants';
+import { PAGINATION_LIMIT, Timeline } from './constants';
 import { roomToParentsAtom } from '../../../state/room/roomToParents';
 import { useImagePackRooms } from '../../../hooks/useImagePackRooms';
 import { MemberEventParser, useMemberEventParser } from '../../../hooks/useMemberEventParser';
+import { useRoomNavigate } from '../../../hooks/useRoomNavigate';
+import { useAlive } from '../../../hooks/useAlive';
+import { useEventTimelineLoader, useTimelinePagination } from './hooks/useEventAndTimeline';
 
 interface FocusItem {
   index: number;
@@ -78,6 +91,7 @@ interface RoomTimelineContextType {
   handleReactionToggle: (targetEventId: string, key: string, shortcode?: string) => void;
   handleMessageClick: (evt: React.MouseEvent<HTMLDivElement>) => void;
   handleMarkAsRead: () => void;
+  handleTimelinePagination: (direction: any, limit?: number | undefined) => Promise<void>;
   linkifyOpts: LinkifyOpts;
   htmlReactParserOptions: HTMLReactParserOptions;
   getPowerLevelTag: GetPowerLevelTag;
@@ -91,6 +105,20 @@ interface RoomTimelineContextType {
   imagePackRooms: Room[];
   mx: MatrixClient;
   parseMemberEvent: MemberEventParser;
+  scrollToBottomRef: React.MutableRefObject<{
+    count: number;
+    smooth: boolean;
+  }>;
+  scrollRef: React.RefObject<HTMLDivElement>;
+  atBottomAnchorRef: React.RefObject<HTMLElement>;
+  atBottom: boolean;
+  setAtBottom: React.Dispatch<React.SetStateAction<boolean>>;
+  atBottomRef: React.MutableRefObject<boolean>;
+  readUptoEventIdRef: React.MutableRefObject<string | undefined>;
+  atLiveEndRef: React.MutableRefObject<boolean>;
+  handleJumpToLatest: () => void;
+  handleJumpToUnread: () => void;
+  loadEventTimeline: (eventId: string) => void;
 }
 
 const RoomTimelineContext = createContext<RoomTimelineContextType | null>(null);
@@ -129,6 +157,40 @@ export function RoomTimelineProvider({
     eventId ? getEmptyTimeline() : getInitialTimeline(room)
   );
   const [focusItem, setFocusItem] = useState<FocusItem | undefined>();
+  const scrollToBottomRef = useRef({
+    count: 0,
+    smooth: true,
+  });
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const atBottomAnchorRef = useRef<HTMLElement>(null);
+  const [atBottom, setAtBottom] = useState<boolean>(true);
+  const atBottomRef = useRef(atBottom);
+  atBottomRef.current = atBottom;
+
+  const alive = useAlive();
+  const { navigateRoom } = useRoomNavigate();
+
+  const readUptoEventIdRef = useRef<string>();
+  useEffect(() => {
+    readUptoEventIdRef.current = unreadInfo?.readUptoEventId;
+  }, [unreadInfo]);
+
+  const eventsLength = useMemo(
+    () => getTimelinesEventsCount(timeline.linkedTimelines),
+    [timeline.linkedTimelines]
+  );
+  const liveTimelineLinked = useMemo(
+    () =>
+      timeline.linkedTimelines.length > 0 &&
+      timeline.linkedTimelines[timeline.linkedTimelines.length - 1] === getLiveTimeline(room),
+    [room, timeline.linkedTimelines]
+  );
+  const rangeAtEnd = useMemo(
+    () => timeline.range.end === eventsLength,
+    [timeline.range.end, eventsLength]
+  );
+  const atLiveEndRef = useRef(liveTimelineLinked && rangeAtEnd);
+  atLiveEndRef.current = liveTimelineLinked && rangeAtEnd;
 
   const mx = useMatrixClient();
   const powerLevels = usePowerLevelsContext();
@@ -154,6 +216,12 @@ export function RoomTimelineProvider({
   const handleReplyClick = useHandleReplyClick(room, editor);
   const handleMessageClick = useHandleMessageClick(room);
   const handleMarkAsRead = useHandleMarkAsRead(room, hideActivity);
+  const handleTimelinePagination = useTimelinePagination(
+    mx,
+    timeline,
+    setTimeline,
+    PAGINATION_LIMIT
+  );
 
   const handleReactionToggle = useCallback(
     (targetEventId: string, key: string, shortcode?: string) => {
@@ -179,6 +247,52 @@ export function RoomTimelineProvider({
     [mx, room]
   );
 
+  const loadEventTimeline = useEventTimelineLoader(
+    mx,
+    room,
+    useCallback(
+      (evtId, lTimelines, evtAbsIndex) => {
+        if (!alive()) return;
+        const evLength = getTimelinesEventsCount(lTimelines);
+
+        setFocusItem({
+          index: evtAbsIndex,
+          scrollTo: true,
+          highlight: evtId !== readUptoEventIdRef.current,
+        });
+        setTimeline({
+          linkedTimelines: lTimelines,
+          range: {
+            start: Math.max(evtAbsIndex - PAGINATION_LIMIT, 0),
+            end: Math.min(evtAbsIndex + PAGINATION_LIMIT, evLength),
+          },
+        });
+      },
+      [alive, setTimeline, setFocusItem, readUptoEventIdRef]
+    ),
+    useCallback(() => {
+      if (!alive()) return;
+      setTimeline(getInitialTimeline(room));
+      scrollToBottomRef.current.count += 1;
+      scrollToBottomRef.current.smooth = false;
+    }, [alive, room, setTimeline, scrollToBottomRef])
+  );
+
+  const handleJumpToLatest = useCallback(() => {
+    if (eventId) {
+      navigateRoom(room.roomId, undefined, { replace: true });
+    }
+    setTimeline(getInitialTimeline(room));
+    scrollToBottomRef.current.count += 1;
+    scrollToBottomRef.current.smooth = false;
+  }, [eventId, navigateRoom, room, setTimeline, scrollToBottomRef]);
+
+  const handleJumpToUnread = useCallback(() => {
+    if (unreadInfo?.readUptoEventId) {
+      setTimeline(getEmptyTimeline());
+      loadEventTimeline(unreadInfo.readUptoEventId);
+    }
+  }, [unreadInfo, setTimeline, loadEventTimeline]);
   const linkifyOpts = useMemo<LinkifyOpts>(
     () => ({
       ...LINKIFY_OPTS,
@@ -205,6 +319,13 @@ export function RoomTimelineProvider({
       setUnreadInfo(undefined);
     }
   }, [unread]);
+
+  useEffect(() => {
+    if (eventId) {
+      setTimeline(getEmptyTimeline());
+      loadEventTimeline(eventId);
+    }
+  }, [eventId, loadEventTimeline, setTimeline]);
 
   const value = useMemo(
     () => ({
@@ -235,6 +356,7 @@ export function RoomTimelineProvider({
       handleReactionToggle,
       handleMessageClick,
       handleMarkAsRead,
+      handleTimelinePagination,
       linkifyOpts,
       htmlReactParserOptions,
       getPowerLevelTag,
@@ -248,6 +370,17 @@ export function RoomTimelineProvider({
       imagePackRooms,
       mx,
       parseMemberEvent,
+      scrollToBottomRef,
+      scrollRef,
+      atBottomAnchorRef,
+      atBottom,
+      setAtBottom,
+      atBottomRef,
+      readUptoEventIdRef,
+      atLiveEndRef,
+      handleJumpToLatest,
+      handleJumpToUnread,
+      loadEventTimeline,
     }),
     [
       room,
@@ -275,6 +408,7 @@ export function RoomTimelineProvider({
       handleReactionToggle,
       handleMessageClick,
       handleMarkAsRead,
+      handleTimelinePagination,
       linkifyOpts,
       htmlReactParserOptions,
       getPowerLevelTag,
@@ -286,6 +420,10 @@ export function RoomTimelineProvider({
       imagePackRooms,
       mx,
       parseMemberEvent,
+      atBottom,
+      handleJumpToLatest,
+      handleJumpToUnread,
+      loadEventTimeline,
     ]
   );
 

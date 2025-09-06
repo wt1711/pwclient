@@ -7,8 +7,6 @@ import React, {
   useEffect,
   useLayoutEffect,
   useMemo,
-  useRef,
-  useState,
 } from 'react';
 import { Direction, EventTimelineSet, MatrixEvent, Room } from 'matrix-js-sdk';
 import { Editor } from 'slate';
@@ -31,12 +29,7 @@ import { markAsRead } from '../../../../client/action/notifications';
 import { useDebounce } from '../../../hooks/useDebounce';
 import { getResizeObserverEntry, useResizeObserver } from '../../../hooks/useResizeObserver';
 import { PAGINATION_LIMIT } from './constants';
-import {
-  useLiveEventArrive,
-  useEventTimelineLoader,
-  useTimelinePagination,
-  useLiveTimelineRefresh,
-} from './hooks/useEventAndTimeline';
+import { useLiveEventArrive, useLiveTimelineRefresh } from './hooks/useEventAndTimeline';
 import {
   getEventTimeline,
   getFirstLinkedTimeline,
@@ -56,7 +49,6 @@ import { isEmptyEditor } from '../../../components/editor';
 import { MessageEvent, StateEvent } from '../../../../types/matrix/room';
 import { useKeyDown } from '../../../hooks/useKeyDown';
 import { useDocumentFocusChange } from '../../../hooks/useDocumentFocusChange';
-import { useRoomNavigate } from '../../../hooks/useRoomNavigate';
 import { useIgnoredUsers } from '../../../hooks/useIgnoredUsers';
 import { GetPowerLevelTag } from '../../../hooks/usePowerLevelTags';
 import { RoomTimelineProvider, useRoomTimelineContext } from './RoomTimelineContext';
@@ -106,28 +98,22 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
       focusItem,
       setFocusItem,
       mx,
+      handleTimelinePagination,
+      scrollToBottomRef,
+      scrollRef,
+      atBottomAnchorRef,
+      atBottom,
+      setAtBottom,
+      atBottomRef,
+      readUptoEventIdRef,
+      atLiveEndRef,
+      handleJumpToLatest,
+      handleJumpToUnread,
+      loadEventTimeline,
     } = useRoomTimelineContext();
 
     const ignoredUsersList = useIgnoredUsers();
     const ignoredUsersSet = useMemo(() => new Set(ignoredUsersList), [ignoredUsersList]);
-
-    const { navigateRoom } = useRoomNavigate();
-
-    const readUptoEventIdRef = useRef<string>();
-    if (unreadInfo) {
-      readUptoEventIdRef.current = unreadInfo.readUptoEventId;
-    }
-
-    const atBottomAnchorRef = useRef<HTMLElement>(null);
-    const [atBottom, setAtBottom] = useState<boolean>(true);
-    const atBottomRef = useRef(atBottom);
-    atBottomRef.current = atBottom;
-
-    const scrollRef = useRef<HTMLDivElement>(null);
-    const scrollToBottomRef = useRef({
-      count: 0,
-      smooth: true,
-    });
 
     const alive = useAlive();
 
@@ -138,17 +124,8 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
       typeof timeline.linkedTimelines[0]?.getPaginationToken(Direction.Backward) === 'string';
     const rangeAtStart = timeline.range.start === 0;
     const rangeAtEnd = timeline.range.end === eventsLength;
-    const atLiveEndRef = useRef(liveTimelineLinked && rangeAtEnd);
-    atLiveEndRef.current = liveTimelineLinked && rangeAtEnd;
 
-    const handleTimelinePagination = useTimelinePagination(
-      mx,
-      timeline,
-      setTimeline,
-      PAGINATION_LIMIT
-    );
-
-    const getScrollElement = useCallback(() => scrollRef.current, []);
+    const getScrollElement = useCallback(() => scrollRef.current, [scrollRef]);
 
     const { getItems, scrollToItem, scrollToElement, observeBackAnchor, observeFrontAnchor } =
       useVirtualPaginator({
@@ -164,41 +141,10 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
           (index: number) =>
             (scrollRef.current?.querySelector(`[data-message-item="${index}"]`) as HTMLElement) ??
             undefined,
-          []
+          [scrollRef]
         ),
         onEnd: handleTimelinePagination,
       });
-
-    const loadEventTimeline = useEventTimelineLoader(
-      mx,
-      room,
-      useCallback(
-        (evtId, lTimelines, evtAbsIndex) => {
-          if (!alive()) return;
-          const evLength = getTimelinesEventsCount(lTimelines);
-
-          setFocusItem({
-            index: evtAbsIndex,
-            scrollTo: true,
-            highlight: evtId !== readUptoEventIdRef.current,
-          });
-          setTimeline({
-            linkedTimelines: lTimelines,
-            range: {
-              start: Math.max(evtAbsIndex - PAGINATION_LIMIT, 0),
-              end: Math.min(evtAbsIndex + PAGINATION_LIMIT, evLength),
-            },
-          });
-        },
-        [alive, setTimeline, setFocusItem]
-      ),
-      useCallback(() => {
-        if (!alive()) return;
-        setTimeline(getInitialTimeline(room));
-        scrollToBottomRef.current.count += 1;
-        scrollToBottomRef.current.smooth = false;
-      }, [alive, room, setTimeline])
-    );
 
     useLiveEventArrive(
       room,
@@ -237,7 +183,16 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
             setUnreadInfo(getRoomUnreadInfo(room));
           }
         },
-        [mx, room, unreadInfo, setUnreadInfo, hideActivity, setTimeline]
+        [
+          mx,
+          room,
+          unreadInfo,
+          setUnreadInfo,
+          hideActivity,
+          setTimeline,
+          scrollToBottomRef,
+          atBottomRef,
+        ]
       )
     );
 
@@ -268,7 +223,7 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
           loadEventTimeline(evtId);
         }
       },
-      [room, timeline, scrollToItem, loadEventTimeline, setTimeline, setFocusItem]
+      [room, timeline, scrollToItem, setTimeline, setFocusItem, loadEventTimeline]
     );
 
     useLiveTimelineRefresh(
@@ -299,7 +254,7 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
             scrollToBottom(scrollElement);
           }
         };
-      }, [getScrollElement, roomInputRef]),
+      }, [getScrollElement, roomInputRef, atBottomRef]),
       useCallback(() => roomInputRef.current, [roomInputRef])
     );
 
@@ -314,12 +269,15 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
       if (latestTimeline === room.getLiveTimeline()) {
         requestAnimationFrame(() => markAsRead(mx, room.roomId, hideActivity));
       }
-    }, [mx, room, hideActivity]);
+    }, [mx, room, hideActivity, readUptoEventIdRef]);
 
     const debounceSetAtBottom = useDebounce(
-      useCallback((entry: IntersectionObserverEntry) => {
-        if (!entry.isIntersecting) setAtBottom(false);
-      }, []),
+      useCallback(
+        (entry: IntersectionObserverEntry) => {
+          if (!entry.isIntersecting) setAtBottom(false);
+        },
+        [setAtBottom]
+      ),
       { wait: 1000 }
     );
     useIntersectionObserver(
@@ -336,7 +294,7 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
             }
           }
         },
-        [debounceSetAtBottom, tryAutoMarkAsRead]
+        [debounceSetAtBottom, tryAutoMarkAsRead, atBottomAnchorRef, setAtBottom, atLiveEndRef]
       ),
       useCallback(
         () => ({
@@ -345,7 +303,7 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
         }),
         [getScrollElement]
       ),
-      useCallback(() => atBottomAnchorRef.current, [])
+      useCallback(() => atBottomAnchorRef.current, [atBottomAnchorRef])
     );
 
     useDocumentFocusChange(
@@ -365,7 +323,7 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
             tryAutoMarkAsRead();
           }
         },
-        [tryAutoMarkAsRead, unreadInfo, handleOpenEvent]
+        [tryAutoMarkAsRead, unreadInfo, handleOpenEvent, atBottomRef]
       )
     );
 
@@ -406,7 +364,7 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
       if (scrollEl) {
         scrollToBottom(scrollEl);
       }
-    }, []);
+    }, [scrollRef]);
 
     // if live timeline is linked and unreadInfo change
     // Scroll to last read message
@@ -454,7 +412,7 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
         if (scrollEl)
           scrollToBottom(scrollEl, scrollToBottomRef.current.smooth ? 'smooth' : 'instant');
       }
-    }, [scrollToBottomCount]);
+    }, [scrollToBottomCount, scrollToBottomRef, scrollRef]);
 
     // Remove unreadInfo on mark as read
     useEffect(() => {
@@ -477,23 +435,7 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
           });
         }
       }
-    }, [scrollToElement, editId]);
-
-    const handleJumpToLatest = () => {
-      if (eventId) {
-        navigateRoom(room.roomId, undefined, { replace: true });
-      }
-      setTimeline(getInitialTimeline(room));
-      scrollToBottomRef.current.count += 1;
-      scrollToBottomRef.current.smooth = false;
-    };
-
-    const handleJumpToUnread = () => {
-      if (unreadInfo?.readUptoEventId) {
-        setTimeline(getEmptyTimeline());
-        loadEventTimeline(unreadInfo.readUptoEventId);
-      }
-    };
+    }, [scrollToElement, editId, scrollRef]);
 
     const handleOpenReply: MouseEventHandler<HTMLButtonElement> = useCallback(
       async (evt) => {
