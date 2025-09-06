@@ -21,8 +21,6 @@ import { usePowerLevelsAPI, usePowerLevelsContext } from '../../../hooks/usePowe
 import { useMatrixClient } from '../../../hooks/useMatrixClient';
 import { useVirtualPaginator } from '../../../hooks/useVirtualPaginator';
 import { MessageEvent, StateEvent } from '../../../../types/matrix/room';
-import { eventWithShortcode, factoryEventSentBy } from '../../../utils/matrix';
-import { getEventReactions, getReactionContent } from '../../../utils/room';
 import { useMediaAuthentication } from '../../../hooks/useMediaAuthentication';
 import { useMentionClickHandler } from '../../../hooks/useMentionClickHandler';
 import { useSpoilerClickHandler } from '../../../hooks/useSpoilerClickHandler';
@@ -42,7 +40,6 @@ import {
   getLiveTimeline,
   getTimelinesEventsCount,
   getEventTimeline,
-  getEventIdAbsoluteIndex,
   getFirstLinkedTimeline,
 } from './hooks/getEventAndTimeline';
 import {
@@ -52,6 +49,9 @@ import {
   useHandleUserClick,
   useHandleUsernameClick,
   useHandleMarkAsRead,
+  useHandleReactionToggle,
+  useHandleOpenEvent,
+  useHandleOpenReply,
 } from './hooks/useHandleActions';
 import { PAGINATION_LIMIT, Timeline } from './constants';
 import { roomToParentsAtom } from '../../../state/room/roomToParents';
@@ -255,6 +255,7 @@ export function RoomTimelineProvider({
   const handleReplyClick = useHandleReplyClick(room, editor);
   const handleMessageClick = useHandleMessageClick(room);
   const handleMarkAsRead = useHandleMarkAsRead(room, hideActivity);
+  const handleReactionToggle = useHandleReactionToggle(room);
   const handleTimelinePagination = useTimelinePagination(
     mx,
     timeline,
@@ -277,30 +278,6 @@ export function RoomTimelineProvider({
       ),
       onEnd: handleTimelinePagination,
     });
-
-  const handleReactionToggle = useCallback(
-    (targetEventId: string, key: string, shortcode?: string) => {
-      const relations = getEventReactions(room.getUnfilteredTimelineSet(), targetEventId);
-      const allReactions = relations?.getSortedAnnotationsByKey() ?? [];
-      const [, reactionsSet] = allReactions.find(([k]) => k === key) ?? [];
-      const reactions = reactionsSet ? Array.from(reactionsSet) : [];
-      const myReaction = reactions.find(factoryEventSentBy(mx.getUserId() ?? ''));
-
-      if (myReaction && !!myReaction?.isRelation()) {
-        mx.redactEvent(room.roomId, myReaction.getId() ?? '');
-        return;
-      }
-      const rShortcode =
-        shortcode ||
-        (reactions.find(eventWithShortcode)?.getContent().shortcode as string | undefined);
-      mx.sendEvent(
-        room.roomId,
-        MessageEvent.Reaction as any,
-        getReactionContent(targetEventId, key, rShortcode)
-      );
-    },
-    [mx, room]
-  );
 
   const loadEventTimeline = useEventTimelineLoader(
     mx,
@@ -333,44 +310,15 @@ export function RoomTimelineProvider({
     }, [alive, room, setTimeline, scrollToBottomRef])
   );
 
-  const handleOpenEvent = useCallback(
-    async (
-      evtId: string,
-      highlight = true,
-      onScroll: ((scrolled: boolean) => void) | undefined = undefined
-    ) => {
-      const evtTimeline = getEventTimeline(room, evtId);
-      const absoluteIndex =
-        evtTimeline && getEventIdAbsoluteIndex(timeline.linkedTimelines, evtTimeline, evtId);
-
-      if (typeof absoluteIndex === 'number') {
-        const scrolled = scrollToItem(absoluteIndex, {
-          behavior: 'smooth',
-          align: 'center',
-          stopInView: true,
-        });
-        if (onScroll) onScroll(scrolled);
-        setFocusItem({
-          index: absoluteIndex,
-          scrollTo: false,
-          highlight,
-        });
-      } else {
-        setTimeline(getEmptyTimeline());
-        loadEventTimeline(evtId);
-      }
-    },
-    [room, timeline, scrollToItem, setTimeline, setFocusItem, loadEventTimeline]
+  const handleOpenEvent = useHandleOpenEvent(
+    room,
+    timeline,
+    scrollToItem,
+    setTimeline,
+    setFocusItem,
+    loadEventTimeline
   );
-
-  const handleOpenReply = useCallback<React.MouseEventHandler<HTMLButtonElement>>(
-    async (evt) => {
-      const targetId = evt.currentTarget.getAttribute('data-event-id');
-      if (!targetId) return;
-      handleOpenEvent(targetId);
-    },
-    [handleOpenEvent]
-  );
+  const handleOpenReply = useHandleOpenReply(handleOpenEvent);
 
   const tryAutoMarkAsRead = useCallback(() => {
     const readUptoEventId = readUptoEventIdRef.current;
