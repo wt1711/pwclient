@@ -13,8 +13,6 @@ import { Editor } from 'slate';
 import { Box, Chip, Icon, Icons, Scroll, Text, config, toRem } from 'folds';
 import { isKeyHotkey } from 'is-hotkey';
 
-import { useVirtualPaginator } from '../../../hooks/useVirtualPaginator';
-import { useAlive } from '../../../hooks/useAlive';
 import { editableActiveElement, scrollToBottom } from '../../../utils/dom';
 import { DefaultPlaceholder, CompactPlaceholder, MessageBase } from '../../../components/message';
 import { canEditEvent, getLatestEditableEvt, reactionOrEditEvent } from '../../../utils/room';
@@ -28,14 +26,12 @@ import {
 import { markAsRead } from '../../../../client/action/notifications';
 import { useDebounce } from '../../../hooks/useDebounce';
 import { getResizeObserverEntry, useResizeObserver } from '../../../hooks/useResizeObserver';
-import { PAGINATION_LIMIT } from './constants';
 import { useLiveEventArrive, useLiveTimelineRefresh } from './hooks/useEventAndTimeline';
 import {
   getEventTimeline,
   getFirstLinkedTimeline,
   getLiveTimeline,
   getLinkedTimelines,
-  getTimelinesEventsCount,
   getEventIdAbsoluteIndex,
   getTimelineAndBaseIndex,
   getTimelineEvent,
@@ -97,7 +93,6 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
       focusItem,
       setFocusItem,
       mx,
-      handleTimelinePagination,
       scrollToBottomRef,
       scrollRef,
       atBottomAnchorRef,
@@ -109,39 +104,18 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
       handleJumpToLatest,
       handleJumpToUnread,
       loadEventTimeline,
+      liveTimelineLinked,
+      canPaginateBack,
+      rangeAtStart,
+      rangeAtEnd,
       ignoredUsersSet,
+      alive,
+      getItems,
+      scrollToItem,
+      scrollToElement,
+      observeBackAnchor,
+      observeFrontAnchor,
     } = useRoomTimelineContext();
-
-    const alive = useAlive();
-
-    const eventsLength = getTimelinesEventsCount(timeline.linkedTimelines);
-    const liveTimelineLinked =
-      timeline.linkedTimelines[timeline.linkedTimelines.length - 1] === getLiveTimeline(room);
-    const canPaginateBack =
-      typeof timeline.linkedTimelines[0]?.getPaginationToken(Direction.Backward) === 'string';
-    const rangeAtStart = timeline.range.start === 0;
-    const rangeAtEnd = timeline.range.end === eventsLength;
-
-    const getScrollElement = useCallback(() => scrollRef.current, [scrollRef]);
-
-    const { getItems, scrollToItem, scrollToElement, observeBackAnchor, observeFrontAnchor } =
-      useVirtualPaginator({
-        count: eventsLength,
-        limit: PAGINATION_LIMIT,
-        range: timeline.range,
-        onRangeChange: useCallback(
-          (r) => setTimeline((cs) => ({ ...cs, range: r })),
-          [setTimeline]
-        ),
-        getScrollElement,
-        getItemElement: useCallback(
-          (index: number) =>
-            (scrollRef.current?.querySelector(`[data-message-item="${index}"]`) as HTMLElement) ??
-            undefined,
-          [scrollRef]
-        ),
-        onEnd: handleTimelinePagination,
-      });
 
     useLiveEventArrive(
       room,
@@ -244,14 +218,14 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
           }
           if (!roomInputRef.current) return;
           const editorBaseEntry = getResizeObserverEntry(roomInputRef.current, entries);
-          const scrollElement = getScrollElement();
+          const scrollElement = scrollRef.current;
           if (!editorBaseEntry || !scrollElement) return;
 
           if (atBottomRef.current) {
             scrollToBottom(scrollElement);
           }
         };
-      }, [getScrollElement, roomInputRef, atBottomRef]),
+      }, [scrollRef, atBottomRef, roomInputRef]),
       useCallback(() => roomInputRef.current, [roomInputRef])
     );
 
@@ -295,10 +269,10 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
       ),
       useCallback(
         () => ({
-          root: getScrollElement(),
+          root: scrollRef.current,
           rootMargin: '100px',
         }),
-        [getScrollElement]
+        [scrollRef]
       ),
       useCallback(() => atBottomAnchorRef.current, [atBottomAnchorRef])
     );

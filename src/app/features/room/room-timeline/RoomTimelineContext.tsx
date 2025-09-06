@@ -7,7 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Room, MatrixClient } from 'matrix-js-sdk';
+import { Room, MatrixClient, Direction } from 'matrix-js-sdk';
 import { Editor } from 'slate';
 import { HTMLReactParserOptions } from 'html-react-parser';
 import { Opts as LinkifyOpts } from 'linkifyjs';
@@ -19,6 +19,7 @@ import { useRoomUnread } from '../../../state/hooks/unread';
 import { roomToUnreadAtom } from '../../../state/room/roomToUnread';
 import { usePowerLevelsAPI, usePowerLevelsContext } from '../../../hooks/usePowerLevels';
 import { useMatrixClient } from '../../../hooks/useMatrixClient';
+import { useVirtualPaginator } from '../../../hooks/useVirtualPaginator';
 import { MessageEvent, StateEvent } from '../../../../types/matrix/room';
 import { eventWithShortcode, factoryEventSentBy } from '../../../utils/matrix';
 import { getEventReactions, getReactionContent } from '../../../utils/room';
@@ -120,7 +121,32 @@ interface RoomTimelineContextType {
   handleJumpToLatest: () => void;
   handleJumpToUnread: () => void;
   loadEventTimeline: (eventId: string) => void;
+  eventsLength: number;
+  liveTimelineLinked: boolean;
+  canPaginateBack: boolean;
+  rangeAtStart: boolean;
+  rangeAtEnd: boolean;
   ignoredUsersSet: Set<string>;
+  alive: () => boolean;
+  getItems: () => number[];
+  scrollToItem: (
+    index: number,
+    options?: {
+      behavior?: 'auto' | 'instant' | 'smooth' | undefined;
+      align?: 'start' | 'center' | 'end';
+      stopInView?: boolean;
+    }
+  ) => boolean;
+  scrollToElement: (
+    element: HTMLElement,
+    options?: {
+      behavior?: 'auto' | 'instant' | 'smooth' | undefined;
+      align?: 'start' | 'center' | 'end';
+      stopInView?: boolean;
+    }
+  ) => void;
+  observeBackAnchor: (element: HTMLElement | null) => void;
+  observeFrontAnchor: (element: HTMLElement | null) => void;
 }
 
 const RoomTimelineContext = createContext<RoomTimelineContextType | null>(null);
@@ -169,6 +195,8 @@ export function RoomTimelineProvider({
   const atBottomRef = useRef(atBottom);
   atBottomRef.current = atBottom;
 
+  const getScrollElement = useCallback(() => scrollRef.current, [scrollRef]);
+
   const ignoredUsersList = useIgnoredUsers();
   const ignoredUsersSet = useMemo(() => new Set(ignoredUsersList), [ignoredUsersList]);
   const alive = useAlive();
@@ -179,20 +207,16 @@ export function RoomTimelineProvider({
     readUptoEventIdRef.current = unreadInfo?.readUptoEventId;
   }, [unreadInfo]);
 
-  const eventsLength = useMemo(
-    () => getTimelinesEventsCount(timeline.linkedTimelines),
-    [timeline.linkedTimelines]
-  );
-  const liveTimelineLinked = useMemo(
-    () =>
-      timeline.linkedTimelines.length > 0 &&
-      timeline.linkedTimelines[timeline.linkedTimelines.length - 1] === getLiveTimeline(room),
-    [room, timeline.linkedTimelines]
-  );
-  const rangeAtEnd = useMemo(
-    () => timeline.range.end === eventsLength,
-    [timeline.range.end, eventsLength]
-  );
+  const eventsLength = getTimelinesEventsCount(timeline.linkedTimelines);
+  const liveTimelineLinked =
+    timeline.linkedTimelines.length > 0 &&
+    timeline.linkedTimelines[timeline.linkedTimelines.length - 1] === getLiveTimeline(room);
+  const canPaginateBack =
+    timeline.linkedTimelines.length > 0 &&
+    typeof timeline.linkedTimelines[0]?.getPaginationToken(Direction.Backward) === 'string';
+  const rangeAtStart = timeline.range.start === 0;
+  const rangeAtEnd = timeline.range.end === eventsLength;
+
   const atLiveEndRef = useRef(liveTimelineLinked && rangeAtEnd);
   atLiveEndRef.current = liveTimelineLinked && rangeAtEnd;
 
@@ -250,6 +274,22 @@ export function RoomTimelineProvider({
     },
     [mx, room]
   );
+
+  const { getItems, scrollToItem, scrollToElement, observeBackAnchor, observeFrontAnchor } =
+    useVirtualPaginator({
+      count: eventsLength,
+      limit: PAGINATION_LIMIT,
+      range: timeline.range,
+      onRangeChange: useCallback((r) => setTimeline((cs) => ({ ...cs, range: r })), [setTimeline]),
+      getScrollElement,
+      getItemElement: useCallback(
+        (index: number) =>
+          (scrollRef.current?.querySelector(`[data-message-item="${index}"]`) as HTMLElement) ??
+          undefined,
+        [scrollRef]
+      ),
+      onEnd: handleTimelinePagination,
+    });
 
   const loadEventTimeline = useEventTimelineLoader(
     mx,
@@ -385,7 +425,18 @@ export function RoomTimelineProvider({
       handleJumpToLatest,
       handleJumpToUnread,
       loadEventTimeline,
+      eventsLength,
+      liveTimelineLinked,
+      canPaginateBack,
+      rangeAtStart,
+      rangeAtEnd,
       ignoredUsersSet,
+      alive,
+      getItems,
+      scrollToItem,
+      scrollToElement,
+      observeBackAnchor,
+      observeFrontAnchor,
     }),
     [
       room,
@@ -429,7 +480,18 @@ export function RoomTimelineProvider({
       handleJumpToLatest,
       handleJumpToUnread,
       loadEventTimeline,
+      eventsLength,
+      liveTimelineLinked,
+      canPaginateBack,
+      rangeAtStart,
+      rangeAtEnd,
       ignoredUsersSet,
+      alive,
+      getItems,
+      scrollToItem,
+      scrollToElement,
+      observeBackAnchor,
+      observeFrontAnchor,
     ]
   );
 
