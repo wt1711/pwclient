@@ -7,7 +7,7 @@ import React, {
   useLayoutEffect,
   useMemo,
 } from 'react';
-import { Direction, EventTimelineSet, MatrixEvent, Room } from 'matrix-js-sdk';
+import { EventTimelineSet, MatrixEvent, Room } from 'matrix-js-sdk';
 import { Editor } from 'slate';
 import { Box, Chip, Icon, Icons, Scroll, Text, config, toRem } from 'folds';
 import { isKeyHotkey } from 'is-hotkey';
@@ -22,13 +22,11 @@ import {
   getIntersectionObserverEntry,
   useIntersectionObserver,
 } from '../../../hooks/useIntersectionObserver';
-import { markAsRead } from '../../../../client/action/notifications';
 import { useDebounce } from '../../../hooks/useDebounce';
 import { getResizeObserverEntry, useResizeObserver } from '../../../hooks/useResizeObserver';
 import { useLiveEventArrive, useLiveTimelineRefresh } from './hooks/useEventAndTimeline';
 import {
   getEventTimeline,
-  getFirstLinkedTimeline,
   getLiveTimeline,
   getLinkedTimelines,
   getEventIdAbsoluteIndex,
@@ -79,7 +77,6 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
   ({ eventId, roomInputRef, editor }, ref) => {
     const {
       room,
-      hideActivity,
       messageLayout,
       showHiddenEvents,
       editId,
@@ -116,6 +113,7 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
       observeFrontAnchor,
       handleOpenEvent,
       handleOpenReply,
+      tryAutoMarkAsRead,
     } = useRoomTimelineContext();
 
     useLiveEventArrive(
@@ -131,7 +129,7 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
               // Check if the document is in focus (user is actively viewing the app),
               // and either there are no unread messages or the latest message is from the current user.
               // If either condition is met, trigger the markAsRead function to send a read receipt.
-              requestAnimationFrame(() => markAsRead(mx, mEvt.getRoomId() ?? '', hideActivity));
+              requestAnimationFrame(() => tryAutoMarkAsRead());
             }
 
             if (!document.hasFocus() && !unreadInfo) {
@@ -160,10 +158,10 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
           room,
           unreadInfo,
           setUnreadInfo,
-          hideActivity,
           setTimeline,
           scrollToBottomRef,
           atBottomRef,
+          tryAutoMarkAsRead,
         ]
       )
     );
@@ -199,19 +197,6 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
       }, [scrollRef, atBottomRef, roomInputRef]),
       useCallback(() => roomInputRef.current, [roomInputRef])
     );
-
-    const tryAutoMarkAsRead = useCallback(() => {
-      const readUptoEventId = readUptoEventIdRef.current;
-      if (!readUptoEventId) {
-        requestAnimationFrame(() => markAsRead(mx, room.roomId, hideActivity));
-        return;
-      }
-      const evtTimeline = getEventTimeline(room, readUptoEventId);
-      const latestTimeline = evtTimeline && getFirstLinkedTimeline(evtTimeline, Direction.Forward);
-      if (latestTimeline === room.getLiveTimeline()) {
-        requestAnimationFrame(() => markAsRead(mx, room.roomId, hideActivity));
-      }
-    }, [mx, room, hideActivity, readUptoEventIdRef]);
 
     const debounceSetAtBottom = useDebounce(
       useCallback(

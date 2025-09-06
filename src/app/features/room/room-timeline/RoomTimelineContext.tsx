@@ -43,6 +43,7 @@ import {
   getTimelinesEventsCount,
   getEventTimeline,
   getEventIdAbsoluteIndex,
+  getFirstLinkedTimeline,
 } from './hooks/getEventAndTimeline';
 import {
   useHandleEdit,
@@ -60,6 +61,7 @@ import { useRoomNavigate } from '../../../hooks/useRoomNavigate';
 import { useAlive } from '../../../hooks/useAlive';
 import { useEventTimelineLoader, useTimelinePagination } from './hooks/useEventAndTimeline';
 import { useIgnoredUsers } from '../../../hooks/useIgnoredUsers';
+import { markAsRead } from '../../../../client/action/notifications';
 
 interface FocusItem {
   index: number;
@@ -155,6 +157,7 @@ interface RoomTimelineContextType {
     onScroll?: (scrolled: boolean) => void
   ) => Promise<void>;
   handleOpenReply: React.MouseEventHandler<HTMLButtonElement>;
+  tryAutoMarkAsRead: () => void;
 }
 
 const RoomTimelineContext = createContext<RoomTimelineContextType | null>(null);
@@ -369,6 +372,19 @@ export function RoomTimelineProvider({
     [handleOpenEvent]
   );
 
+  const tryAutoMarkAsRead = useCallback(() => {
+    const readUptoEventId = readUptoEventIdRef.current;
+    if (!readUptoEventId) {
+      requestAnimationFrame(() => markAsRead(mx, room.roomId, hideActivity));
+      return;
+    }
+    const evtTimeline = getEventTimeline(room, readUptoEventId);
+    const latestTimeline = evtTimeline && getFirstLinkedTimeline(evtTimeline, Direction.Forward);
+    if (latestTimeline === room.getLiveTimeline()) {
+      requestAnimationFrame(() => markAsRead(mx, room.roomId, hideActivity));
+    }
+  }, [mx, room, hideActivity, readUptoEventIdRef]);
+
   const handleJumpToLatest = useCallback(() => {
     if (eventId) {
       navigateRoom(room.roomId, undefined, { replace: true });
@@ -486,6 +502,7 @@ export function RoomTimelineProvider({
       observeFrontAnchor,
       handleOpenEvent,
       handleOpenReply,
+      tryAutoMarkAsRead,
     }),
     [
       room,
@@ -543,6 +560,7 @@ export function RoomTimelineProvider({
       observeFrontAnchor,
       handleOpenEvent,
       handleOpenReply,
+      tryAutoMarkAsRead,
     ]
   );
 
