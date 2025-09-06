@@ -1,5 +1,5 @@
-import React, { RefObject, forwardRef } from 'react';
-import { Editor } from 'slate';
+import React, { RefObject, forwardRef, useCallback, useState } from 'react';
+import { Descendant, Editor, Node } from 'slate';
 import { Room } from 'matrix-js-sdk';
 import { Icon, IconButton, Icons, Line } from 'folds';
 
@@ -17,6 +17,16 @@ const RoomInputInternal = forwardRef<HTMLDivElement>((props, ref) => {
   const { editor, handleKeyDown, handleKeyUp, handlePaste, pickFile, toolbar } =
     useRoomInputContext();
 
+  const [hasText, setHasText] = useState(false);
+
+  const handleEditorChange = useCallback(
+    (value: Descendant[]) => {
+      const isText = value.some((n) => Node.string(n).trim().length > 0);
+      setHasText(isText);
+    },
+    [setHasText]
+  );
+
   return (
     <div ref={ref}>
       <UploadArea />
@@ -28,9 +38,10 @@ const RoomInputInternal = forwardRef<HTMLDivElement>((props, ref) => {
         onKeyDown={handleKeyDown}
         onKeyUp={handleKeyUp}
         onPaste={handlePaste}
+        onChange={handleEditorChange}
         top={
           <>
-            <PredictiveMessage />
+            {hasText && <PredictiveMessage />}
             <ReplyPreview />
           </>
         }
