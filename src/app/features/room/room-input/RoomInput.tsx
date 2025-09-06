@@ -11,6 +11,7 @@ import { RoomInputActions } from './RoomInputActions';
 import { UploadArea } from './UploadArea';
 import { AutocompleteHandler } from './AutocompleteHandler';
 import { RoomInputProvider, useRoomInputContext } from './RoomInputContext';
+import { PredictiveMessage } from './predictive-message/PredictiveMessage';
 
 const RoomInputInternal = forwardRef<HTMLDivElement>((props, ref) => {
   const { editor, handleKeyDown, handleKeyUp, handlePaste, pickFile, toolbar } =
@@ -27,7 +28,12 @@ const RoomInputInternal = forwardRef<HTMLDivElement>((props, ref) => {
         onKeyDown={handleKeyDown}
         onKeyUp={handleKeyUp}
         onPaste={handlePaste}
-        top={<ReplyPreview />}
+        top={
+          <>
+            <PredictiveMessage />
+            <ReplyPreview />
+          </>
+        }
         before={
           <IconButton onClick={() => pickFile('*')} variant="SurfaceVariant" size="300" radii="300">
             <Icon src={Icons.PlusCircle} />
