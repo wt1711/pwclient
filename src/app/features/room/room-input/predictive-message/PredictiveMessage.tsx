@@ -14,20 +14,26 @@ const predictiveMessages = [
   { emoji: '🧐', text: 'is questioning your assumptions' },
 ];
 
-function getRandomMessage() {
-  const messages = [...predictiveMessages];
-  const firstIndex = Math.floor(Math.random() * messages.length);
-  const [firstMessage] = messages.splice(firstIndex, 1);
-  return firstMessage;
+function getTextHash(text: string): number {
+  return text.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
 }
 
-export function PredictiveMessage() {
-  const message1 = useMemo(() => getRandomMessage(), []);
+interface PredictiveMessageProps {
+  editorText: string;
+}
+export function PredictiveMessage({ editorText }: PredictiveMessageProps) {
+  const message = useMemo(() => {
+    if (editorText.trim().length === 0) return null;
+    const hash = getTextHash(editorText);
+    return predictiveMessages[hash % predictiveMessages.length];
+  }, [editorText]);
+
+  if (!message) return null;
 
   return (
     <div className="predictive-message">
       <p>
-        {message1.emoji} {message1.text}
+        {message.emoji} {message.text}
       </p>
     </div>
   );

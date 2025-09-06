@@ -12,20 +12,23 @@ import { UploadArea } from './UploadArea';
 import { AutocompleteHandler } from './AutocompleteHandler';
 import { RoomInputProvider, useRoomInputContext } from './RoomInputContext';
 import { PredictiveMessage } from './predictive-message/PredictiveMessage';
+import { useDebounceValue } from '../../../hooks/useDebounceValue';
 
 const RoomInputInternal = forwardRef<HTMLDivElement>((props, ref) => {
   const { editor, handleKeyDown, handleKeyUp, handlePaste, pickFile, toolbar } =
     useRoomInputContext();
 
-  const [hasText, setHasText] = useState(false);
+  const [editorText, setEditorText] = useState('');
+  const debouncedEditorText = useDebounceValue(editorText, 500);
 
   const handleEditorChange = useCallback(
     (value: Descendant[]) => {
-      const isText = value.some((n) => Node.string(n).trim().length > 0);
-      setHasText(isText);
+      const text = value.map((n) => Node.string(n)).join('\n');
+      setEditorText(text);
     },
-    [setHasText]
+    [setEditorText]
   );
+  const hasText = debouncedEditorText.trim().length > 0;
 
   return (
     <div ref={ref}>
@@ -41,7 +44,7 @@ const RoomInputInternal = forwardRef<HTMLDivElement>((props, ref) => {
         onChange={handleEditorChange}
         top={
           <>
-            {hasText && <PredictiveMessage />}
+            {hasText && <PredictiveMessage editorText={debouncedEditorText} />}
             <ReplyPreview />
           </>
         }
