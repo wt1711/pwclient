@@ -17,7 +17,7 @@ export function RoomInputActions() {
     handleStickerSelect,
     hideStickerBtn,
   } = useRoomInputContext();
-  const { isAIAssistantOpen, toggleAIAssistant } = useAIAssistant();
+  const { isAIAssistantOpen, toggleAIAssistant, generateNewResponseFromMessage } = useAIAssistant();
   const aiAssistantBtnRef = useRef<HTMLButtonElement>(null);
   const popoutContentRef = useRef<HTMLDivElement>(null);
   const emojiBtnRef = useRef<HTMLButtonElement>(null);
@@ -72,7 +72,7 @@ export function RoomInputActions() {
         <IconButton
           ref={aiAssistantBtnRef}
           onClick={() => {
-            toggleAIAssistant();
+            generateNewResponseFromMessage();
           }}
           variant="SurfaceVariant"
           size="300"

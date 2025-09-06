@@ -1,19 +1,77 @@
-import React from 'react';
-import { Box, Text, Spinner, Button, Icon, Icons, Line } from 'folds';
+import React, { useState } from 'react';
+import { Box, Text, Spinner, Button } from 'folds';
 import { useAIAssistant } from '../AIAssistantContext';
+import { Slider } from './slider/Slider';
+import { useDebouncedCallback } from '../../../hooks/useDebouncedCallback';
 
 export function GeneratedResponseBox() {
   const {
     isGeneratingResponse,
-    generateNewResponseFromMessage,
-    generateNewResponseFromHistory,
     locale,
+    generatedResponse,
+    handleUseSuggestion,
+    generateNewResponseFromMessage,
   } = useAIAssistant();
+  const [sliderValue, setSliderValue] = useState(1);
+
+  // Fix: Ensure the debounced function accepts any arguments to match the expected type
+  const debouncedGenerateResponse = useDebouncedCallback((...args: unknown[]) => {
+    // Forward only the first argument as tone, since generateNewResponseFromMessage expects (tone?: string)
+    generateNewResponseFromMessage(args[0] as string | undefined);
+  }, 500);
+
   const TITLES = {
-    EN: ['Reply', 'New Topic'],
-    VI: ['Trả lời', 'Chủ đề mới'],
+    EN: ['Use Suggestion'],
+    VI: ['Dùng gợi ý'],
   };
-  const [replyTitle, newTopicTitle] = TITLES[locale as keyof typeof TITLES] || ['', ''];
+  const [useSuggestionTitle] = TITLES[locale as keyof typeof TITLES] || [''];
+
+  const getSliderLabel = (value: number) => {
+    if (value === 0) return 'Safe';
+    if (value === 1) return 'Fun';
+    return 'Wild';
+  };
+
+  const handleSliderChange = (value: number) => {
+    setSliderValue(value);
+    debouncedGenerateResponse(getSliderLabel(value));
+  };
+
+  const renderContent = () => {
+    if (isGeneratingResponse) {
+      return (
+        <Box alignItems="Center" justifyContent="Center" style={{ padding: '16px' }}>
+          <Spinner size="200" />
+        </Box>
+      );
+    }
+    if (generatedResponse) {
+      return (
+        <Box direction="Column" style={{ width: '100%', gap: '8px' }}>
+          <Box direction="Row" alignItems="Center" style={{ gap: '8px' }}>
+            <span>❄️</span>
+            <Slider value={sliderValue} onChange={handleSliderChange} min={0} max={2} step={1} />
+            <span>🔥</span>
+          </Box>
+          <Text size="T500" style={{ textAlign: 'center', color: 'white' }}>
+            {getSliderLabel(sliderValue)}
+          </Text>
+          <Text size="B400" style={{ color: 'white' }}>
+            {generatedResponse}
+          </Text>
+          <Button
+            onClick={() => handleUseSuggestion(generatedResponse)}
+            disabled={isGeneratingResponse}
+            fill="Soft"
+            style={{ width: '100%', padding: '12px 8px' }}
+          >
+            <Text size="B400">{useSuggestionTitle}</Text>
+          </Button>
+        </Box>
+      );
+    }
+    return null;
+  };
 
   return (
     <Box
@@ -22,47 +80,7 @@ export function GeneratedResponseBox() {
         width: '100%',
       }}
     >
-      {isGeneratingResponse ? (
-        <Box alignItems="Center" justifyContent="Center" style={{ padding: '16px' }}>
-          <Spinner size="200" />
-        </Box>
-      ) : (
-        <Box direction="Column" style={{ width: '100%' }}>
-          <Button
-            onClick={generateNewResponseFromMessage}
-            disabled={isGeneratingResponse}
-            fill="None"
-            style={{ width: '100%', padding: '12px 8px', borderRadius: 0 }}
-          >
-            <Box
-              direction="Row"
-              justifyContent="SpaceBetween"
-              alignItems="Center"
-              style={{ width: '100%' }}
-            >
-              <Text size="B400">{replyTitle}</Text>
-              <Icon src={Icons.Pencil} />
-            </Box>
-          </Button>
-          <Line variant="Surface" />
-          <Button
-            onClick={generateNewResponseFromHistory}
-            disabled={isGeneratingResponse}
-            fill="None"
-            style={{ width: '100%', padding: '12px 8px', borderRadius: 0 }}
-          >
-            <Box
-              direction="Row"
-              justifyContent="SpaceBetween"
-              alignItems="Center"
-              style={{ width: '100%' }}
-            >
-              <Text size="B400">{newTopicTitle}</Text>
-              <Icon src={Icons.Star} />
-            </Box>
-          </Button>
-        </Box>
-      )}
+      {renderContent()}
     </Box>
   );
 }
