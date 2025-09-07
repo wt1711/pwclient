@@ -78,7 +78,7 @@ export function Room() {
                 variant="Primary"
                 style={{
                   position: 'fixed',
-                  bottom: '80px',
+                  top: '120px',
                   left: '10px',
                   zIndex: 100,
                   borderRadius: '100%',

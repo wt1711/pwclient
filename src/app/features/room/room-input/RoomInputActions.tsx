@@ -43,44 +43,47 @@ export function RoomInputActions() {
 
   return (
     <>
-      <PopOut
-        offset={16}
-        alignOffset={-44}
-        position="Top"
-        align="End"
-        anchor={
-          !isAIAssistantOpen
-            ? undefined
-            : aiAssistantBtnRef.current?.getBoundingClientRect() ?? undefined
-        }
-        content={
+      {isAIAssistantOpen && (
+        <Box
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+          }}
+        >
           <Box
             ref={popoutContentRef}
             direction="Column"
             style={{
-              width: '280px',
+              width: '320px',
               backgroundColor: 'var(--bg-surface)',
-              padding: '12px',
-              borderRadius: '12px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              padding: '16px',
+              borderRadius: '16px',
+              boxShadow: '0 4px 24px rgba(0,0,0,0.2)',
             }}
           >
             <GeneratedResponseBox />
           </Box>
-        }
+        </Box>
+      )}
+      <IconButton
+        ref={aiAssistantBtnRef}
+        onClick={() => {
+          generateNewResponseFromMessage();
+        }}
+        variant="SurfaceVariant"
+        size="300"
+        radii="300"
       >
-        <IconButton
-          ref={aiAssistantBtnRef}
-          onClick={() => {
-            generateNewResponseFromMessage();
-          }}
-          variant="SurfaceVariant"
-          size="300"
-          radii="300"
-        >
-          <Icon src={Icons.Star} />
-        </IconButton>
-      </PopOut>
+        <Icon src={Icons.Star} />
+      </IconButton>
       <UseStateProvider initial={undefined}>
         {(
           emojiBoardTab: EmojiBoardTab | undefined,

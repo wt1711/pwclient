@@ -60,6 +60,16 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
   const setIsAiDrawer = useSetSetting(settingsAtom, 'isAiDrawerOpen');
   const { selectedMessage } = useRoomMessage();
 
+  const toggleAIAssistant = useCallback((isOpen?: boolean) => {
+    setIsAIAssistantOpen((prev) => {
+      const newIsOpen = isOpen ?? !prev;
+      if (!newIsOpen) {
+        setGeneratedResponse('');
+      }
+      return newIsOpen;
+    });
+  }, []);
+
   const handleUseSuggestion = useCallback(
     (response: string) => {
       if (response) {
@@ -75,20 +85,11 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
         if (isMobile) {
           setIsAiDrawer(false);
         }
+        toggleAIAssistant(false);
       }
     },
-    [insertText, deleteText, isMobile, setIsAiDrawer]
+    [insertText, deleteText, isMobile, setIsAiDrawer, toggleAIAssistant]
   );
-
-  const toggleAIAssistant = useCallback((isOpen?: boolean) => {
-    setIsAIAssistantOpen((prev) => {
-      const newIsOpen = isOpen ?? !prev;
-      if (!newIsOpen) {
-        setGeneratedResponse('');
-      }
-      return newIsOpen;
-    });
-  }, []);
 
   const generateNewResponseFromMessage = useCallback(
     async (tone = 'Neutral') => {
