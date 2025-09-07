@@ -58,10 +58,10 @@ export function RoomInputActions() {
             ref={popoutContentRef}
             direction="Column"
             style={{
-              width: '200px',
+              width: '280px',
               backgroundColor: 'var(--bg-surface)',
-              padding: '8px',
-              borderRadius: '8px',
+              padding: '12px',
+              borderRadius: '12px',
               boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
             }}
           >
