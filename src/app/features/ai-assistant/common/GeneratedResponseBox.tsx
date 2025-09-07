@@ -50,9 +50,9 @@ export function GeneratedResponseBox() {
       return (
         <Box direction="Column" style={{ width: '100%', gap: '12px' }}>
           <Box direction="Row" alignItems="Center" style={{ gap: '8px' }}>
-            <span>❄️</span>
+            <span>😇</span>
             <Slider value={sliderValue} onChange={handleSliderChange} min={0} max={2} step={1} />
-            <span>🔥</span>
+            <span>😈</span>
           </Box>
           <Text size="T500" style={{ textAlign: 'center' }}>
             {getSliderLabel(sliderValue)}
