@@ -42,7 +42,6 @@ export function TimelineUnknownEvent({ mEventId, mEvent, item }: TimelineUnknown
 
   return (
     <Event
-      key={mEvent.getId()}
       data-message-item={item}
       data-message-id={mEventId}
       room={room}

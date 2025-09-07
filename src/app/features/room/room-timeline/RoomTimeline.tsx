@@ -474,10 +474,10 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
 
       const dayDividerJSX = dayDivider && eventJSX ? <DayDivider ts={mEvent.getTs()} /> : null;
 
-      if (eventJSX && (newDividerJSX || dayDividerJSX)) {
-        if (newDividerJSX) newDivider = false;
-        if (dayDividerJSX) dayDivider = false;
+      if (newDividerJSX) newDivider = false;
+      if (dayDividerJSX) dayDivider = false;
 
+      if (eventJSX) {
         return (
           <React.Fragment key={mEventId}>
             {newDividerJSX}
@@ -487,7 +487,7 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
         );
       }
 
-      return eventJSX;
+      return null;
     };
 
     return (
