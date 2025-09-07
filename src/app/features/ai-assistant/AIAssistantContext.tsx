@@ -58,28 +58,7 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
   const mx = useMatrixClient();
   const { insertText, deleteText } = useRoomEditor();
   const setIsAiDrawer = useSetSetting(settingsAtom, 'isAiDrawerOpen');
-  const timeline = room.getLiveTimeline().getEvents();
-  const roomContext = timeline
-    .filter((event) => event.getSender() && event.getContent().body)
-    .map((event) => ({
-      sender: event.getSender() as string,
-      text: event.getContent().body as string,
-      timestamp: new Date(event.getTs()).toISOString(),
-      is_from_me: isFromMe(event.getSender() as string, mx.getUserId() as string),
-    }));
-  const lastNonUserMsg = [...roomContext].reverse().find((msg) => !msg.is_from_me);
-  const msgToGetResponse = useMemo(
-    () =>
-      lastNonUserMsg || {
-        sender: 'system',
-        text: 'Nói gì cũng được',
-        timestamp: new Date().toISOString(),
-        is_from_me: false,
-      },
-    [lastNonUserMsg]
-  );
   const { selectedMessage } = useRoomMessage();
-  const msgToGetConsultation = selectedMessage || msgToGetResponse;
 
   const handleUseSuggestion = useCallback(
     (response: string) => {
@@ -118,6 +97,16 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
 
       try {
         // Get the actual room conversation from timeline
+        const timeline = room.getLiveTimeline().getEvents();
+        const roomContext = timeline
+          .filter((event) => event.getSender() && event.getContent().body)
+          .map((event) => ({
+            sender: event.getSender() as string,
+            text: event.getContent().body as string,
+            timestamp: new Date(event.getTs()).toISOString(),
+            is_from_me: isFromMe(event.getSender() as string, mx.getUserId() as string),
+          }));
+        const lastNonUserMsg = [...roomContext].reverse().find((msg) => !msg.is_from_me);
 
         // Find the last message in the room conversation that is not from the current user
         const message = lastNonUserMsg ? lastNonUserMsg.text : 'Nói gì cũng được';
@@ -130,7 +119,7 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
         setIsGeneratingResponse(false);
       }
     },
-    [roomContext, lastNonUserMsg, toggleAIAssistant]
+    [room, mx, toggleAIAssistant]
   );
 
   const generateNewResponseFromHistory = useCallback(async () => {
@@ -139,6 +128,15 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
 
     try {
       // Get the actual room conversation from timeline
+      const timeline = room.getLiveTimeline().getEvents();
+      const roomContext = timeline
+        .filter((event) => event.getSender() && event.getContent().body)
+        .map((event) => ({
+          sender: event.getSender() as string,
+          text: event.getContent().body as string,
+          timestamp: new Date(event.getTs()).toISOString(),
+          is_from_me: isFromMe(event.getSender() as string, mx.getUserId() as string),
+        }));
 
       // Find the last message in the room conversation that is not from the current user
 
@@ -149,7 +147,7 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
     } finally {
       setIsGeneratingResponse(false);
     }
-  }, [roomContext, toggleAIAssistant]);
+  }, [room, mx, toggleAIAssistant]);
 
   const handleSend = useCallback(async () => {
     if (inputValue.trim() === '') return;
@@ -165,6 +163,23 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
 
     try {
       // Get the actual room conversation from timeline
+      const timeline = room.getLiveTimeline().getEvents();
+      const roomContext = timeline
+        .filter((event) => event.getSender() && event.getContent().body)
+        .map((event) => ({
+          sender: event.getSender() as string,
+          text: event.getContent().body as string,
+          timestamp: new Date(event.getTs()).toISOString(),
+          is_from_me: isFromMe(event.getSender() as string, mx.getUserId() as string),
+        }));
+      const lastNonUserMsg = [...roomContext].reverse().find((msg) => !msg.is_from_me);
+      const msgToGetResponse = lastNonUserMsg || {
+        sender: 'system',
+        text: 'Nói gì cũng được',
+        timestamp: new Date().toISOString(),
+        is_from_me: false,
+      };
+      const msgToGetConsultation = selectedMessage || msgToGetResponse;
 
       // Find the last message in the room conversation that is not from the current user
 
@@ -191,7 +206,7 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
     } finally {
       setIsLoading(false);
     }
-  }, [inputValue, roomContext, msgToGetConsultation]);
+  }, [inputValue, room, mx, selectedMessage]);
 
   const clearChatHistory = () => {
     setChatHistory([]);
