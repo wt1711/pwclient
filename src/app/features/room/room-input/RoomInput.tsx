@@ -15,7 +15,7 @@ import { PredictiveMessage } from './predictive-message/PredictiveMessage';
 import { useDebounceValue } from '../../../hooks/useDebounceValue';
 
 const RoomInputInternal = forwardRef<HTMLDivElement>((props, ref) => {
-  const { editor, handleKeyDown, handleKeyUp, handlePaste, pickFile, toolbar } =
+  const { editor, handleKeyDown, handleKeyUp, handlePaste, pickFile, toolbar, room } =
     useRoomInputContext();
 
   const [editorText, setEditorText] = useState('');
@@ -44,7 +44,7 @@ const RoomInputInternal = forwardRef<HTMLDivElement>((props, ref) => {
         onChange={handleEditorChange}
         top={
           <>
-            {hasText && <PredictiveMessage editorText={debouncedEditorText} />}
+            {hasText && <PredictiveMessage room={room} editorText={debouncedEditorText} />}
             <ReplyPreview />
           </>
         }
