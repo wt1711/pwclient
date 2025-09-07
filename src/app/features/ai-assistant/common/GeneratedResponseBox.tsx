@@ -28,9 +28,9 @@ export function GeneratedResponseBox() {
   const [useSuggestionTitle] = TITLES[locale as keyof typeof TITLES] || [''];
 
   const getSliderLabel = (value: number) => {
-    if (value === 0) return 'Safe';
-    if (value === 1) return 'Fun';
-    return 'Wild';
+    if (value === 0) return 'Nice Guy';
+    if (value === 1) return 'Gentleman';
+    return 'Bad Boy';
   };
 
   const handleSliderChange = (value: number) => {
