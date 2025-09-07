@@ -1,5 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import './PredictiveMessage.scss';
+import { Room } from 'matrix-js-sdk';
+import { gradeMessage, Message } from '../../../ai-assistant/ai';
+import { useMatrixClient } from '../../../../hooks/useMatrixClient';
+import { isFromMe } from '../../../ai-assistant/utils';
 
 export const predictiveMessages = [
   { emoji: '😥', text: 'feeling uncomfortable (-thoughtfulness)' },
@@ -91,27 +95,52 @@ export function getReactionGrade(score: number): ReactionGrade {
   };
 }
 
-function getTextHash(text: string): number {
+export function getTextHash(text: string): number {
   return text.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
 }
 
 interface PredictiveMessageProps {
   editorText: string;
+  room: Room;
 }
-export function PredictiveMessage({ editorText }: PredictiveMessageProps) {
+export function PredictiveMessage({ editorText, room }: PredictiveMessageProps) {
+  const [score, setScore] = useState<number | null>(null);
+  const mx = useMatrixClient();
+
+  useEffect(() => {
+    const getScore = async () => {
+      if (editorText.trim().length > 0) {
+        const timeline = room.getLiveTimeline().getEvents();
+        const roomContext: Message[] = timeline
+          .filter((event) => event.getSender() && event.getContent().body)
+          .map((event) => ({
+            sender: event.getSender() as string,
+            text: event.getContent().body as string,
+            timestamp: new Date(event.getTs()).toISOString(),
+            is_from_me: isFromMe(event.getSender() as string, mx.getUserId() as string),
+          }));
+
+        const newScore = await gradeMessage({ message: editorText, context: roomContext });
+        setScore(newScore);
+      } else {
+        setScore(null);
+      }
+    };
+    getScore();
+  }, [editorText, room, mx]);
+
   const prediction = useMemo(() => {
-    if (editorText.trim().length === 0) return null;
-    const hash = getTextHash(editorText) % 100;
-    const analysis = getReactionGrade(hash);
-    return { ...analysis, hash };
-  }, [editorText]);
+    if (score === null) return null;
+    const analysis = getReactionGrade(score);
+    return { ...analysis, score };
+  }, [score]);
 
   if (!prediction) return null;
 
   return (
     <div className="predictive-message">
       <p>
-        {prediction.emoji} &nbsp; {prediction.grade} ({prediction.hash}%)
+        {prediction.emoji} &nbsp; {prediction.grade} ({prediction.score}%)
       </p>
     </div>
   );

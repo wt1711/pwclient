@@ -104,3 +104,35 @@ export async function generateResponseFromHistory({
     return 'Xin lỗi, đã có lỗi khi tạo phản hồi.';
   }
 }
+
+export async function gradeMessage({
+  message,
+  context,
+}: {
+  message: string;
+  context: Message[];
+}): Promise<number> {
+  try {
+    const response = await fetch('https://wmaide-server.vercel.app/api/grade-response', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        response: message,
+        context,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to grade response from server.');
+    }
+
+    const data = await response.json();
+    return data.grade;
+  } catch (error) {
+    console.error('Error grading message:', error);
+    return 0;
+  }
+}
