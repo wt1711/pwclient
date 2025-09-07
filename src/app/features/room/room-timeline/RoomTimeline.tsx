@@ -535,32 +535,32 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
             {(canPaginateBack || !rangeAtStart) &&
               (messageLayout === MessageLayout.Compact ? (
                 <>
-                  <MessageBase>
-                    <CompactPlaceholder key={getItems().length} />
+                  <MessageBase key="b-placeholder-1">
+                    <CompactPlaceholder />
                   </MessageBase>
-                  <MessageBase>
-                    <CompactPlaceholder key={getItems().length} />
+                  <MessageBase key="b-placeholder-2">
+                    <CompactPlaceholder />
                   </MessageBase>
-                  <MessageBase>
-                    <CompactPlaceholder key={getItems().length} />
+                  <MessageBase key="b-placeholder-3">
+                    <CompactPlaceholder />
                   </MessageBase>
-                  <MessageBase>
-                    <CompactPlaceholder key={getItems().length} />
+                  <MessageBase key="b-placeholder-4">
+                    <CompactPlaceholder />
                   </MessageBase>
-                  <MessageBase ref={observeBackAnchor}>
-                    <CompactPlaceholder key={getItems().length} />
+                  <MessageBase ref={observeBackAnchor} key="b-placeholder-5">
+                    <CompactPlaceholder />
                   </MessageBase>
                 </>
               ) : (
                 <>
-                  <MessageBase>
-                    <DefaultPlaceholder key={getItems().length} />
+                  <MessageBase key="b-placeholder-default-1">
+                    <DefaultPlaceholder />
                   </MessageBase>
-                  <MessageBase>
-                    <DefaultPlaceholder key={getItems().length} />
+                  <MessageBase key="b-placeholder-default-2">
+                    <DefaultPlaceholder />
                   </MessageBase>
-                  <MessageBase ref={observeBackAnchor}>
-                    <DefaultPlaceholder key={getItems().length} />
+                  <MessageBase ref={observeBackAnchor} key="b-placeholder-default-3">
+                    <DefaultPlaceholder />
                   </MessageBase>
                 </>
               ))}
@@ -570,32 +570,32 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
             {(!liveTimelineLinked || !rangeAtEnd) &&
               (messageLayout === MessageLayout.Compact ? (
                 <>
-                  <MessageBase ref={observeFrontAnchor}>
-                    <CompactPlaceholder key={getItems().length} />
+                  <MessageBase ref={observeFrontAnchor} key="f-placeholder-1">
+                    <CompactPlaceholder />
                   </MessageBase>
-                  <MessageBase>
-                    <CompactPlaceholder key={getItems().length} />
+                  <MessageBase key="f-placeholder-2">
+                    <CompactPlaceholder />
                   </MessageBase>
-                  <MessageBase>
-                    <CompactPlaceholder key={getItems().length} />
+                  <MessageBase key="f-placeholder-3">
+                    <CompactPlaceholder />
                   </MessageBase>
-                  <MessageBase>
-                    <CompactPlaceholder key={getItems().length} />
+                  <MessageBase key="f-placeholder-4">
+                    <CompactPlaceholder />
                   </MessageBase>
-                  <MessageBase>
-                    <CompactPlaceholder key={getItems().length} />
+                  <MessageBase key="f-placeholder-5">
+                    <CompactPlaceholder />
                   </MessageBase>
                 </>
               ) : (
                 <>
-                  <MessageBase ref={observeFrontAnchor}>
-                    <DefaultPlaceholder key={getItems().length} />
+                  <MessageBase ref={observeFrontAnchor} key="f-placeholder-default-1">
+                    <DefaultPlaceholder />
                   </MessageBase>
-                  <MessageBase>
-                    <DefaultPlaceholder key={getItems().length} />
+                  <MessageBase key="f-placeholder-default-2">
+                    <DefaultPlaceholder />
                   </MessageBase>
-                  <MessageBase>
-                    <DefaultPlaceholder key={getItems().length} />
+                  <MessageBase key="f-placeholder-default-3">
+                    <DefaultPlaceholder />
                   </MessageBase>
                 </>
               ))}
