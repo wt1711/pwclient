@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Box, Text, Spinner, Button } from 'folds';
+import cn from 'classnames';
 import { useAIAssistant } from '../AIAssistantContext';
 import { Slider } from './slider/Slider';
 import { useDebouncedCallback } from '../../../hooks/useDebouncedCallback';
+import './GeneratedResponseBox.scss';
 
 const toneProperties = [
   {
@@ -70,49 +72,43 @@ export function GeneratedResponseBox() {
   const renderContent = () => {
     if (isGeneratingResponse && !generatedResponse) {
       return (
-        <Box alignItems="Center" justifyContent="Center" style={{ padding: '24px' }}>
+        <Box
+          alignItems="Center"
+          justifyContent="Center"
+          className="generatedResponseBox__spinnerContainer"
+        >
           <Spinner size="200" />
         </Box>
       );
     }
     if (generatedResponse) {
       return (
-        <Box direction="Column" style={{ width: '100%', gap: '12px', color: 'white' }}>
-          <Box
-            direction="Column"
-            style={{
-              backgroundColor: '#333',
-              padding: '12px',
-              borderRadius: '12px',
-              minHeight: '60px',
-              justifyContent: 'center',
-            }}
-          >
+        <Box direction="Column" className="generatedResponseBox__content">
+          <Box direction="Column" className="generatedResponseBox__response">
             {isGeneratingResponse && <Spinner size="100" />}
             <Text size="B400">{generatedResponse}</Text>
           </Box>
 
-          <Box direction="Column" alignItems="Center" style={{ gap: '16px', padding: '16px 0' }}>
-            <Text size="T400" style={{ fontWeight: 'bold' }}>
+          <Box
+            direction="Column"
+            alignItems="Center"
+            className="generatedResponseBox__toneSelector"
+          >
+            <Text size="T400" className="generatedResponseBox__toneLabel">
               {selectedProperty.label.toUpperCase()}
             </Text>
-            <Box direction="Row" justifyContent="Center" style={{ gap: '12px', flexWrap: 'wrap' }}>
+            <Box
+              direction="Row"
+              justifyContent="Center"
+              className="generatedResponseBox__toneButtons"
+            >
               {toneProperties.map((prop) => (
                 <Button
                   key={prop.id}
                   onClick={() => setSelectedProperty(prop)}
-                  style={{
-                    width: '48px',
-                    height: '48px',
-                    borderRadius: '50%',
-                    backgroundColor: selectedProperty.id === prop.id ? '#007aff' : '#333',
-                    border: '2px solid',
-                    borderColor: selectedProperty.id === prop.id ? '#007aff' : 'transparent',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: 0,
-                  }}
+                  className={cn('generatedResponseBox__toneButton', {
+                    'generatedResponseBox__toneButton--selected': selectedProperty.id === prop.id,
+                  })}
                 >
                   <Text size="T500">{prop.emoji}</Text>
                 </Button>
@@ -120,7 +116,7 @@ export function GeneratedResponseBox() {
             </Box>
           </Box>
 
-          <Box direction="Column" style={{ width: '100%', gap: '8px', padding: '0 12px' }}>
+          <Box direction="Column" className="generatedResponseBox__sliderContainer">
             <Slider
               value={toneValues[selectedProperty.id]}
               onChange={handleSliderChange}
@@ -129,10 +125,10 @@ export function GeneratedResponseBox() {
               step={1}
             />
             <Box direction="Row" justifyContent="SpaceBetween">
-              <Text size="B400" style={{ color: '#aaa' }}>
+              <Text size="B400" className="generatedResponseBox__sliderLabel">
                 {selectedProperty.minLabel}
               </Text>
-              <Text size="B400" style={{ color: '#aaa' }}>
+              <Text size="B400" className="generatedResponseBox__sliderLabel">
                 {selectedProperty.maxLabel}
               </Text>
             </Box>
@@ -142,14 +138,9 @@ export function GeneratedResponseBox() {
             onClick={() => handleUseSuggestion(generatedResponse)}
             disabled={isGeneratingResponse}
             fill="Soft"
-            style={{
-              width: '100%',
-              padding: '12px 8px',
-              backgroundColor: '#333',
-              marginTop: '16px',
-            }}
+            className="generatedResponseBox__useSuggestionButton"
           >
-            <Text size="B400" style={{ color: 'white' }}>
+            <Text size="B400" className="generatedResponseBox__useSuggestionButtonText">
               {useSuggestionTitle}
             </Text>
           </Button>
@@ -160,15 +151,7 @@ export function GeneratedResponseBox() {
   };
 
   return (
-    <Box
-      direction="Column"
-      style={{
-        width: '100%',
-        padding: '12px',
-        borderRadius: '8px',
-        backgroundColor: '#1c1c1e', // Dark background
-      }}
-    >
+    <Box direction="Column" className="generatedResponseBox">
       {renderContent()}
     </Box>
   );
