@@ -97,7 +97,7 @@ export function GeneratedResponseBox() {
             className="generatedResponseBox__toneSelector"
           >
             <Text size="T400" className="generatedResponseBox__toneLabel">
-              {selectedProperty.label.toUpperCase()}
+              {`${selectedProperty.label.toUpperCase()} (${toneValues[selectedProperty.id]})`}
             </Text>
             <Box
               direction="Row"
