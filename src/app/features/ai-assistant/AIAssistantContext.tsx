@@ -28,7 +28,7 @@ type AIAssistantContextType = {
   // Actions
   setInputValue: (value: string) => void;
   handleSend: () => void;
-  generateNewResponseFromMessage: (tone?: string) => void;
+  generateNewResponseFromMessage: (spec?: object) => void;
   handleUseSuggestion: (response: string) => void;
   clearChatHistory: () => void;
   toggleAIAssistant: (isOpen?: boolean) => void;
@@ -87,7 +87,7 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
   );
 
   const generateNewResponseFromMessage = useCallback(
-    async (tone = 'Neutral') => {
+    async (spec = {}) => {
       setIsGeneratingResponse(true);
       toggleAIAssistant(true);
 
@@ -107,7 +107,7 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
         // Find the last message in the room conversation that is not from the current user
         const message = lastNonUserMsg ? lastNonUserMsg.text : 'Nói gì cũng được';
 
-        const response = await generateResponseFromMessage({ message, context: roomContext, tone });
+        const response = await generateResponseFromMessage({ message, context: roomContext, spec });
         setGeneratedResponse(response);
       } catch (error) {
         setGeneratedResponse('Xin lỗi, đã có lỗi');

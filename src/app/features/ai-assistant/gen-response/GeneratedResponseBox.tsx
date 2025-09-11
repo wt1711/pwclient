@@ -51,7 +51,7 @@ export function GeneratedResponseBox() {
     const toneString = Object.entries(newTones)
       .map(([key, value]) => `${key}: ${value}`)
       .join(', ');
-    generateNewResponseFromMessage(toneString);
+    generateNewResponseFromMessage({ tone: toneString });
   }, 500);
 
   const handleSliderChange = (value: number) => {

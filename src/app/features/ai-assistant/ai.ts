@@ -42,11 +42,11 @@ export async function getOpenAIConsultation({
 export async function generateResponseFromMessage({
   message,
   context,
-  tone,
+  spec,
 }: {
   message: string;
   context: Message[];
-  tone: string;
+  spec: object;
 }): Promise<string> {
   try {
     const response = await fetch('https://wmaide-server.vercel.app/api/generate-response', {
@@ -57,7 +57,7 @@ export async function generateResponseFromMessage({
       body: JSON.stringify({
         message,
         context,
-        tone,
+        spec,
       }),
     });
 
