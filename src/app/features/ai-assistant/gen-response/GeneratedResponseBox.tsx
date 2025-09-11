@@ -48,10 +48,12 @@ export function GeneratedResponseBox() {
   );
 
   const debouncedGenerateResponse = useDebouncedCallback((newTones: any) => {
-    const toneString = Object.entries(newTones)
-      .map(([key, value]) => `${key}: ${value}`)
-      .join(', ');
-    generateNewResponseFromMessage({ tone: toneString });
+    const payload = {
+      filter: 'Main Character',
+      persona: 3,
+      ...newTones,
+    };
+    generateNewResponseFromMessage(payload);
   }, 500);
 
   const handleSliderChange = (value: number) => {
