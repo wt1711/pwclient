@@ -9,13 +9,15 @@ import {
   AIAssistantProvider,
   useAIAssistant,
 } from '~/app/features/ai-assistant/AIAssistantContext';
-import { AIAssistantHeader } from '~/app/features/ai-assistant/dashboard/AIAssistantHeader';
-import { AIChatHeader } from '~/app/features/ai-assistant/dashboard/AIChatHeader';
-import { SelectedMessageBox } from '~/app/features/ai-assistant/dashboard/SelectedMessageBox';
-import { ChatHistory } from '~/app/features/ai-assistant/dashboard/ChatHistory';
-import { ChatInput } from '~/app/features/ai-assistant/dashboard/ChatInput';
-import { EmptyState } from '~/app/features/ai-assistant/dashboard/EmptyState';
-import { AIAssistantStats } from '~/app/features/ai-assistant/dashboard/AIAssistantStats';
+import {
+  AIAssistantHeader,
+  AIChatHeader,
+  SelectedMessageBox,
+  ChatHistory,
+  ChatInput,
+  EmptyState,
+  AIAssistantStats,
+} from '~/app/features/ai-assistant/dashboard';
 import { useRoomMessage } from '~/app/features/room/RoomMessageContext';
 
 function AIAssistantContent() {

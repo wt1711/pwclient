@@ -1,17 +1,19 @@
 import React from 'react';
 import { Box, Scroll } from 'folds';
 import * as css from './AIAssistant.css';
-import { ChatHistory } from '~/app/features/ai-assistant/dashboard/ChatHistory';
-import { ChatInput } from '~/app/features/ai-assistant/dashboard/ChatInput';
-import { AIAssistantHeader } from '~/app/features/ai-assistant/dashboard/AIAssistantHeader';
-import { SelectedMessageBox } from '~/app/features/ai-assistant/dashboard/SelectedMessageBox';
+import {
+  ChatHistory,
+  ChatInput,
+  AIAssistantHeader,
+  SelectedMessageBox,
+  AIAssistantStats,
+  AIChatHeader,
+  EmptyState,
+} from '~/app/features/ai-assistant/dashboard';
 import {
   AIAssistantProvider,
   useAIAssistant,
 } from '~/app/features/ai-assistant/AIAssistantContext';
-import { AIAssistantStats } from '~/app/features/ai-assistant/dashboard/AIAssistantStats';
-import { AIChatHeader } from '~/app/features/ai-assistant/dashboard/AIChatHeader';
-import { EmptyState } from '~/app/features/ai-assistant/dashboard/EmptyState';
 
 function AIAssistantContent() {
   const { chatHistory } = useAIAssistant();
