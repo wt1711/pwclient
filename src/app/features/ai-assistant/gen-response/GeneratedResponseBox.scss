@@ -1,0 +1,76 @@
+.generatedResponseBox {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  background-color: #1c1c1e;
+
+  &__spinnerContainer {
+    padding: 24px;
+  }
+
+  &__content {
+    width: 100%;
+    gap: 12px;
+    color: white;
+  }
+
+  &__response {
+    background-color: #333;
+    padding: 12px;
+    border-radius: 12px;
+    min-height: 60px;
+    justify-content: center;
+  }
+
+  &__toneSelector {
+    gap: 16px;
+    padding: 16px 0;
+  }
+
+  &__toneLabel {
+    font-weight: bold;
+  }
+
+  &__toneButtons {
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  &__toneButton {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: #333;
+    border: 2px solid transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+
+    &--selected {
+      background-color: #007aff;
+      border-color: #007aff;
+    }
+  }
+
+  &__sliderContainer {
+    width: 100%;
+    gap: 8px;
+    padding: 0 12px;
+  }
+
+  &__sliderLabel {
+    color: #aaa;
+  }
+
+  &__useSuggestionButton {
+    width: 100%;
+    padding: 12px 8px;
+    background-color: #333;
+    margin-top: 16px;
+  }
+
+  &__useSuggestionButtonText {
+    color: white;
+  }
+}

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Box, Icon, IconButton, Icons, PopOut } from 'folds';
 import { ReactEditor } from 'slate-react';
-import { GeneratedResponseBox } from '../../ai-assistant/common/GeneratedResponseBox';
+import { GeneratedResponseBox } from '../../ai-assistant/gen-response/GeneratedResponseBox';
 import { useAIAssistant } from '../../ai-assistant/AIAssistantContext';
 import { EmojiBoard, EmojiBoardTab } from '../../../components/emoji-board';
 import { UseStateProvider } from '../../../components/UseStateProvider';

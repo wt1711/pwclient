@@ -2,18 +2,18 @@ import React from 'react';
 import { Overlay, OverlayCenter, OverlayBackdrop, Portal, Box, Scroll } from 'folds';
 import FocusTrap from 'focus-trap-react';
 
-import { useSetSetting } from '../../../state/hooks/settings';
-import { settingsAtom } from '../../../state/settings';
-import { stopPropagation } from '../../../utils/keyboard';
-import { AIAssistantProvider, useAIAssistant } from '../AIAssistantContext';
-import { AIAssistantHeader } from '../common/AIAssistantHeader';
-import { AIChatHeader } from '../common/AIChatHeader';
-import { SelectedMessageBox } from '../common/SelectedMessageBox';
-import { ChatHistory } from '../common/ChatHistory';
-import { ChatInput } from '../common/ChatInput';
-import { EmptyState } from '../common/EmptyState';
-import { AIAssistantStats } from '../common/AIAssistantStats';
-import { useRoomMessage } from '../../room/RoomMessageContext';
+import { useSetSetting } from '../../../../state/hooks/settings';
+import { settingsAtom } from '../../../../state/settings';
+import { stopPropagation } from '../../../../utils/keyboard';
+import { AIAssistantProvider, useAIAssistant } from '../../AIAssistantContext';
+import { AIAssistantHeader } from '../AIAssistantHeader';
+import { AIChatHeader } from '../AIChatHeader';
+import { SelectedMessageBox } from '../SelectedMessageBox';
+import { ChatHistory } from '../ChatHistory';
+import { ChatInput } from '../ChatInput';
+import { EmptyState } from '../EmptyState';
+import { AIAssistantStats } from '../AIAssistantStats';
+import { useRoomMessage } from '../../../room/RoomMessageContext';
 
 function AIAssistantContent() {
   const { chatHistory } = useAIAssistant();

@@ -42,11 +42,11 @@ export async function getOpenAIConsultation({
 export async function generateResponseFromMessage({
   message,
   context,
-  tone,
+  spec,
 }: {
   message: string;
   context: Message[];
-  tone: string;
+  spec: object;
 }): Promise<string> {
   try {
     const response = await fetch('https://wmaide-server.vercel.app/api/generate-response', {
@@ -57,7 +57,7 @@ export async function generateResponseFromMessage({
       body: JSON.stringify({
         message,
         context,
-        tone,
+        spec,
       }),
     });
 
@@ -69,38 +69,6 @@ export async function generateResponseFromMessage({
     const data = await response.json();
     return data.response;
   } catch (error) {
-    return 'Xin lỗi, đã có lỗi khi tạo phản hồi.';
-  }
-}
-
-export async function generateResponseFromHistory({
-  context,
-}: {
-  context: Message[];
-}): Promise<string> {
-  try {
-    const response = await fetch(
-      'https://wmaide-server.vercel.app/api/generate-response-from-history',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          context,
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to generate response from server.');
-    }
-
-    const data = await response.json();
-    return data.response;
-  } catch (error) {
-    console.log('error response from history', error);
     return 'Xin lỗi, đã có lỗi khi tạo phản hồi.';
   }
 }
