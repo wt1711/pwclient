@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Text, Icon, Icons, IconButton } from 'folds';
-import { useRoomMessage } from '../../room/RoomMessageContext';
-import { useAIAssistant } from '../AIAssistantContext';
+import { useRoomMessage } from '~/app/features/room/RoomMessageContext';
+import { useAIAssistant } from '~/app/features/ai-assistant/AIAssistantContext';
 
 export function SelectedMessageBox() {
   const { selectedMessage, setSelectedMessage } = useRoomMessage();

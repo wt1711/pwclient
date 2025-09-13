@@ -3,17 +3,17 @@ import { Avatar, Box, Header, Icon, IconButton, Icons, Text } from 'folds';
 import { JoinRule } from 'matrix-js-sdk';
 import { useAtomValue } from 'jotai';
 
-import { useSetSetting } from '../../../state/hooks/settings';
-import { settingsAtom } from '../../../state/settings';
-import { useAIAssistant } from '../AIAssistantContext';
+import { useSetSetting } from '~/app/state/hooks/settings';
+import { settingsAtom } from '~/app/state/settings';
+import { useAIAssistant } from '~/app/features/ai-assistant/AIAssistantContext';
 
-import { RoomAvatar, RoomIcon } from '../../../components/room-avatar';
-import { useMatrixClient } from '../../../hooks/useMatrixClient';
-import { useMediaAuthentication } from '../../../hooks/useMediaAuthentication';
-import { useRoom } from '../../../hooks/useRoom';
-import { useRoomAvatar, useRoomName } from '../../../hooks/useRoomMeta';
-import { mDirectAtom } from '../../../state/mDirectList';
-import { mxcUrlToHttp } from '../../../utils/matrix';
+import { RoomAvatar, RoomIcon } from '~/app/components/room-avatar';
+import { useMatrixClient } from '~/app/hooks/useMatrixClient';
+import { useMediaAuthentication } from '~/app/hooks/useMediaAuthentication';
+import { useRoom } from '~/app/hooks/useRoom';
+import { useRoomAvatar, useRoomName } from '~/app/hooks/useRoomMeta';
+import { mDirectAtom } from '~/app/state/mDirectList';
+import { mxcUrlToHttp } from '~/app/utils/matrix';
 
 export function AIChatHeader() {
   const setAiDrawer = useSetSetting(settingsAtom, 'isAiDrawerOpen');

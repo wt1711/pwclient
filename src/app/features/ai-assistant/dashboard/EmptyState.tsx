@@ -1,7 +1,7 @@
 import React from 'react';
 import { Avatar, Box, Text } from 'folds';
-import wingmanPFP from '../wingman.png';
-import { useAIAssistant } from '../AIAssistantContext';
+import wingmanPFP from '~/app/features/ai-assistant/wingman.png';
+import { useAIAssistant } from '~/app/features/ai-assistant/AIAssistantContext';
 
 export function EmptyState() {
   const { locale } = useAIAssistant();
