@@ -3,7 +3,7 @@ import { Box, Text, Spinner, Button } from 'folds';
 import cn from 'classnames';
 import { useAIAssistant } from '../AIAssistantContext';
 import { Slider } from './slider/Slider';
-import { useDebouncedCallback } from '../../../hooks/useDebouncedCallback';
+import { useDebouncedCallback } from '~/app/hooks/useDebouncedCallback';
 import './GeneratedResponseBox.scss';
 
 const toneProperties = [
