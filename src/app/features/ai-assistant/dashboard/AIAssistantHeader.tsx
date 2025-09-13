@@ -1,7 +1,7 @@
 import React from 'react';
 import { Avatar, Box, Header, Text } from 'folds';
-import wingmanPFP from '../wingman.png';
-import { useAIAssistant } from '../AIAssistantContext';
+import wingmanPFP from '~/app/features/ai-assistant/wingman.png';
+import { useAIAssistant } from '~/app/features/ai-assistant/AIAssistantContext';
 
 export function AIAssistantHeader() {
   const { locale } = useAIAssistant();

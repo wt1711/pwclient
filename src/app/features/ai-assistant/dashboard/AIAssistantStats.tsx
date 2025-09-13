@@ -2,9 +2,9 @@ import React from 'react';
 // import { useEffect, useState } from 'react';
 import { Box, Text } from 'folds';
 import PropTypes from 'prop-types';
-// import { getDateTypes } from '../data';
-// import { useRoom } from '../../../hooks/useRoom';
-import { useAIAssistant } from '../AIAssistantContext';
+// import { getDateTypes } from '~/app/features/ai-assistant/data';
+// import { useRoom } from '~/app/hooks/useRoom';
+import { useAIAssistant } from '~/app/features/ai-assistant/AIAssistantContext';
 
 interface StatBoxProps {
   label: string;

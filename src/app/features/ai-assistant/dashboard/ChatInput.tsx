@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Icon, IconButton, Icons, Input } from 'folds';
-import { useAIAssistant } from '../AIAssistantContext';
+import { useAIAssistant } from '~/app/features/ai-assistant/AIAssistantContext';
 
 export function ChatInput() {
   const { inputValue, setInputValue, handleSend, isLoading, locale } = useAIAssistant();
