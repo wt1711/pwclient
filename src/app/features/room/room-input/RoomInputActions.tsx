@@ -8,6 +8,8 @@ import { UseStateProvider } from '~/app/components/UseStateProvider';
 import { mobileOrTablet } from '~/app/utils/user-agent';
 import { useRoomInputContext } from './RoomInputContext';
 
+import GenResponseIcon from '~/app/features/ai-assistant/assets/gen-response.svg';
+
 export function RoomInputActions() {
   const {
     editor,
@@ -91,7 +93,7 @@ export function RoomInputActions() {
         size="300"
         radii="300"
       >
-        <Icon src={Icons.Star} />
+        <img src={GenResponseIcon} alt="Gen Response" height={30} />
       </IconButton>
       <UseStateProvider initial={undefined}>
         {(
