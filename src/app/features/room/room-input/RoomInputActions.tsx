@@ -1,12 +1,14 @@
 import React, { useEffect, useRef } from 'react';
 import { Box, Icon, IconButton, Icons, PopOut } from 'folds';
 import { ReactEditor } from 'slate-react';
-import { GeneratedResponseBox } from '../../ai-assistant/gen-response/GeneratedResponseBox';
+import { GeneratedResponseBox } from '~/app/features/ai-assistant/gen-response/GeneratedResponseBox';
 import { useAIAssistant } from '../../ai-assistant/AIAssistantContext';
-import { EmojiBoard, EmojiBoardTab } from '../../../components/emoji-board';
-import { UseStateProvider } from '../../../components/UseStateProvider';
-import { mobileOrTablet } from '../../../utils/user-agent';
+import { EmojiBoard, EmojiBoardTab } from '~/app/components/emoji-board';
+import { UseStateProvider } from '~/app/components/UseStateProvider';
+import { mobileOrTablet } from '~/app/utils/user-agent';
 import { useRoomInputContext } from './RoomInputContext';
+
+import GenResponseIcon from '~/app/features/ai-assistant/assets/gen-response.svg';
 
 export function RoomInputActions() {
   const {
@@ -35,9 +37,18 @@ export function RoomInputActions() {
         toggleAIAssistant(false);
       }
     };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        toggleAIAssistant(false);
+      }
+    };
+
     document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
     };
   }, [isAIAssistantOpen, toggleAIAssistant]);
 
@@ -82,7 +93,7 @@ export function RoomInputActions() {
         size="300"
         radii="300"
       >
-        <Icon src={Icons.Star} />
+        <img src={GenResponseIcon} alt="Gen Response" height={30} />
       </IconButton>
       <UseStateProvider initial={undefined}>
         {(
