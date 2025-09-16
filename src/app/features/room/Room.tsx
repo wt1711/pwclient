@@ -17,7 +17,7 @@ import { AIAssistant } from '~/app/features/ai-assistant/dashboard/desktop-ui/AI
 import { AIAssistantModal } from '~/app/features/ai-assistant/dashboard/mobile-modal/AIAssistantModal';
 import { RoomEditorProvider } from './RoomEditorContext';
 import { RoomMessageProvider } from './RoomMessageContext';
-import wingmanPFP from '~/app/features/ai-assistant/wingman.png';
+import wingmanPFP from '~/app/features/ai-assistant/assets/wingman.png';
 
 export function Room() {
   const { eventId } = useParams();

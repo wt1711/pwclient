@@ -73,7 +73,7 @@ import {
 } from '../../../hooks/useRoomsNotificationPreferences';
 import { JumpToTime } from '../jump-to-time';
 import { useRoomNavigate } from '../../../hooks/useRoomNavigate';
-import wingmanPFP from '../../ai-assistant/wingman.png';
+import wingmanPFP from '../../ai-assistant/assets/wingman.png';
 
 type RoomMenuProps = {
   room: Room;

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Avatar, Box, Text } from 'folds';
-import wingmanPFP from '~/app/features/ai-assistant/wingman.png';
+import wingmanPFP from '~/app/features/ai-assistant/assets/wingman.png';
 import { useAIAssistant } from '~/app/features/ai-assistant/AIAssistantContext';
 
 export function EmptyState() {
