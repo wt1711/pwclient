@@ -5,6 +5,7 @@ import { useAIAssistant } from '../AIAssistantContext';
 import { Slider } from './slider/Slider';
 import { useDebouncedCallback } from '~/app/hooks/useDebouncedCallback';
 import './GeneratedResponseBox.scss';
+import { LoadingState } from './LoadingState';
 
 const toneProperties = [
   {
@@ -73,15 +74,7 @@ export function GeneratedResponseBox() {
 
   const renderContent = () => {
     if (isGeneratingResponse && !generatedResponse) {
-      return (
-        <Box
-          alignItems="Center"
-          justifyContent="Center"
-          className="generatedResponseBox__spinnerContainer"
-        >
-          <Spinner size="200" />
-        </Box>
-      );
+      return <LoadingState />;
     }
     if (generatedResponse) {
       return (

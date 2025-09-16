@@ -3,9 +3,11 @@
   padding: 12px;
   border-radius: 8px;
   background-color: #1c1c1e;
+  display: flex;
+  flex-direction: column;
 
   &__spinnerContainer {
-    padding: 24px;
+    height: 300px;
   }
 
   &__content {
