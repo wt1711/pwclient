@@ -1,44 +1,12 @@
 import React, { useState } from 'react';
 import { Box, Text, Spinner, Button } from 'folds';
 import cn from 'classnames';
-import chroma from 'chroma-js';
 import { useAIAssistant } from '../AIAssistantContext';
 import { Slider } from './slider/Slider';
 import { useDebouncedCallback } from '~/app/hooks/useDebouncedCallback';
 import './GeneratedResponseBox.scss';
 import { LoadingState } from './LoadingState';
-
-const colorScale = chroma
-  .scale(['#00C853', '#AEEA00', '#FFD600', '#FF6D00', '#D50000'])
-  .domain([0, 25, 50, 75, 100]);
-
-const toneProperties = [
-  {
-    id: 'spiciness',
-    emoji: '🌶️',
-    label: 'Spiciness',
-    minLabel: 'Mild teasing',
-    maxLabel: 'Heavy innuendo',
-  },
-  {
-    id: 'boldness',
-    emoji: '💪',
-    label: 'Boldness',
-    minLabel: 'Reserved',
-    maxLabel: 'Alpha assertive',
-  },
-  { id: 'thirst', emoji: '💦', label: 'Thirst', minLabel: 'Subtle interest', maxLabel: 'Down bad' },
-  { id: 'energy', emoji: '⚡️', label: 'Energy', minLabel: 'Chill', maxLabel: 'Hype/excited' },
-  { id: 'toxicity', emoji: '☠️', label: 'Toxicity', minLabel: 'Nice guy', maxLabel: 'Villain arc' },
-  { id: 'humour', emoji: '🤡', label: 'Humour', minLabel: 'Dry wit', maxLabel: 'Full clown' },
-  {
-    id: 'emojiUse',
-    emoji: '😂',
-    label: 'Emoji Use',
-    minLabel: 'Clean text',
-    maxLabel: 'Gen Z emoji spam',
-  },
-];
+import { toneProperties, colorScale } from './constants';
 
 export function GeneratedResponseBox() {
   const {
