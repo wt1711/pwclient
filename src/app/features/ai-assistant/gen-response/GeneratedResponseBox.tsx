@@ -6,34 +6,8 @@ import { Slider } from './slider/Slider';
 import { useDebouncedCallback } from '~/app/hooks/useDebouncedCallback';
 import './GeneratedResponseBox.scss';
 import { LoadingState } from './LoadingState';
-
-const toneProperties = [
-  {
-    id: 'spiciness',
-    emoji: '🌶️',
-    label: 'Spiciness',
-    minLabel: 'Mild teasing',
-    maxLabel: 'Heavy innuendo',
-  },
-  {
-    id: 'boldness',
-    emoji: '💪',
-    label: 'Boldness',
-    minLabel: 'Reserved',
-    maxLabel: 'Alpha assertive',
-  },
-  { id: 'thirst', emoji: '💦', label: 'Thirst', minLabel: 'Subtle interest', maxLabel: 'Down bad' },
-  { id: 'energy', emoji: '⚡️', label: 'Energy', minLabel: 'Chill', maxLabel: 'Hype/excited' },
-  { id: 'toxicity', emoji: '☠️', label: 'Toxicity', minLabel: 'Nice guy', maxLabel: 'Villain arc' },
-  { id: 'humour', emoji: '🤡', label: 'Humour', minLabel: 'Dry wit', maxLabel: 'Full clown' },
-  {
-    id: 'emojiUse',
-    emoji: '😂',
-    label: 'Emoji Use',
-    minLabel: 'Clean text',
-    maxLabel: 'Gen Z emoji spam',
-  },
-];
+import { toneProperties, colorScale, personas } from './constants';
+import { PersonaSelector } from './PersonaSelector';
 
 export function GeneratedResponseBox() {
   const {
@@ -44,14 +18,15 @@ export function GeneratedResponseBox() {
     generateNewResponseFromMessage,
   } = useAIAssistant();
   const [selectedProperty, setSelectedProperty] = useState(toneProperties[0]);
+  const [selectedPersona, setSelectedPersona] = useState(personas[3]);
   const [toneValues, setToneValues] = useState<Record<string, number>>(
     toneProperties.reduce((acc, prop) => ({ ...acc, [prop.id]: 50 }), {})
   );
 
   const debouncedGenerateResponse = useDebouncedCallback((newTones: any) => {
     const payload = {
-      filter: 'Main Character',
-      persona: 3,
+      filter: selectedPersona.filter,
+      persona: selectedPersona.persona,
       ...newTones,
     };
     generateNewResponseFromMessage(payload);
@@ -64,6 +39,11 @@ export function GeneratedResponseBox() {
     };
     setToneValues(newToneValues);
     debouncedGenerateResponse(newToneValues);
+  };
+
+  const handlePersonaChange = (persona: typeof personas[0]) => {
+    setSelectedPersona(persona);
+    debouncedGenerateResponse(toneValues);
   };
 
   const TITLES = {
@@ -87,14 +67,16 @@ export function GeneratedResponseBox() {
             )}
           </Box>
 
+          <PersonaSelector
+            selectedPersona={selectedPersona}
+            onSelectPersona={handlePersonaChange}
+          />
+
           <Box
             direction="Column"
             alignItems="Center"
             className="generatedResponseBox__toneSelector"
           >
-            <Text size="T400" className="generatedResponseBox__toneLabel">
-              {`${selectedProperty.label.toUpperCase()} (${toneValues[selectedProperty.id]})`}
-            </Text>
             <Box
               direction="Row"
               justifyContent="Center"
@@ -115,6 +97,14 @@ export function GeneratedResponseBox() {
           </Box>
 
           <Box direction="Column" className="generatedResponseBox__sliderContainer">
+            <Text
+              size="T400"
+              align="Center"
+              className="generatedResponseBox__toneLabel"
+              style={{ color: colorScale(toneValues[selectedProperty.id]).hex() }}
+            >
+              {`${selectedProperty.label.toUpperCase()} (${toneValues[selectedProperty.id]})`}
+            </Text>
             <Slider
               value={toneValues[selectedProperty.id]}
               onChange={handleSliderChange}
