@@ -92,9 +92,6 @@ export function GeneratedResponseBox() {
             alignItems="Center"
             className="generatedResponseBox__toneSelector"
           >
-            <Text size="T400" className="generatedResponseBox__toneLabel">
-              {`${selectedProperty.label.toUpperCase()} (${toneValues[selectedProperty.id]})`}
-            </Text>
             <Box
               direction="Row"
               justifyContent="Center"
@@ -115,6 +112,9 @@ export function GeneratedResponseBox() {
           </Box>
 
           <Box direction="Column" className="generatedResponseBox__sliderContainer">
+            <Text size="T400" align="Center" className="generatedResponseBox__toneLabel">
+              {`${selectedProperty.label.toUpperCase()} (${toneValues[selectedProperty.id]})`}
+            </Text>
             <Slider
               value={toneValues[selectedProperty.id]}
               onChange={handleSliderChange}
