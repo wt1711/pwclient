@@ -1,6 +1,7 @@
 import React, { useMemo, useEffect, useState } from 'react';
-import './PredictiveMessage.scss';
+import { Spinner } from 'folds';
 import { Room } from 'matrix-js-sdk';
+import './PredictiveMessage.scss';
 import { gradeMessage, Message } from '../../../ai-assistant/ai';
 import { useMatrixClient } from '../../../../hooks/useMatrixClient';
 import { isFromMe } from '../../../ai-assistant/utils';
@@ -135,7 +136,12 @@ export function PredictiveMessage({ editorText, room }: PredictiveMessageProps) 
     return { ...analysis, score };
   }, [score]);
 
-  if (!prediction) return null;
+  if (!prediction)
+    return (
+      <div className="predictive-message">
+        <Spinner size="200" />
+      </div>
+    );
 
   return (
     <div className="predictive-message">

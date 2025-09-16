@@ -13,10 +13,12 @@ import { AutocompleteHandler } from './AutocompleteHandler';
 import { RoomInputProvider, useRoomInputContext } from './RoomInputContext';
 import { PredictiveMessage } from './predictive-message/PredictiveMessage';
 import { useDebounceValue } from '../../../hooks/useDebounceValue';
+import { useAIAssistant } from '../../ai-assistant/AIAssistantContext';
 
 const RoomInputInternal = forwardRef<HTMLDivElement>((props, ref) => {
   const { editor, handleKeyDown, handleKeyUp, handlePaste, pickFile, toolbar, room } =
     useRoomInputContext();
+  const { isAIAssistantOpen } = useAIAssistant();
 
   const [editorText, setEditorText] = useState('');
   const debouncedEditorText = useDebounceValue(editorText, 500);
@@ -44,7 +46,9 @@ const RoomInputInternal = forwardRef<HTMLDivElement>((props, ref) => {
         onChange={handleEditorChange}
         top={
           <>
-            {hasText && <PredictiveMessage room={room} editorText={debouncedEditorText} />}
+            {(hasText || isAIAssistantOpen) && (
+              <PredictiveMessage room={room} editorText={debouncedEditorText} />
+            )}
             <ReplyPreview />
           </>
         }
