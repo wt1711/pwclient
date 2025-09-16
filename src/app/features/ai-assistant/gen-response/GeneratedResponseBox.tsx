@@ -6,7 +6,8 @@ import { Slider } from './slider/Slider';
 import { useDebouncedCallback } from '~/app/hooks/useDebouncedCallback';
 import './GeneratedResponseBox.scss';
 import { LoadingState } from './LoadingState';
-import { toneProperties, colorScale } from './constants';
+import { toneProperties, colorScale, personas } from './constants';
+import { PersonaSelector } from './PersonaSelector';
 
 export function GeneratedResponseBox() {
   const {
@@ -17,14 +18,15 @@ export function GeneratedResponseBox() {
     generateNewResponseFromMessage,
   } = useAIAssistant();
   const [selectedProperty, setSelectedProperty] = useState(toneProperties[0]);
+  const [selectedPersona, setSelectedPersona] = useState(personas[3]);
   const [toneValues, setToneValues] = useState<Record<string, number>>(
     toneProperties.reduce((acc, prop) => ({ ...acc, [prop.id]: 50 }), {})
   );
 
   const debouncedGenerateResponse = useDebouncedCallback((newTones: any) => {
     const payload = {
-      filter: 'Main Character',
-      persona: 3,
+      filter: selectedPersona.filter,
+      persona: selectedPersona.persona,
       ...newTones,
     };
     generateNewResponseFromMessage(payload);
@@ -37,6 +39,11 @@ export function GeneratedResponseBox() {
     };
     setToneValues(newToneValues);
     debouncedGenerateResponse(newToneValues);
+  };
+
+  const handlePersonaChange = (persona: typeof personas[0]) => {
+    setSelectedPersona(persona);
+    debouncedGenerateResponse(toneValues);
   };
 
   const TITLES = {
@@ -59,6 +66,11 @@ export function GeneratedResponseBox() {
               <Text size="B400">{generatedResponse}</Text>
             )}
           </Box>
+
+          <PersonaSelector
+            selectedPersona={selectedPersona}
+            onSelectPersona={handlePersonaChange}
+          />
 
           <Box
             direction="Column"

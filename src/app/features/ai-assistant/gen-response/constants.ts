@@ -31,3 +31,30 @@ export const toneProperties = [
     maxLabel: 'Gen Z emoji spam',
   },
 ];
+
+export const personas = [
+  {
+    id: 'chad',
+    label: 'Chad',
+    filter: 'Chad',
+    persona: 1,
+  },
+  {
+    id: 'rizz',
+    label: 'Rizz',
+    filter: 'Rizz',
+    persona: 2,
+  },
+  {
+    id: 'simp',
+    label: 'Simp',
+    filter: 'Simp',
+    persona: 3,
+  },
+  {
+    id: 'main-character',
+    label: 'Main Character',
+    filter: 'Main Character',
+    persona: 4,
+  },
+];

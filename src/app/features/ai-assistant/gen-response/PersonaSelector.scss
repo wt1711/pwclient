@@ -1,0 +1,28 @@
+.persona-selector {
+  display: flex;
+  background-color: #3a3a3c;
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 16px;
+
+  &__button {
+    flex: 1;
+    background-color: transparent;
+    border: none;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    text-align: center;
+    font-size: 12px;
+
+    &:not(:last-child) {
+      margin-right: 4px;
+    }
+
+    &--selected {
+      background-color: #5c5c5e;
+    }
+  }
+}
