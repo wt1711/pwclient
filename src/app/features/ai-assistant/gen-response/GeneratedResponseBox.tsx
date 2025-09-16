@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
 import { Box, Text, Spinner, Button } from 'folds';
 import cn from 'classnames';
+import chroma from 'chroma-js';
 import { useAIAssistant } from '../AIAssistantContext';
 import { Slider } from './slider/Slider';
 import { useDebouncedCallback } from '~/app/hooks/useDebouncedCallback';
 import './GeneratedResponseBox.scss';
 import { LoadingState } from './LoadingState';
+
+const colorScale = chroma
+  .scale(['#00C853', '#AEEA00', '#FFD600', '#FF6D00', '#D50000'])
+  .domain([0, 25, 50, 75, 100]);
 
 const toneProperties = [
   {
@@ -112,7 +117,12 @@ export function GeneratedResponseBox() {
           </Box>
 
           <Box direction="Column" className="generatedResponseBox__sliderContainer">
-            <Text size="T400" align="Center" className="generatedResponseBox__toneLabel">
+            <Text
+              size="T400"
+              align="Center"
+              className="generatedResponseBox__toneLabel"
+              style={{ color: colorScale(toneValues[selectedProperty.id]).hex() }}
+            >
               {`${selectedProperty.label.toUpperCase()} (${toneValues[selectedProperty.id]})`}
             </Text>
             <Slider
