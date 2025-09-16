@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Text, Spinner, Button } from 'folds';
+import { Box, Text, Button } from 'folds';
 import cn from 'classnames';
 import { useAIAssistant } from '../AIAssistantContext';
 import { Slider } from './slider/Slider';
@@ -48,13 +48,13 @@ export function GeneratedResponseBox() {
     if (generatedResponse) {
       return (
         <Box direction="Column" className="generatedResponseBox__content">
-          <Box direction="Column" alignItems="Center" className="generatedResponseBox__response">
+          {/* <Box direction="Column" alignItems="Center" className="generatedResponseBox__response">
             {isGeneratingResponse ? (
               <Spinner size="300" />
             ) : (
               <Text size="B400">{generatedResponse}</Text>
             )}
-          </Box>
+          </Box> */}
 
           <PersonaSelector
             selectedPersona={selectedPersona}
