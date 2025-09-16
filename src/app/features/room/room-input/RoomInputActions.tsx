@@ -57,32 +57,21 @@ export function RoomInputActions() {
     <>
       {isAIAssistantOpen && (
         <Box
+          ref={popoutContentRef}
+          direction="Column"
           style={{
-            position: 'fixed',
-            top: 0,
+            position: 'absolute',
+            bottom: 'calc(100% + 8px)',
             left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            width: '320px',
+            backgroundColor: 'var(--bg-surface)',
+            padding: '16px',
+            borderRadius: '16px',
+            boxShadow: '0 4px 24px rgba(0,0,0,0.2)',
             zIndex: 1000,
           }}
         >
-          <Box
-            ref={popoutContentRef}
-            direction="Column"
-            style={{
-              width: '320px',
-              backgroundColor: 'var(--bg-surface)',
-              padding: '16px',
-              borderRadius: '16px',
-              boxShadow: '0 4px 24px rgba(0,0,0,0.2)',
-            }}
-          >
-            <GeneratedResponseBox />
-          </Box>
+          <GeneratedResponseBox />
         </Box>
       )}
       <IconButton

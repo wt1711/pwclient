@@ -31,7 +31,7 @@ const RoomInputInternal = forwardRef<HTMLDivElement>((props, ref) => {
   const hasText = debouncedEditorText.trim().length > 0;
 
   return (
-    <div ref={ref}>
+    <div ref={ref} style={{ position: 'relative' }}>
       <UploadArea />
       <AutocompleteHandler />
       <CustomEditor
