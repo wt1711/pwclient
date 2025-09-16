@@ -80,10 +80,9 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
         if (isMobile) {
           setIsAiDrawer(false);
         }
-        toggleAIAssistant(false);
       }
     },
-    [insertText, deleteText, isMobile, setIsAiDrawer, toggleAIAssistant]
+    [insertText, deleteText, isMobile, setIsAiDrawer]
   );
 
   const generateNewResponseFromMessage = useCallback(
@@ -109,13 +108,14 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
 
         const response = await generateResponseFromMessage({ message, context: roomContext, spec });
         setGeneratedResponse(response);
+        handleUseSuggestion(response);
       } catch (error) {
         setGeneratedResponse('Xin lỗi, đã có lỗi');
       } finally {
         setIsGeneratingResponse(false);
       }
     },
-    [room, mx, toggleAIAssistant]
+    [room, mx, toggleAIAssistant, handleUseSuggestion]
   );
 
   const handleSend = useCallback(async () => {
