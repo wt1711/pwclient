@@ -89,6 +89,7 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
     async (spec = {}) => {
       setIsGeneratingResponse(true);
       toggleAIAssistant(true);
+      deleteText();
 
       try {
         // Get the actual room conversation from timeline
@@ -115,7 +116,7 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
         setIsGeneratingResponse(false);
       }
     },
-    [room, mx, toggleAIAssistant, handleUseSuggestion]
+    [room, mx, toggleAIAssistant, handleUseSuggestion, deleteText]
   );
 
   const handleSend = useCallback(async () => {

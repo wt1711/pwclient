@@ -48,14 +48,6 @@ export function GeneratedResponseBox() {
     if (generatedResponse) {
       return (
         <Box direction="Column" className="generatedResponseBox__content">
-          {/* <Box direction="Column" alignItems="Center" className="generatedResponseBox__response">
-            {isGeneratingResponse ? (
-              <Spinner size="300" />
-            ) : (
-              <Text size="B400">{generatedResponse}</Text>
-            )}
-          </Box> */}
-
           <PersonaSelector
             selectedPersona={selectedPersona}
             onSelectPersona={handlePersonaChange}

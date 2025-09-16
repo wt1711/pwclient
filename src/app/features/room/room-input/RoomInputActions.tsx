@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Box, Icon, IconButton, Icons, PopOut } from 'folds';
+import { Box, Icon, IconButton, Icons, PopOut, Spinner } from 'folds';
 import { ReactEditor } from 'slate-react';
 import { GeneratedResponseBox } from '~/app/features/ai-assistant/gen-response/GeneratedResponseBox';
 import { useAIAssistant } from '../../ai-assistant/AIAssistantContext';
@@ -20,7 +20,12 @@ export function RoomInputActions() {
     handleStickerSelect,
     hideStickerBtn,
   } = useRoomInputContext();
-  const { isAIAssistantOpen, toggleAIAssistant, generateNewResponseFromMessage } = useAIAssistant();
+  const {
+    isAIAssistantOpen,
+    toggleAIAssistant,
+    generateNewResponseFromMessage,
+    isGeneratingResponse,
+  } = useAIAssistant();
   const aiAssistantBtnRef = useRef<HTMLButtonElement>(null);
   const popoutContentRef = useRef<HTMLDivElement>(null);
   const emojiBtnRef = useRef<HTMLButtonElement>(null);
@@ -83,11 +88,15 @@ export function RoomInputActions() {
         size="300"
         radii="300"
       >
-        <img
-          src={isAIAssistantOpen ? GenResponseActiveIcon : GenResponseIcon}
-          alt="Gen Response"
-          height={30}
-        />
+        {isGeneratingResponse ? (
+          <Spinner size="300" />
+        ) : (
+          <img
+            src={isAIAssistantOpen ? GenResponseActiveIcon : GenResponseIcon}
+            alt="Gen Response"
+            height={30}
+          />
+        )}
       </IconButton>
       <UseStateProvider initial={undefined}>
         {(
