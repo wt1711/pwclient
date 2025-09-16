@@ -9,6 +9,7 @@ import { mobileOrTablet } from '~/app/utils/user-agent';
 import { useRoomInputContext } from './RoomInputContext';
 
 import GenResponseIcon from '~/app/features/ai-assistant/assets/gen-response.svg';
+import GenResponseActiveIcon from '~/app/features/ai-assistant/assets/gen-response-active.svg';
 
 export function RoomInputActions() {
   const {
@@ -93,7 +94,11 @@ export function RoomInputActions() {
         size="300"
         radii="300"
       >
-        <img src={GenResponseIcon} alt="Gen Response" height={30} />
+        <img
+          src={isAIAssistantOpen ? GenResponseActiveIcon : GenResponseIcon}
+          alt="Gen Response"
+          height={30}
+        />
       </IconButton>
       <UseStateProvider initial={undefined}>
         {(

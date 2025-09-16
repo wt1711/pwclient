@@ -10,13 +10,8 @@ import { toneProperties, colorScale, personas } from './constants';
 import { PersonaSelector } from './PersonaSelector';
 
 export function GeneratedResponseBox() {
-  const {
-    isGeneratingResponse,
-    locale,
-    generatedResponse,
-    handleUseSuggestion,
-    generateNewResponseFromMessage,
-  } = useAIAssistant();
+  const { isGeneratingResponse, generatedResponse, generateNewResponseFromMessage } =
+    useAIAssistant();
   const [selectedProperty, setSelectedProperty] = useState(toneProperties[0]);
   const [selectedPersona, setSelectedPersona] = useState(personas[3]);
   const [toneValues, setToneValues] = useState<Record<string, number>>(
@@ -45,12 +40,6 @@ export function GeneratedResponseBox() {
     setSelectedPersona(persona);
     debouncedGenerateResponse(toneValues);
   };
-
-  const TITLES = {
-    EN: ['Use Suggestion'],
-    VI: ['Dùng gợi ý'],
-  };
-  const [useSuggestionTitle] = TITLES[locale as keyof typeof TITLES] || [''];
 
   const renderContent = () => {
     if (isGeneratingResponse && !generatedResponse) {
@@ -121,17 +110,6 @@ export function GeneratedResponseBox() {
               </Text>
             </Box>
           </Box>
-
-          <Button
-            onClick={() => handleUseSuggestion(generatedResponse)}
-            disabled={isGeneratingResponse}
-            fill="Soft"
-            className="generatedResponseBox__useSuggestionButton"
-          >
-            <Text size="B400" className="generatedResponseBox__useSuggestionButtonText">
-              {useSuggestionTitle}
-            </Text>
-          </Button>
         </Box>
       );
     }
