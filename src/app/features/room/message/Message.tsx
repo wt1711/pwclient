@@ -79,7 +79,7 @@ import { useRoomPinnedEvents } from '../../../hooks/useRoomPinnedEvents';
 import { StateEvent } from '../../../../types/matrix/room';
 import { getTagIconSrc, PowerLevelTag } from '../../../hooks/usePowerLevelTags';
 import { PowerIcon } from '../../../components/power';
-import wingmanPFP from '../../ai-assistant/wingman.png';
+import wingmanPFP from '../../ai-assistant/assets/wingman.png';
 // import colorMXID from '../../../../util/colorMXID';
 
 export type ReactionHandler = (keyOrMxc: string, shortcode: string) => void;

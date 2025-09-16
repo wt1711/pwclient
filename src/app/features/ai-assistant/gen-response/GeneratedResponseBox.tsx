@@ -5,6 +5,7 @@ import { useAIAssistant } from '../AIAssistantContext';
 import { Slider } from './slider/Slider';
 import { useDebouncedCallback } from '~/app/hooks/useDebouncedCallback';
 import './GeneratedResponseBox.scss';
+import { LoadingState } from './LoadingState';
 
 const toneProperties = [
   {
@@ -22,7 +23,7 @@ const toneProperties = [
     maxLabel: 'Alpha assertive',
   },
   { id: 'thirst', emoji: '💦', label: 'Thirst', minLabel: 'Subtle interest', maxLabel: 'Down bad' },
-  { id: 'energy', emoji: '⚡', label: 'Energy', minLabel: 'Chill', maxLabel: 'Hype/excited' },
+  { id: 'energy', emoji: '⚡️', label: 'Energy', minLabel: 'Chill', maxLabel: 'Hype/excited' },
   { id: 'toxicity', emoji: '☠️', label: 'Toxicity', minLabel: 'Nice guy', maxLabel: 'Villain arc' },
   { id: 'humour', emoji: '🤡', label: 'Humour', minLabel: 'Dry wit', maxLabel: 'Full clown' },
   {
@@ -73,22 +74,17 @@ export function GeneratedResponseBox() {
 
   const renderContent = () => {
     if (isGeneratingResponse && !generatedResponse) {
-      return (
-        <Box
-          alignItems="Center"
-          justifyContent="Center"
-          className="generatedResponseBox__spinnerContainer"
-        >
-          <Spinner size="200" />
-        </Box>
-      );
+      return <LoadingState />;
     }
     if (generatedResponse) {
       return (
         <Box direction="Column" className="generatedResponseBox__content">
-          <Box direction="Column" className="generatedResponseBox__response">
-            {isGeneratingResponse && <Spinner size="100" />}
-            <Text size="B400">{generatedResponse}</Text>
+          <Box direction="Column" alignItems="Center" className="generatedResponseBox__response">
+            {isGeneratingResponse ? (
+              <Spinner size="300" />
+            ) : (
+              <Text size="B400">{generatedResponse}</Text>
+            )}
           </Box>
 
           <Box
