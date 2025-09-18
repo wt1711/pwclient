@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
-import { Box, Text, Button } from 'folds';
-import cn from 'classnames';
+import { Box } from 'folds';
 import { useAIAssistant } from '../AIAssistantContext';
-import { Slider } from './slider/Slider';
 import { useDebouncedCallback } from '~/app/hooks/useDebouncedCallback';
 import './GeneratedResponseBox.scss';
 import { LoadingState } from './LoadingState';
-import { toneProperties, colorScale, personas } from './constants';
+import { toneProperties, personas } from './constants';
 import { PersonaSelector } from './PersonaSelector';
+import { ResponseFilter } from './ResponseFilter';
 
 export function GeneratedResponseBox() {
   const { isGeneratingResponse, generatedResponse, generateNewResponseFromMessage } =
@@ -48,60 +47,16 @@ export function GeneratedResponseBox() {
     if (generatedResponse) {
       return (
         <Box direction="Column" className="generatedResponseBox__content">
+          <ResponseFilter
+            selectedProperty={selectedProperty}
+            setSelectedProperty={setSelectedProperty}
+            toneValues={toneValues}
+            onSliderChange={handleSliderChange}
+          />
           <PersonaSelector
             selectedPersona={selectedPersona}
             onSelectPersona={handlePersonaChange}
           />
-
-          <Box
-            direction="Column"
-            alignItems="Center"
-            className="generatedResponseBox__toneSelector"
-          >
-            <Box
-              direction="Row"
-              justifyContent="Center"
-              className="generatedResponseBox__toneButtons"
-            >
-              {toneProperties.map((prop) => (
-                <Button
-                  key={prop.id}
-                  onClick={() => setSelectedProperty(prop)}
-                  className={cn('generatedResponseBox__toneButton', {
-                    'generatedResponseBox__toneButton--selected': selectedProperty.id === prop.id,
-                  })}
-                >
-                  <Text size="T500">{prop.emoji}</Text>
-                </Button>
-              ))}
-            </Box>
-          </Box>
-
-          <Box direction="Column" className="generatedResponseBox__sliderContainer">
-            <Text
-              size="T400"
-              align="Center"
-              className="generatedResponseBox__toneLabel"
-              style={{ color: colorScale(toneValues[selectedProperty.id]).hex() }}
-            >
-              {`${selectedProperty.label.toUpperCase()} (${toneValues[selectedProperty.id]})`}
-            </Text>
-            <Slider
-              value={toneValues[selectedProperty.id]}
-              onChange={handleSliderChange}
-              min={0}
-              max={100}
-              step={1}
-            />
-            <Box direction="Row" justifyContent="SpaceBetween">
-              <Text size="B400" className="generatedResponseBox__sliderLabel">
-                {selectedProperty.minLabel}
-              </Text>
-              <Text size="B400" className="generatedResponseBox__sliderLabel">
-                {selectedProperty.maxLabel}
-              </Text>
-            </Box>
-          </Box>
         </Box>
       );
     }
