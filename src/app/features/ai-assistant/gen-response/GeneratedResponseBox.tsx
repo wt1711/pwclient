@@ -3,7 +3,7 @@ import { Box } from 'folds';
 import { useAIAssistant } from '../AIAssistantContext';
 import './GeneratedResponseBox.scss';
 import { LoadingState } from './LoadingState';
-import { PersonaSelector } from './PersonaSelector';
+import { PersonaSelector } from './personal-selector/PersonaSelector';
 import { ResponseFilter } from './ResponseFilter';
 
 export function GeneratedResponseBox() {
