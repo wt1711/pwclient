@@ -7,6 +7,8 @@ import { useRoomMessage } from '~/app/features/room/RoomMessageContext';
 import { useSetSetting } from '~/app/state/hooks/settings';
 import { settingsAtom } from '~/app/state/settings';
 import { isFromMe } from '~/app/features/ai-assistant/utils';
+import { toneProperties, personas } from './gen-response/constants';
+import { useDebouncedCallback } from '~/app/hooks/useDebouncedCallback';
 
 type ChatWithAIAssistantMessage = {
   sender: 'user' | 'ai';
@@ -24,6 +26,9 @@ type AIAssistantContextType = {
   isMobile: boolean;
   isAIAssistantOpen: boolean;
   locale: string;
+  selectedProperty: any;
+  selectedPersona: any;
+  toneValues: Record<string, number>;
 
   // Actions
   setInputValue: (value: string) => void;
@@ -32,6 +37,9 @@ type AIAssistantContextType = {
   handleUseSuggestion: (response: string) => void;
   clearChatHistory: () => void;
   toggleAIAssistant: (isOpen?: boolean) => void;
+  setSelectedProperty: (property: any) => void;
+  handleSliderChange: (value: number) => void;
+  handlePersonaChange: (persona: any) => void;
 };
 
 const AIAssistantContext = createContext<AIAssistantContextType | undefined>(undefined);
@@ -49,11 +57,39 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
   const [generatedResponse, setGeneratedResponse] = useState('');
   const [isGeneratingResponse, setIsGeneratingResponse] = useState(false);
   const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
+  const [selectedProperty, setSelectedProperty] = useState(toneProperties[0]);
+  const [selectedPersona, setSelectedPersona] = useState(personas[3]);
+  const [toneValues, setToneValues] = useState<Record<string, number>>(
+    toneProperties.reduce((acc, prop) => ({ ...acc, [prop.id]: 50 }), {})
+  );
   const room = useRoom();
   const mx = useMatrixClient();
   const { insertText, deleteText } = useRoomEditor();
   const setIsAiDrawer = useSetSetting(settingsAtom, 'isAiDrawerOpen');
   const { selectedMessage } = useRoomMessage();
+
+  const debouncedGenerateResponse = useDebouncedCallback((newTones: any) => {
+    const payload = {
+      filter: selectedPersona.filter,
+      persona: selectedPersona.persona,
+      ...newTones,
+    };
+    generateNewResponseFromMessage(payload);
+  }, 500);
+
+  const handleSliderChange = (value: number) => {
+    const newToneValues = {
+      ...toneValues,
+      [selectedProperty.id]: value,
+    };
+    setToneValues(newToneValues);
+    debouncedGenerateResponse(newToneValues);
+  };
+
+  const handlePersonaChange = (persona: typeof personas[0]) => {
+    setSelectedPersona(persona);
+    debouncedGenerateResponse(toneValues);
+  };
 
   const toggleAIAssistant = useCallback((isOpen?: boolean) => {
     setIsAIAssistantOpen((prev) => {
@@ -193,6 +229,9 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
       isMobile,
       isAIAssistantOpen,
       locale,
+      selectedProperty,
+      selectedPersona,
+      toneValues,
 
       // Actions
       setInputValue,
@@ -201,6 +240,9 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
       handleUseSuggestion,
       clearChatHistory,
       toggleAIAssistant,
+      setSelectedProperty,
+      handleSliderChange,
+      handlePersonaChange,
     }),
     [
       inputValue,
@@ -215,6 +257,11 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
       handleUseSuggestion,
       toggleAIAssistant,
       locale,
+      selectedProperty,
+      selectedPersona,
+      toneValues,
+      handleSliderChange,
+      handlePersonaChange,
     ]
   );
 
