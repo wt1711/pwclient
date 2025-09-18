@@ -68,11 +68,6 @@ export function RoomInputActions() {
             position: 'absolute',
             bottom: 'calc(100% + 8px)',
             left: 0,
-            width: '320px',
-            backgroundColor: 'var(--bg-surface)',
-            padding: '16px',
-            borderRadius: '16px',
-            boxShadow: '0 4px 24px rgba(0,0,0,0.2)',
             zIndex: 1000,
           }}
         >

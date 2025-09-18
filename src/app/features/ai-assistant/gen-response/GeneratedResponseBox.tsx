@@ -24,7 +24,7 @@ export function GeneratedResponseBox() {
           alignItems="Center"
           justifyContent="Center"
           className="loadingState"
-          style={{ height: '300px' }}
+          style={{ height: '300px', width: '320px' }}
         >
           <Spinner size="600" />
         </Box>
