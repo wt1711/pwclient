@@ -30,12 +30,12 @@ export function ResponseFilter({
     <>
       <Box direction="Column" className="generatedResponseBox__sliderContainer">
         <Text
-          size="T400"
+          size="O400"
           align="Center"
           className="generatedResponseBox__toneLabel"
           style={{ color: colorScale(toneValues[selectedProperty.id]).hex() }}
         >
-          {`${selectedProperty.label.toUpperCase()} (${toneValues[selectedProperty.id]})`}
+          {`${selectedProperty.label.toUpperCase()} (${toneValues[selectedProperty.id]}%)`}
         </Text>
         <Slider
           value={toneValues[selectedProperty.id]}
@@ -56,7 +56,7 @@ export function ResponseFilter({
       <Box direction="Column" alignItems="Center" className="generatedResponseBox__toneSelector">
         <Box direction="Row" justifyContent="Center" className="generatedResponseBox__toneButtons">
           {toneProperties.map((prop) => (
-            <Box direction="Column" alignItems="Center" gap="4px">
+            <Box direction="Column" alignItems="Center">
               <Button
                 key={prop.id}
                 onClick={() => setSelectedProperty(prop)}
