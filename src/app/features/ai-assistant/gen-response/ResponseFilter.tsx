@@ -31,15 +31,18 @@ export function ResponseFilter({
       <Box direction="Column" alignItems="Center" className="generatedResponseBox__toneSelector">
         <Box direction="Row" justifyContent="Center" className="generatedResponseBox__toneButtons">
           {toneProperties.map((prop) => (
-            <Button
-              key={prop.id}
-              onClick={() => setSelectedProperty(prop)}
-              className={cn('generatedResponseBox__toneButton', {
-                'generatedResponseBox__toneButton--selected': selectedProperty.id === prop.id,
-              })}
-            >
-              <Text size="T500">{prop.emoji}</Text>
-            </Button>
+            <Box direction="Column" alignItems="Center">
+              <Button
+                key={prop.id}
+                onClick={() => setSelectedProperty(prop)}
+                className={cn('generatedResponseBox__toneButton', {
+                  'generatedResponseBox__toneButton--selected': selectedProperty.id === prop.id,
+                })}
+              >
+                <Text size="T500">{prop.emoji}</Text>
+              </Button>
+              <Text>{toneValues[prop.id]}</Text>
+            </Box>
           ))}
         </Box>
       </Box>
