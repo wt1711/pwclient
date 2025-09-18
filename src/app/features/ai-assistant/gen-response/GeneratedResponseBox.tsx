@@ -2,7 +2,7 @@ import React from 'react';
 import { Box, Spinner } from 'folds';
 import { useAIAssistant } from '../AIAssistantContext';
 import './GeneratedResponseBox.scss';
-import { PersonaSelector } from './personal-selector/PersonaSelector';
+import { PersonaSelector } from './persona-selector/PersonaSelector';
 import { ResponseFilter } from './ResponseFilter';
 
 export function GeneratedResponseBox() {
