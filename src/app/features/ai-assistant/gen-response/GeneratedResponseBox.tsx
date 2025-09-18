@@ -1,8 +1,7 @@
 import React from 'react';
-import { Box } from 'folds';
+import { Box, Spinner } from 'folds';
 import { useAIAssistant } from '../AIAssistantContext';
 import './GeneratedResponseBox.scss';
-import { LoadingState } from './LoadingState';
 import { PersonaSelector } from './personal-selector/PersonaSelector';
 import { ResponseFilter } from './ResponseFilter';
 
@@ -20,7 +19,16 @@ export function GeneratedResponseBox() {
 
   const renderContent = () => {
     if (isGeneratingResponse && !generatedResponse) {
-      return <LoadingState />;
+      return (
+        <Box
+          alignItems="Center"
+          justifyContent="Center"
+          className="loadingState"
+          style={{ height: '300px' }}
+        >
+          <Spinner size="600" />
+        </Box>
+      );
     }
     if (generatedResponse) {
       return (
