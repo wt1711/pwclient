@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Box, Icon, IconButton, Icons, PopOut } from 'folds';
+import { Box, Icon, IconButton, Icons, PopOut, Spinner } from 'folds';
 import { ReactEditor } from 'slate-react';
 import { GeneratedResponseBox } from '~/app/features/ai-assistant/gen-response/GeneratedResponseBox';
 import { useAIAssistant } from '../../ai-assistant/AIAssistantContext';
@@ -20,7 +20,12 @@ export function RoomInputActions() {
     handleStickerSelect,
     hideStickerBtn,
   } = useRoomInputContext();
-  const { isAIAssistantOpen, toggleAIAssistant, generateNewResponseFromMessage } = useAIAssistant();
+  const {
+    isAIAssistantOpen,
+    toggleAIAssistant,
+    generateNewResponseFromMessage,
+    isGeneratingResponse,
+  } = useAIAssistant();
   const aiAssistantBtnRef = useRef<HTMLButtonElement>(null);
   const popoutContentRef = useRef<HTMLDivElement>(null);
   const emojiBtnRef = useRef<HTMLButtonElement>(null);
@@ -57,32 +62,16 @@ export function RoomInputActions() {
     <>
       {isAIAssistantOpen && (
         <Box
+          ref={popoutContentRef}
+          direction="Column"
           style={{
-            position: 'fixed',
-            top: 0,
+            position: 'absolute',
+            bottom: 'calc(100% + 8px)',
             left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
             zIndex: 1000,
           }}
         >
-          <Box
-            ref={popoutContentRef}
-            direction="Column"
-            style={{
-              width: '320px',
-              backgroundColor: 'var(--bg-surface)',
-              padding: '16px',
-              borderRadius: '16px',
-              boxShadow: '0 4px 24px rgba(0,0,0,0.2)',
-            }}
-          >
-            <GeneratedResponseBox />
-          </Box>
+          <GeneratedResponseBox />
         </Box>
       )}
       <IconButton
@@ -94,11 +83,15 @@ export function RoomInputActions() {
         size="300"
         radii="300"
       >
-        <img
-          src={isAIAssistantOpen ? GenResponseActiveIcon : GenResponseIcon}
-          alt="Gen Response"
-          height={30}
-        />
+        {isGeneratingResponse ? (
+          <Spinner size="300" />
+        ) : (
+          <img
+            src={isAIAssistantOpen ? GenResponseActiveIcon : GenResponseIcon}
+            alt="Gen Response"
+            height={30}
+          />
+        )}
       </IconButton>
       <UseStateProvider initial={undefined}>
         {(
