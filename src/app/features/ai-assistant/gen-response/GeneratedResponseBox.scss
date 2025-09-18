@@ -55,6 +55,11 @@
     }
   }
 
+  &__toneValue {
+    font-size: 12px;
+    color: #aaa;
+  }
+
   &__sliderContainer {
     width: 100%;
     gap: 8px;

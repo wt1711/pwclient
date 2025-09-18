@@ -28,24 +28,6 @@ export function ResponseFilter({
 }: ResponseFilterProps) {
   return (
     <>
-      <Box direction="Column" alignItems="Center" className="generatedResponseBox__toneSelector">
-        <Box direction="Row" justifyContent="Center" className="generatedResponseBox__toneButtons">
-          {toneProperties.map((prop) => (
-            <Box direction="Column" alignItems="Center">
-              <Button
-                key={prop.id}
-                onClick={() => setSelectedProperty(prop)}
-                className={cn('generatedResponseBox__toneButton', {
-                  'generatedResponseBox__toneButton--selected': selectedProperty.id === prop.id,
-                })}
-              >
-                <Text size="T500">{prop.emoji}</Text>
-              </Button>
-              <Text>{toneValues[prop.id]}</Text>
-            </Box>
-          ))}
-        </Box>
-      </Box>
       <Box direction="Column" className="generatedResponseBox__sliderContainer">
         <Text
           size="T400"
@@ -62,13 +44,31 @@ export function ResponseFilter({
           max={100}
           step={1}
         />
-        <Box direction="Row" justifyContent="SpaceBetween">
+        {/* <Box direction="Row" justifyContent="SpaceBetween">
           <Text size="B400" className="generatedResponseBox__sliderLabel">
             {selectedProperty.minLabel}
           </Text>
           <Text size="B400" className="generatedResponseBox__sliderLabel">
             {selectedProperty.maxLabel}
           </Text>
+        </Box> */}
+      </Box>
+      <Box direction="Column" alignItems="Center" className="generatedResponseBox__toneSelector">
+        <Box direction="Row" justifyContent="Center" className="generatedResponseBox__toneButtons">
+          {toneProperties.map((prop) => (
+            <Box direction="Column" alignItems="Center" gap="4px">
+              <Button
+                key={prop.id}
+                onClick={() => setSelectedProperty(prop)}
+                className={cn('generatedResponseBox__toneButton', {
+                  'generatedResponseBox__toneButton--selected': selectedProperty.id === prop.id,
+                })}
+              >
+                <Text size="T500">{prop.emoji}</Text>
+              </Button>
+              <Text className="generatedResponseBox__toneValue">{toneValues[prop.id]}</Text>
+            </Box>
+          ))}
         </Box>
       </Box>
     </>
