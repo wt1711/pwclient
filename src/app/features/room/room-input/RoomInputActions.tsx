@@ -30,7 +30,9 @@ export function RoomInputActions() {
   const {
     isAIAssistantOpen,
     toggleAIAssistant,
-    generateNewResponseFromMessage,
+    generateInitialResponse,
+    regenerateResponse,
+    generatedResponse,
     isGeneratingResponse,
   } = useAIAssistant();
   const aiAssistantBtnRef = useRef<HTMLButtonElement>(null);
@@ -65,6 +67,16 @@ export function RoomInputActions() {
     };
   }, [isAIAssistantOpen, toggleAIAssistant]);
 
+  const renderGenerateIcon = () => {
+    if (isGeneratingResponse) {
+      return <Spinner size="300" />;
+    }
+    if (generatedResponse) {
+      return <img src={GenResponseActiveIcon} alt="Regenerate Response" height={30} />;
+    }
+    return <img src={GenResponseIcon} alt="Regenerate Response" height={30} />;
+  };
+
   return (
     <>
       {isAIAssistantOpen && (
@@ -81,25 +93,33 @@ export function RoomInputActions() {
           <GeneratedResponseBox />
         </Box>
       )}
-      <IconButton
-        ref={aiAssistantBtnRef}
-        onClick={() => {
-          generateNewResponseFromMessage();
-        }}
-        variant="SurfaceVariant"
-        size="300"
-        radii="300"
-      >
-        {isGeneratingResponse ? (
-          <Spinner size="300" />
-        ) : (
-          <img
-            src={isAIAssistantOpen ? GenResponseActiveIcon : GenResponseIcon}
-            alt="Gen Response"
-            height={30}
-          />
-        )}
-      </IconButton>
+      <Box direction="Row" alignItems="Center" gap="100">
+        <IconButton
+          onClick={() => {
+            regenerateResponse();
+          }}
+          variant="SurfaceVariant"
+          size="300"
+          radii="300"
+        >
+          {renderGenerateIcon()}
+        </IconButton>
+        <IconButton
+          ref={aiAssistantBtnRef}
+          onClick={() => {
+            if (isAIAssistantOpen) {
+              toggleAIAssistant(false);
+            } else {
+              generateInitialResponse();
+            }
+          }}
+          variant="SurfaceVariant"
+          size="300"
+          radii="300"
+        >
+          <Icon src={Icons.Setting} />
+        </IconButton>
+      </Box>
       {/* <UseStateProvider initial={undefined}>
         {(
           emojiBoardTab: EmojiBoardTab | undefined,
