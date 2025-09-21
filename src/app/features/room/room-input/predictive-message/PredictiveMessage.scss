@@ -2,6 +2,9 @@
   padding: 8px 14px;
   font-size: 14px;
   color: var(--tc-surface-low);
+  display: flex;
+  align-items: center;
+  gap: 8px;
   p {
     margin: 0;
     line-height: 1.4;

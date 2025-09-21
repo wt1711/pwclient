@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import {
   Box,
   Icon,
@@ -11,7 +11,6 @@ import {
 // import { EmojiBoard, EmojiBoardTab } from '~/app/components/emoji-board';
 // import { UseStateProvider } from '~/app/components/UseStateProvider';
 // import { mobileOrTablet } from '~/app/utils/user-agent';
-import { GeneratedResponseBox } from '~/app/features/ai-assistant/gen-response/GeneratedResponseBox';
 import { useAIAssistant } from '~/app/features/ai-assistant/AIAssistantContext';
 import { useRoomInputContext } from './RoomInputContext';
 
@@ -27,45 +26,8 @@ export function RoomInputActions() {
     // handleStickerSelect,
     // hideStickerBtn,
   } = useRoomInputContext();
-  const {
-    isAIAssistantOpen,
-    toggleAIAssistant,
-    generateInitialResponse,
-    regenerateResponse,
-    generatedResponse,
-    isGeneratingResponse,
-  } = useAIAssistant();
-  const aiAssistantBtnRef = useRef<HTMLButtonElement>(null);
-  const popoutContentRef = useRef<HTMLDivElement>(null);
+  const { regenerateResponse, generatedResponse, isGeneratingResponse } = useAIAssistant();
   // const emojiBtnRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    if (!isAIAssistantOpen) return undefined;
-
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        popoutContentRef.current &&
-        !popoutContentRef.current.contains(event.target as Node) &&
-        aiAssistantBtnRef.current &&
-        !aiAssistantBtnRef.current.contains(event.target as Node)
-      ) {
-        toggleAIAssistant(false);
-      }
-    };
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        toggleAIAssistant(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isAIAssistantOpen, toggleAIAssistant]);
 
   const renderGenerateIcon = () => {
     if (isGeneratingResponse) {
@@ -79,20 +41,6 @@ export function RoomInputActions() {
 
   return (
     <>
-      {isAIAssistantOpen && (
-        <Box
-          ref={popoutContentRef}
-          direction="Column"
-          style={{
-            position: 'absolute',
-            bottom: 'calc(100% + 8px)',
-            left: 0,
-            zIndex: 1000,
-          }}
-        >
-          <GeneratedResponseBox />
-        </Box>
-      )}
       <Box direction="Row" alignItems="Center" gap="100">
         <IconButton
           onClick={() => {
@@ -103,21 +51,6 @@ export function RoomInputActions() {
           radii="300"
         >
           {renderGenerateIcon()}
-        </IconButton>
-        <IconButton
-          ref={aiAssistantBtnRef}
-          onClick={() => {
-            if (isAIAssistantOpen) {
-              toggleAIAssistant(false);
-            } else {
-              generateInitialResponse();
-            }
-          }}
-          variant="SurfaceVariant"
-          size="300"
-          radii="300"
-        >
-          <Icon src={Icons.Setting} />
         </IconButton>
       </Box>
       {/* <UseStateProvider initial={undefined}>
