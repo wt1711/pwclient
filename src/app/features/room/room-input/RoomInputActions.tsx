@@ -1,16 +1,9 @@
-import React from 'react';
-import {
-  Box,
-  Icon,
-  IconButton,
-  Icons,
-  Spinner,
-  // PopOut
-} from 'folds';
-// import { ReactEditor } from 'slate-react';
-// import { EmojiBoard, EmojiBoardTab } from '~/app/components/emoji-board';
-// import { UseStateProvider } from '~/app/components/UseStateProvider';
-// import { mobileOrTablet } from '~/app/utils/user-agent';
+import React, { useRef } from 'react';
+import { Box, Icon, IconButton, Icons, Spinner, PopOut } from 'folds';
+import { ReactEditor } from 'slate-react';
+import { EmojiBoard, EmojiBoardTab } from '~/app/components/emoji-board';
+import { UseStateProvider } from '~/app/components/UseStateProvider';
+import { mobileOrTablet } from '~/app/utils/user-agent';
 import { useAIAssistant } from '~/app/features/ai-assistant/AIAssistantContext';
 import { useRoomInputContext } from './RoomInputContext';
 
@@ -20,14 +13,14 @@ import GenResponseActiveIcon from '~/app/features/ai-assistant/assets/gen-respon
 export function RoomInputActions() {
   const {
     submit,
-    // editor,
-    // imagePackRooms,
-    // handleEmoticonSelect,
-    // handleStickerSelect,
-    // hideStickerBtn,
+    editor,
+    imagePackRooms,
+    handleEmoticonSelect,
+    handleStickerSelect,
+    hideStickerBtn,
   } = useRoomInputContext();
   const { regenerateResponse, generatedResponse, isGeneratingResponse } = useAIAssistant();
-  // const emojiBtnRef = useRef<HTMLButtonElement>(null);
+  const emojiBtnRef = useRef<HTMLButtonElement>(null);
 
   const renderGenerateIcon = () => {
     if (isGeneratingResponse) {
@@ -53,7 +46,7 @@ export function RoomInputActions() {
           {renderGenerateIcon()}
         </IconButton>
       </Box>
-      {/* <UseStateProvider initial={undefined}>
+      <UseStateProvider initial={undefined}>
         {(
           emojiBoardTab: EmojiBoardTab | undefined,
           setEmojiBoardTab: (tab?: EmojiBoardTab) => void
@@ -103,7 +96,7 @@ export function RoomInputActions() {
             </IconButton>
           </PopOut>
         )}
-      </UseStateProvider> */}
+      </UseStateProvider>
       <IconButton onClick={submit} variant="SurfaceVariant" size="300" radii="300">
         <Icon src={Icons.Send} />
       </IconButton>
