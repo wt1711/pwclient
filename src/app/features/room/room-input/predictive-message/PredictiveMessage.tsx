@@ -189,7 +189,7 @@ export function PredictiveMessage({ editorText, room }: PredictiveMessageProps) 
           direction="Column"
           style={{
             position: 'absolute',
-            bottom: 'calc(100% + 8px)',
+            bottom: 'calc(100%)',
             left: 0,
             zIndex: 1000,
           }}
