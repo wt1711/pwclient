@@ -6,7 +6,7 @@ import { useMatrixClient } from '~/app/hooks/useMatrixClient';
 import { gradeMessage, Message } from '~/app/features/ai-assistant/utils/ai';
 import { isFromMe } from '~/app/features/ai-assistant/utils/utils';
 import { useAIAssistant } from '~/app/features/ai-assistant/AIAssistantContext';
-import { GeneratedResponseBox } from '~/app/features/ai-assistant/gen-response/gen-response-box/GeneratedResponseBox';
+import { GeneratedResponseBox } from '~/app/features/ai-assistant/gen-response/GeneratedResponseBox';
 import { getReactionGrade } from '~/app/features/ai-assistant/utils/data';
 
 interface PredictiveMessageProps {
