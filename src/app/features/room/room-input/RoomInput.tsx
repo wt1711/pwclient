@@ -11,7 +11,7 @@ import { RoomInputActions } from './RoomInputActions';
 import { UploadArea } from './UploadArea';
 import { AutocompleteHandler } from './AutocompleteHandler';
 import { RoomInputProvider, useRoomInputContext } from './RoomInputContext';
-import { PredictiveMessage } from './predictive-message/PredictiveMessage';
+import { PredictiveMessage } from '../../ai-assistant/predictive-message/PredictiveMessage';
 import { useDebounceValue } from '../../../hooks/useDebounceValue';
 import { useAIAssistant } from '../../ai-assistant/AIAssistantContext';
 

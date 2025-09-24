@@ -1,9 +1,10 @@
 import React from 'react';
 import { Box } from 'folds';
-import { useAIAssistant } from '../AIAssistantContext';
+import { useAIAssistant } from '~/app/features/ai-assistant/AIAssistantContext';
 import './GeneratedResponseBox.scss';
-import { PersonaSelector } from './persona-selector/PersonaSelector';
-import { ResponseFilter } from './ResponseFilter';
+import { PersonaSelector } from '~/app/features/ai-assistant/gen-response/persona-selector/PersonaSelector';
+import { Slider } from '~/app/features/ai-assistant/gen-response/tone-slider/Slider';
+import { ToneSelector } from '~/app/features/ai-assistant/gen-response/tone-selector/ToneSelector';
 
 export function GeneratedResponseBox() {
   const {
@@ -18,11 +19,18 @@ export function GeneratedResponseBox() {
   return (
     <Box direction="Column" className="generatedResponseBox">
       <Box direction="Column" className="generatedResponseBox__content">
-        <ResponseFilter
+        <Slider
+          value={toneValues[selectedProperty.id]}
+          onChange={handleSliderChange}
+          min={0}
+          max={100}
+          step={1}
+          label={selectedProperty.label}
+        />
+        <ToneSelector
           selectedProperty={selectedProperty}
           setSelectedProperty={setSelectedProperty}
           toneValues={toneValues}
-          onSliderChange={handleSliderChange}
         />
         <PersonaSelector selectedPersona={selectedPersona} onSelectPersona={handlePersonaChange} />
       </Box>

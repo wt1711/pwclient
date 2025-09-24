@@ -16,8 +16,8 @@ import { getMxIdLocalPart, eventWithShortcode, factoryEventSentBy } from '../../
 import { createMentionElement, moveCursor } from '../../../../components/editor';
 import { roomIdToReplyDraftAtomFamily } from '../../../../state/room/roomInputDrafts';
 import { useRoomMessage } from '../../RoomMessageContext';
-import { Message as MessageType } from '../../../ai-assistant/ai';
-import { isFromMe } from '../../../ai-assistant/utils';
+import { Message as MessageType } from '../../../ai-assistant/utils/ai';
+import { isFromMe } from '../../../ai-assistant/utils/utils';
 import { markAsRead } from '../../../../../client/action/notifications';
 import { MessageEvent } from '../../../../../types/matrix/room';
 import { Timeline } from '../constants';

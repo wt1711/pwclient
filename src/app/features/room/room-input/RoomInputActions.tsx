@@ -1,14 +1,11 @@
 import React, { useRef } from 'react';
-import { Box, Icon, IconButton, Icons, Spinner, PopOut } from 'folds';
+import { Box, Icon, IconButton, Icons, PopOut } from 'folds';
 import { ReactEditor } from 'slate-react';
 import { EmojiBoard, EmojiBoardTab } from '~/app/components/emoji-board';
 import { UseStateProvider } from '~/app/components/UseStateProvider';
 import { mobileOrTablet } from '~/app/utils/user-agent';
-import { useAIAssistant } from '~/app/features/ai-assistant/AIAssistantContext';
 import { useRoomInputContext } from './RoomInputContext';
-
-import GenResponseIcon from '~/app/features/ai-assistant/assets/gen-response.svg';
-import GenResponseActiveIcon from '~/app/features/ai-assistant/assets/gen-response-active.svg';
+import { GenerateResponseButton } from '~/app/features/ai-assistant/gen-response/gen-response-button/GenerateResponseButton';
 
 export function RoomInputActions() {
   const {
@@ -19,32 +16,12 @@ export function RoomInputActions() {
     handleStickerSelect,
     hideStickerBtn,
   } = useRoomInputContext();
-  const { regenerateResponse, generatedResponse, isGeneratingResponse } = useAIAssistant();
   const emojiBtnRef = useRef<HTMLButtonElement>(null);
-
-  const renderGenerateIcon = () => {
-    if (isGeneratingResponse) {
-      return <Spinner size="300" />;
-    }
-    if (generatedResponse) {
-      return <img src={GenResponseActiveIcon} alt="Regenerate Response" height={30} />;
-    }
-    return <img src={GenResponseIcon} alt="Regenerate Response" height={30} />;
-  };
 
   return (
     <>
       <Box direction="Row" alignItems="Center" gap="100">
-        <IconButton
-          onClick={() => {
-            regenerateResponse();
-          }}
-          variant="SurfaceVariant"
-          size="300"
-          radii="300"
-        >
-          {renderGenerateIcon()}
-        </IconButton>
+        <GenerateResponseButton />
       </Box>
       <UseStateProvider initial={undefined}>
         {(
