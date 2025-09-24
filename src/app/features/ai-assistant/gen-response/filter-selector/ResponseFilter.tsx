@@ -2,11 +2,8 @@ import React from 'react';
 import { Box, Text, Button } from 'folds';
 import cn from 'classnames';
 import { Slider } from '../slider/Slider';
-import {
-  toneProperties,
-  // colorScale
-} from '../constants';
-import './GeneratedResponseBox.scss';
+import { toneProperties, colorScale } from '../constants';
+import '../GeneratedResponseBox.scss';
 
 interface ToneProperty {
   id: string;
@@ -36,11 +33,9 @@ export function ResponseFilter({
           size="O400"
           align="Center"
           className="generatedResponseBox__toneLabel"
-          style={
-            {
-              // color: colorScale(toneValues[selectedProperty.id]).hex()
-            }
-          }
+          style={{
+            color: colorScale(toneValues[selectedProperty.id]).hex(),
+          }}
         >
           {`${selectedProperty.label.toUpperCase()} (${toneValues[selectedProperty.id]}%)`}
         </Text>
@@ -51,14 +46,6 @@ export function ResponseFilter({
           max={100}
           step={1}
         />
-        {/* <Box direction="Row" justifyContent="SpaceBetween">
-          <Text size="B400" className="generatedResponseBox__sliderLabel">
-            {selectedProperty.minLabel}
-          </Text>
-          <Text size="B400" className="generatedResponseBox__sliderLabel">
-            {selectedProperty.maxLabel}
-          </Text>
-        </Box> */}
       </Box>
       <Box direction="Column" alignItems="Center" className="generatedResponseBox__toneSelector">
         <Box direction="Row" justifyContent="Center" className="generatedResponseBox__toneButtons">
@@ -73,7 +60,7 @@ export function ResponseFilter({
               >
                 <Text size="T500">{prop.emoji}</Text>
               </Button>
-              {/* <Text className="generatedResponseBox__toneValue">{toneValues[prop.id]}</Text> */}
+              <Text className="generatedResponseBox__toneValue">{toneValues[prop.id]}</Text>
             </Box>
           ))}
         </Box>
