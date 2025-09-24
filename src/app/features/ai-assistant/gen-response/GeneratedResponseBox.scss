@@ -11,42 +11,9 @@
   box-shadow: 0 40px 30px 0 rgba(0, 0, 0, 0.05), 0 1px 1px 0 rgba(255, 255, 255, 0.6) inset;
   backdrop-filter: blur(50px);
 
-  &__spinnerContainer {
-    height: 300px;
-  }
-
   &__content {
     width: 100%;
     gap: 12px;
-    color: white;
-  }
-
-  &__response {
-    background-color: #333;
-    padding: 12px;
-    border-radius: 12px;
-    min-height: 60px;
-    justify-content: center;
-  }
-
-  &__sliderContainer {
-    width: 100%;
-    gap: 8px;
-    padding: 0 12px;
-  }
-
-  &__sliderLabel {
-    color: #aaa;
-  }
-
-  &__useSuggestionButton {
-    width: 100%;
-    padding: 12px 8px;
-    background-color: #333;
-    margin-top: 16px;
-  }
-
-  &__useSuggestionButtonText {
     color: white;
   }
 }
