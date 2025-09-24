@@ -7,7 +7,7 @@ import { useRoomMessage } from '~/app/features/room/RoomMessageContext';
 import { useSetSetting } from '~/app/state/hooks/settings';
 import { settingsAtom } from '~/app/state/settings';
 import { isFromMe } from '~/app/features/ai-assistant/utils';
-import { toneProperties, personas } from './gen-response/constants';
+import { toneProperties, personas } from '~/app/features/ai-assistant/data';
 
 type ChatWithAIAssistantMessage = {
   sender: 'user' | 'ai';

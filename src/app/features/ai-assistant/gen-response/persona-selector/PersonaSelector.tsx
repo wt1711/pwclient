@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from 'folds';
 import cn from 'classnames';
-import { personas } from '../constants';
+import { personas } from '~/app/features/ai-assistant/data';
 import './PersonaSelector.scss';
 
 interface PersonaSelectorProps {
