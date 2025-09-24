@@ -2,7 +2,7 @@ import React from 'react';
 import { Box, Text, Button } from 'folds';
 import cn from 'classnames';
 import { Slider } from '../slider/Slider';
-import { toneProperties, colorScale } from '../constants';
+import { toneProperties } from '../constants';
 import '../GeneratedResponseBox.scss';
 
 interface ToneProperty {
@@ -28,25 +28,14 @@ export function ResponseFilter({
 }: ResponseFilterProps) {
   return (
     <>
-      <Box direction="Column" className="generatedResponseBox__sliderContainer">
-        <Text
-          size="O400"
-          align="Center"
-          className="generatedResponseBox__toneLabel"
-          style={{
-            color: colorScale(toneValues[selectedProperty.id]).hex(),
-          }}
-        >
-          {`${selectedProperty.label.toUpperCase()} (${toneValues[selectedProperty.id]}%)`}
-        </Text>
-        <Slider
-          value={toneValues[selectedProperty.id]}
-          onChange={onSliderChange}
-          min={0}
-          max={100}
-          step={1}
-        />
-      </Box>
+      <Slider
+        value={toneValues[selectedProperty.id]}
+        onChange={onSliderChange}
+        min={0}
+        max={100}
+        step={1}
+        label={selectedProperty.label}
+      />
       <Box direction="Column" alignItems="Center" className="generatedResponseBox__toneSelector">
         <Box direction="Row" justifyContent="Center" className="generatedResponseBox__toneButtons">
           {toneProperties.map((prop) => (
