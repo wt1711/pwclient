@@ -8,7 +8,6 @@ import { useSetSetting } from '~/app/state/hooks/settings';
 import { settingsAtom } from '~/app/state/settings';
 import { isFromMe } from '~/app/features/ai-assistant/utils';
 import { toneProperties, personas } from './gen-response/constants';
-import { useDebouncedCallback } from '~/app/hooks/useDebouncedCallback';
 
 type ChatWithAIAssistantMessage = {
   sender: 'user' | 'ai';
@@ -26,20 +25,22 @@ type AIAssistantContextType = {
   isMobile: boolean;
   isAIAssistantOpen: boolean;
   locale: string;
-  selectedProperty: any;
-  selectedPersona: any;
+  selectedProperty: typeof toneProperties[0];
+  selectedPersona: typeof personas[0];
   toneValues: Record<string, number>;
+  initialMessageGenerated: boolean;
 
   // Actions
   setInputValue: (value: string) => void;
   handleSend: () => void;
-  generateNewResponseFromMessage: (spec?: object) => void;
+  generateInitialResponse: () => void;
+  regenerateResponse: (spec?: object) => void;
   handleUseSuggestion: (response: string) => void;
   clearChatHistory: () => void;
   toggleAIAssistant: (isOpen?: boolean) => void;
-  setSelectedProperty: (property: any) => void;
+  setSelectedProperty: (property: typeof toneProperties[0]) => void;
   handleSliderChange: (value: number) => void;
-  handlePersonaChange: (persona: any) => void;
+  handlePersonaChange: (persona: typeof personas[0]) => void;
 };
 
 const AIAssistantContext = createContext<AIAssistantContextType | undefined>(undefined);
@@ -57,6 +58,7 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
   const [generatedResponse, setGeneratedResponse] = useState('');
   const [isGeneratingResponse, setIsGeneratingResponse] = useState(false);
   const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
+  const [initialMessageGenerated, setInitialMessageGenerated] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState(toneProperties[0]);
   const [selectedPersona, setSelectedPersona] = useState(personas[3]);
   const [toneValues, setToneValues] = useState<Record<string, number>>(
@@ -67,29 +69,6 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
   const { insertText, deleteText } = useRoomEditor();
   const setIsAiDrawer = useSetSetting(settingsAtom, 'isAiDrawerOpen');
   const { selectedMessage } = useRoomMessage();
-
-  const debouncedGenerateResponse = useDebouncedCallback((newTones: any) => {
-    const payload = {
-      filter: selectedPersona.filter,
-      persona: selectedPersona.persona,
-      ...newTones,
-    };
-    generateNewResponseFromMessage(payload);
-  }, 500);
-
-  const handleSliderChange = (value: number) => {
-    const newToneValues = {
-      ...toneValues,
-      [selectedProperty.id]: value,
-    };
-    setToneValues(newToneValues);
-    debouncedGenerateResponse(newToneValues);
-  };
-
-  const handlePersonaChange = (persona: typeof personas[0]) => {
-    setSelectedPersona(persona);
-    debouncedGenerateResponse(toneValues);
-  };
 
   const toggleAIAssistant = useCallback((isOpen?: boolean) => {
     setIsAIAssistantOpen((prev) => {
@@ -121,10 +100,13 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
     [insertText, deleteText, isMobile, setIsAiDrawer]
   );
 
-  const generateNewResponseFromMessage = useCallback(
+  const generateInitialResponse = useCallback(async () => {
+    toggleAIAssistant(true);
+  }, [toggleAIAssistant]);
+
+  const regenerateResponse = useCallback(
     async (spec = {}) => {
       setIsGeneratingResponse(true);
-      toggleAIAssistant(true);
       deleteText();
 
       try {
@@ -150,10 +132,26 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
         setGeneratedResponse('Xin lỗi, đã có lỗi');
       } finally {
         setIsGeneratingResponse(false);
+        setInitialMessageGenerated(true);
       }
     },
-    [room, mx, toggleAIAssistant, handleUseSuggestion, deleteText]
+    [room, mx, handleUseSuggestion, deleteText]
   );
+
+  const handleSliderChange = useCallback(
+    (value: number) => {
+      const newToneValues = {
+        ...toneValues,
+        [selectedProperty.id]: value,
+      };
+      setToneValues(newToneValues);
+    },
+    [toneValues, selectedProperty]
+  );
+
+  const handlePersonaChange = useCallback((persona: typeof personas[0]) => {
+    setSelectedPersona(persona);
+  }, []);
 
   const handleSend = useCallback(async () => {
     if (inputValue.trim() === '') return;
@@ -202,7 +200,6 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
       };
       setChatHistory((prev) => [...prev, aiResponse]);
     } catch (error) {
-      console.error('Error getting AI consultation:', error);
       const errorResponse: ChatWithAIAssistantMessage = {
         sender: 'ai',
         text: 'Xin lỗi, đã có lỗi khi xử lý yêu cầu của bạn.',
@@ -232,11 +229,13 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
       selectedProperty,
       selectedPersona,
       toneValues,
+      initialMessageGenerated,
 
       // Actions
       setInputValue,
       handleSend,
-      generateNewResponseFromMessage,
+      generateInitialResponse,
+      regenerateResponse,
       handleUseSuggestion,
       clearChatHistory,
       toggleAIAssistant,
@@ -253,13 +252,15 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
       isMobile,
       isAIAssistantOpen,
       handleSend,
-      generateNewResponseFromMessage,
+      generateInitialResponse,
+      regenerateResponse,
       handleUseSuggestion,
       toggleAIAssistant,
       locale,
       selectedProperty,
       selectedPersona,
       toneValues,
+      initialMessageGenerated,
       handleSliderChange,
       handlePersonaChange,
     ]

@@ -19,9 +19,9 @@ export const toneProperties = [
     minLabel: 'Reserved',
     maxLabel: 'Alpha assertive',
   },
-  // { id: 'thirst', emoji: '💦', label: 'Thirst', minLabel: 'Subtle interest', maxLabel: 'Down bad' },
+  { id: 'thirst', emoji: '💦', label: 'Thirst', minLabel: 'Subtle interest', maxLabel: 'Down bad' },
   { id: 'energy', emoji: '⚡️', label: 'Energy', minLabel: 'Chill', maxLabel: 'Hype/excited' },
-  // { id: 'toxicity', emoji: '☠️', label: 'Toxicity', minLabel: 'Nice guy', maxLabel: 'Villain arc' },
+  { id: 'toxicity', emoji: '☠️', label: 'Toxicity', minLabel: 'Nice guy', maxLabel: 'Villain arc' },
   { id: 'humour', emoji: '🤡', label: 'Humour', minLabel: 'Dry wit', maxLabel: 'Full clown' },
   {
     id: 'emojiUse',

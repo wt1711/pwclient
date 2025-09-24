@@ -2,7 +2,10 @@ import React from 'react';
 import { Box, Text, Button } from 'folds';
 import cn from 'classnames';
 import { Slider } from './slider/Slider';
-import { toneProperties, colorScale } from './constants';
+import {
+  toneProperties,
+  // colorScale
+} from './constants';
 import './GeneratedResponseBox.scss';
 
 interface ToneProperty {
@@ -33,7 +36,11 @@ export function ResponseFilter({
           size="O400"
           align="Center"
           className="generatedResponseBox__toneLabel"
-          style={{ color: colorScale(toneValues[selectedProperty.id]).hex() }}
+          style={
+            {
+              // color: colorScale(toneValues[selectedProperty.id]).hex()
+            }
+          }
         >
           {`${selectedProperty.label.toUpperCase()} (${toneValues[selectedProperty.id]}%)`}
         </Text>
@@ -66,7 +73,7 @@ export function ResponseFilter({
               >
                 <Text size="T500">{prop.emoji}</Text>
               </Button>
-              <Text className="generatedResponseBox__toneValue">{toneValues[prop.id]}</Text>
+              {/* <Text className="generatedResponseBox__toneValue">{toneValues[prop.id]}</Text> */}
             </Box>
           ))}
         </Box>

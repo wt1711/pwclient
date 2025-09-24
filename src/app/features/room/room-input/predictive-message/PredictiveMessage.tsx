@@ -1,10 +1,12 @@
 import React, { useMemo, useEffect, useState } from 'react';
-import { Spinner } from 'folds';
+import { Spinner, Box, Icon, IconButton, Icons } from 'folds';
 import { Room } from 'matrix-js-sdk';
 import './PredictiveMessage.scss';
 import { gradeMessage, Message } from '../../../ai-assistant/ai';
 import { useMatrixClient } from '../../../../hooks/useMatrixClient';
 import { isFromMe } from '../../../ai-assistant/utils';
+import { useAIAssistant } from '../../../ai-assistant/AIAssistantContext';
+import { GeneratedResponseBox } from '../../../ai-assistant/gen-response/GeneratedResponseBox';
 
 export const predictiveMessages = [
   { emoji: '😥', text: 'feeling uncomfortable (-thoughtfulness)' },
@@ -107,6 +109,9 @@ interface PredictiveMessageProps {
 export function PredictiveMessage({ editorText, room }: PredictiveMessageProps) {
   const [score, setScore] = useState<number | null>(null);
   const mx = useMatrixClient();
+  const { isAIAssistantOpen, toggleAIAssistant, generateInitialResponse } = useAIAssistant();
+  const aiAssistantBtnRef = React.useRef<HTMLButtonElement>(null);
+  const popoutContentRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const getScore = async () => {
@@ -130,6 +135,21 @@ export function PredictiveMessage({ editorText, room }: PredictiveMessageProps) 
     getScore();
   }, [editorText, room, mx]);
 
+  useEffect(() => {
+    if (!isAIAssistantOpen) return undefined;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        toggleAIAssistant(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isAIAssistantOpen, toggleAIAssistant]);
+
   const prediction = useMemo(() => {
     if (score === null) return null;
     const analysis = getReactionGrade(score);
@@ -148,6 +168,35 @@ export function PredictiveMessage({ editorText, room }: PredictiveMessageProps) 
       <p>
         {prediction.emoji} &nbsp; {prediction.grade} ({prediction.score}%)
       </p>
+      <IconButton
+        ref={aiAssistantBtnRef}
+        onClick={() => {
+          if (isAIAssistantOpen) {
+            toggleAIAssistant(false);
+          } else {
+            generateInitialResponse();
+          }
+        }}
+        variant="SurfaceVariant"
+        size="300"
+        radii="300"
+      >
+        <Icon src={Icons.Setting} />
+      </IconButton>
+      {isAIAssistantOpen && (
+        <Box
+          ref={popoutContentRef}
+          direction="Column"
+          style={{
+            position: 'absolute',
+            bottom: 'calc(100%)',
+            left: 0,
+            zIndex: 1000,
+          }}
+        >
+          <GeneratedResponseBox />
+        </Box>
+      )}
     </div>
   );
 }
