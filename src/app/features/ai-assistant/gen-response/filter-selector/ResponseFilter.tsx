@@ -1,9 +1,7 @@
 import React from 'react';
-import { Box, Text, Button } from 'folds';
-import cn from 'classnames';
 import { Slider } from '../slider/Slider';
-import { toneProperties } from '../constants';
 import '../GeneratedResponseBox.scss';
+import { ToneSelector } from '../tone-selector/ToneSelector';
 
 interface ToneProperty {
   id: string;
@@ -36,24 +34,11 @@ export function ResponseFilter({
         step={1}
         label={selectedProperty.label}
       />
-      <Box direction="Column" alignItems="Center" className="generatedResponseBox__toneSelector">
-        <Box direction="Row" justifyContent="Center" className="generatedResponseBox__toneButtons">
-          {toneProperties.map((prop) => (
-            <Box direction="Column" alignItems="Center">
-              <Button
-                key={prop.id}
-                onClick={() => setSelectedProperty(prop)}
-                className={cn('generatedResponseBox__toneButton', {
-                  'generatedResponseBox__toneButton--selected': selectedProperty.id === prop.id,
-                })}
-              >
-                <Text size="T500">{prop.emoji}</Text>
-              </Button>
-              <Text className="generatedResponseBox__toneValue">{toneValues[prop.id]}</Text>
-            </Box>
-          ))}
-        </Box>
-      </Box>
+      <ToneSelector
+        selectedProperty={selectedProperty}
+        setSelectedProperty={setSelectedProperty}
+        toneValues={toneValues}
+      />
     </>
   );
 }
