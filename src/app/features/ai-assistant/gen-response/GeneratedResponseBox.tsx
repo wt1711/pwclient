@@ -26,7 +26,7 @@ export function GeneratedResponseBox() {
         backdropFilter: 'blur(50px)',
       }}
     >
-      <Box direction="Column" gap="200" className="generatedResponseBox__content">
+      <Box direction="Column" gap="200">
         <Slider
           value={toneValues[selectedProperty.id]}
           onChange={handleSliderChange}
