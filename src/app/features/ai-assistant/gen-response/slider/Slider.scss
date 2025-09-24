@@ -22,11 +22,10 @@
 .slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 24px;
-  height: 24px;
+  width: 10px;
+  height: 20px;
   background: #ff8c00;
   cursor: pointer;
-  border-radius: 50%;
   margin-top: -11px;
 }
 
