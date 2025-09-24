@@ -2,27 +2,11 @@ import React from 'react';
 import { Box, Text, Button } from 'folds';
 import cn from 'classnames';
 import { toneProperties } from '~/app/features/ai-assistant/utils/data';
+import { useAIAssistant } from '~/app/features/ai-assistant/AIAssistantContext';
 import './ToneSelector.scss';
 
-interface ToneProperty {
-  id: string;
-  emoji: string;
-  label: string;
-  minLabel: string;
-  maxLabel: string;
-}
-
-interface ToneSelectorProps {
-  selectedProperty: ToneProperty;
-  setSelectedProperty: (property: ToneProperty) => void;
-  toneValues: Record<string, number>;
-}
-
-export function ToneSelector({
-  selectedProperty,
-  setSelectedProperty,
-  toneValues,
-}: ToneSelectorProps) {
+export function ToneSelector() {
+  const { selectedProperty, setSelectedProperty, toneValues } = useAIAssistant();
   return (
     <Box direction="Column" alignItems="Center" className="toneSelector">
       <Box direction="Row" justifyContent="Center" className="toneButtons">

@@ -1,19 +1,10 @@
 import React from 'react';
 import { Box } from 'folds';
-import { useAIAssistant } from '~/app/features/ai-assistant/AIAssistantContext';
 import { PersonaSelector } from '~/app/features/ai-assistant/gen-response/persona-selector/PersonaSelector';
 import { Slider } from '~/app/features/ai-assistant/gen-response/tone-slider/Slider';
 import { ToneSelector } from '~/app/features/ai-assistant/gen-response/tone-selector/ToneSelector';
 
 export function GeneratedResponseBox() {
-  const {
-    selectedProperty,
-    setSelectedProperty,
-    toneValues,
-    handleSliderChange,
-    selectedPersona,
-    handlePersonaChange,
-  } = useAIAssistant();
 
   return (
     <Box
@@ -27,20 +18,9 @@ export function GeneratedResponseBox() {
       }}
     >
       <Box direction="Column" gap="200">
-        <Slider
-          value={toneValues[selectedProperty.id]}
-          onChange={handleSliderChange}
-          min={0}
-          max={100}
-          step={1}
-          label={selectedProperty.label}
-        />
-        <ToneSelector
-          selectedProperty={selectedProperty}
-          setSelectedProperty={setSelectedProperty}
-          toneValues={toneValues}
-        />
-        <PersonaSelector selectedPersona={selectedPersona} onSelectPersona={handlePersonaChange} />
+        <Slider />
+        <ToneSelector />
+        <PersonaSelector />
       </Box>
     </Box>
   );
