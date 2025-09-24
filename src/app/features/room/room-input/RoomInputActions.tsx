@@ -5,7 +5,7 @@ import { EmojiBoard, EmojiBoardTab } from '~/app/components/emoji-board';
 import { UseStateProvider } from '~/app/components/UseStateProvider';
 import { mobileOrTablet } from '~/app/utils/user-agent';
 import { useRoomInputContext } from './RoomInputContext';
-import { GenerateResponseButton } from '~/app/features/ai-assistant/gen-response/generate-button/GenerateResponseButton';
+import { GenerateResponseButton } from '~/app/features/ai-assistant/gen-response/gen-response-button/GenerateResponseButton';
 
 export function RoomInputActions() {
   const {
