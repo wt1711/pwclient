@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Text } from 'folds';
-import { colorScale } from '~/app/features/ai-assistant/data';
+import { colorScale } from '~/app/features/ai-assistant/utils/data';
 import './Slider.scss';
 
 interface SliderProps {

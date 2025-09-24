@@ -1,10 +1,10 @@
 import React from 'react';
 import { Box } from 'folds';
-import { useAIAssistant } from '../AIAssistantContext';
+import { useAIAssistant } from '~/app/features/ai-assistant/AIAssistantContext';
 import './GeneratedResponseBox.scss';
-import { PersonaSelector } from './persona-selector/PersonaSelector';
-import { Slider } from './slider/Slider';
-import { ToneSelector } from './tone-selector/ToneSelector';
+import { PersonaSelector } from '~/app/features/ai-assistant/gen-response/persona-selector/PersonaSelector';
+import { Slider } from '~/app/features/ai-assistant/gen-response/slider/Slider';
+import { ToneSelector } from '~/app/features/ai-assistant/gen-response/tone-selector/ToneSelector';
 
 export function GeneratedResponseBox() {
   const {

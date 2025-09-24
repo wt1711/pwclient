@@ -2,12 +2,12 @@ import React, { useMemo, useEffect, useState } from 'react';
 import { Spinner, Box, Icon, IconButton, Icons } from 'folds';
 import { Room } from 'matrix-js-sdk';
 import './PredictiveMessage.scss';
-import { gradeMessage, Message } from '../ai';
-import { useMatrixClient } from '../../../hooks/useMatrixClient';
-import { isFromMe } from '../utils';
-import { useAIAssistant } from '../AIAssistantContext';
-import { GeneratedResponseBox } from '../gen-response/GeneratedResponseBox';
-import { getReactionGrade } from '~/app/features/ai-assistant/data';
+import { useMatrixClient } from '~/app/hooks/useMatrixClient';
+import { gradeMessage, Message } from '~/app/features/ai-assistant/utils/ai';
+import { isFromMe } from '~/app/features/ai-assistant/utils/utils';
+import { useAIAssistant } from '~/app/features/ai-assistant/AIAssistantContext';
+import { GeneratedResponseBox } from '~/app/features/ai-assistant/gen-response/gen-response-box/GeneratedResponseBox';
+import { getReactionGrade } from '~/app/features/ai-assistant/utils/data';
 
 interface PredictiveMessageProps {
   editorText: string;

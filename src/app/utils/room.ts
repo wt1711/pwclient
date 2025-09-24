@@ -28,7 +28,7 @@ import {
   StateEvent,
   UnreadInfo,
 } from '../../types/matrix/room';
-import { getImpersonatedUserId } from '../features/ai-assistant/utils';
+import { getImpersonatedUserId } from '../features/ai-assistant/utils/utils';
 
 export const getStateEvent = (
   room: Room,

@@ -1,13 +1,16 @@
 import React, { createContext, useContext, useState, ReactNode, useMemo, useCallback } from 'react';
-import { generateResponseFromMessage, getOpenAIConsultation } from '~/app/features/ai-assistant/ai';
+import {
+  generateResponseFromMessage,
+  getOpenAIConsultation,
+} from '~/app/features/ai-assistant/utils/ai';
 import { useRoom } from '~/app/hooks/useRoom';
 import { useMatrixClient } from '~/app/hooks/useMatrixClient';
 import { useRoomEditor } from '~/app/features/room/RoomEditorContext';
 import { useRoomMessage } from '~/app/features/room/RoomMessageContext';
 import { useSetSetting } from '~/app/state/hooks/settings';
 import { settingsAtom } from '~/app/state/settings';
-import { isFromMe } from '~/app/features/ai-assistant/utils';
-import { toneProperties, personas } from '~/app/features/ai-assistant/data';
+import { isFromMe } from '~/app/features/ai-assistant/utils/utils';
+import { toneProperties, personas } from '~/app/features/ai-assistant/utils/data';
 
 type ChatWithAIAssistantMessage = {
   sender: 'user' | 'ai';

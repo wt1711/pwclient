@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useMemo } from 'react';
-import { Message } from '~/app/features/ai-assistant/ai';
+import { Message } from '~/app/features/ai-assistant/utils/ai';
 
 type RoomMessageContextType = {
   selectedMessage: Message | null;

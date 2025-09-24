@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Text, Button } from 'folds';
 import cn from 'classnames';
-import { toneProperties } from '~/app/features/ai-assistant/data';
+import { toneProperties } from '~/app/features/ai-assistant/utils/data';
 import './ToneSelector.scss';
 
 interface ToneProperty {
