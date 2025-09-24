@@ -1,11 +1,11 @@
 import React from 'react';
 import { Box, Text, Button } from 'folds';
 import cn from 'classnames';
-import { Slider } from './slider/Slider';
+import { Slider } from '../slider/Slider';
 import {
   toneProperties,
   // colorScale
-} from './constants';
+} from '../constants';
 import './GeneratedResponseBox.scss';
 
 interface ToneProperty {
