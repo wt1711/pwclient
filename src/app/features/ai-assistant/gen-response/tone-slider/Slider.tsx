@@ -1,18 +1,17 @@
 import React from 'react';
 import { Box, Text } from 'folds';
 import { colorScale } from '~/app/features/ai-assistant/utils/data';
+import { useAIAssistant } from '~/app/features/ai-assistant/AIAssistantContext';
 import './Slider.scss';
 
-interface SliderProps {
-  value: number;
-  onChange: (value: number) => void;
-  min?: number;
-  max?: number;
-  step?: number;
-  label: string;
-}
-
-export function Slider({ value, onChange, min = 0, max = 100, step = 1, label }: SliderProps) {
+export function Slider() {
+  const { selectedProperty, toneValues, handleSliderChange } = useAIAssistant();
+  
+  const value = toneValues[selectedProperty.id];
+  const label = selectedProperty.label;
+  const min = 0;
+  const max = 100;
+  const step = 1;
   const numTicks = 50;
 
   return (
@@ -41,7 +40,7 @@ export function Slider({ value, onChange, min = 0, max = 100, step = 1, label }:
           max={max}
           step={step}
           value={value}
-          onChange={(e) => onChange(Number(e.target.value))}
+          onChange={(e) => handleSliderChange(Number(e.target.value))}
           className="slider"
         />
       </div>

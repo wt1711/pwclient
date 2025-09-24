@@ -2,14 +2,11 @@ import React from 'react';
 import { Button } from 'folds';
 import cn from 'classnames';
 import { personas } from '~/app/features/ai-assistant/utils/data';
+import { useAIAssistant } from '~/app/features/ai-assistant/AIAssistantContext';
 import './PersonaSelector.scss';
 
-interface PersonaSelectorProps {
-  selectedPersona: typeof personas[0];
-  onSelectPersona: (persona: typeof personas[0]) => void;
-}
-
-export function PersonaSelector({ selectedPersona, onSelectPersona }: PersonaSelectorProps) {
+export function PersonaSelector() {
+  const { selectedPersona, handlePersonaChange } = useAIAssistant();
   return (
     <div className="persona-selector">
       {personas.map((persona) => (
@@ -18,7 +15,7 @@ export function PersonaSelector({ selectedPersona, onSelectPersona }: PersonaSel
           className={cn('persona-selector__button', {
             'persona-selector__button--selected': selectedPersona.id === persona.id,
           })}
-          onClick={() => onSelectPersona(persona)}
+          onClick={() => handlePersonaChange(persona)}
         >
           {persona.label}
         </Button>
