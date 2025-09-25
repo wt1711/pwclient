@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box } from 'folds';
-import { PersonaSelector } from '~/app/features/ai-assistant/gen-response/persona-selector/PersonaSelector';
+import { PersonaSelector } from '~/app/features/ai-assistant/gen-response/PersonaSelector';
 import { Slider } from '~/app/features/ai-assistant/gen-response/tone-slider/Slider';
 import { ToneSelector } from '~/app/features/ai-assistant/gen-response/tone-selector/ToneSelector';
 import { useAIAssistant } from '~/app/features/ai-assistant/AIAssistantContext';
