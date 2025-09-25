@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, ReactNode, useMemo, useCall
 import {
   generateResponseFromMessage,
   getOpenAIConsultation,
+  gradeMessage,
 } from '~/app/features/ai-assistant/utils/ai';
 import { useRoom } from '~/app/hooks/useRoom';
 import { useMatrixClient } from '~/app/hooks/useMatrixClient';
@@ -10,7 +11,7 @@ import { useRoomMessage } from '~/app/features/room/RoomMessageContext';
 import { useSetSetting } from '~/app/state/hooks/settings';
 import { settingsAtom } from '~/app/state/settings';
 import { isFromMe } from '~/app/features/ai-assistant/utils/utils';
-import { toneProperties, personas } from '~/app/features/ai-assistant/utils/data';
+import { toneProperties, personas, getReactionGrade } from '~/app/features/ai-assistant/utils/data';
 
 type ChatWithAIAssistantMessage = {
   sender: 'user' | 'ai';
@@ -32,6 +33,7 @@ type AIAssistantContextType = {
   selectedPersona: typeof personas[0];
   toneValues: Record<string, number>;
   initialMessageGenerated: boolean;
+  prediction: { emoji: string; grade: string; score: number } | null;
 
   // Actions
   setInputValue: (value: string) => void;
@@ -44,6 +46,7 @@ type AIAssistantContextType = {
   setSelectedProperty: (property: typeof toneProperties[0]) => void;
   handleSliderChange: (value: number) => void;
   handlePersonaChange: (persona: typeof personas[0]) => void;
+  gradeEditorText: (text: string) => void;
 };
 
 const AIAssistantContext = createContext<AIAssistantContextType | undefined>(undefined);
@@ -67,6 +70,11 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
   const [toneValues, setToneValues] = useState<Record<string, number>>(
     toneProperties.reduce((acc, prop) => ({ ...acc, [prop.id]: 50 }), {})
   );
+  const [prediction, setPrediction] = useState<{
+    emoji: string;
+    grade: string;
+    score: number;
+  } | null>(null);
   const room = useRoom();
   const mx = useMatrixClient();
   const { insertText, deleteText } = useRoomEditor();
@@ -218,6 +226,29 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
     setChatHistory([]);
   };
 
+  const gradeEditorText = useCallback(
+    async (text: string) => {
+      if (text.trim().length > 0) {
+        const timeline = room.getLiveTimeline().getEvents();
+        const roomContext = timeline
+          .filter((event) => event.getSender() && event.getContent().body)
+          .map((event) => ({
+            sender: event.getSender() as string,
+            text: event.getContent().body as string,
+            timestamp: new Date(event.getTs()).toISOString(),
+            is_from_me: isFromMe(event.getSender() as string, mx.getUserId() as string),
+          }));
+
+        const score = await gradeMessage({ message: text, context: roomContext });
+        const analysis = getReactionGrade(score);
+        setPrediction({ ...analysis, score });
+      } else {
+        setPrediction(null);
+      }
+    },
+    [room, mx]
+  );
+
   const value: AIAssistantContextType = useMemo(
     () => ({
       // State
@@ -233,6 +264,7 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
       selectedPersona,
       toneValues,
       initialMessageGenerated,
+      prediction,
 
       // Actions
       setInputValue,
@@ -245,6 +277,7 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
       setSelectedProperty,
       handleSliderChange,
       handlePersonaChange,
+      gradeEditorText,
     }),
     [
       inputValue,
@@ -266,6 +299,8 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
       initialMessageGenerated,
       handleSliderChange,
       handlePersonaChange,
+      prediction,
+      gradeEditorText,
     ]
   );
 
