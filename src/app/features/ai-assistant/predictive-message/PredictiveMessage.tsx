@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { Spinner } from 'folds';
 import { useAIAssistant } from '~/app/features/ai-assistant/AIAssistantContext';
-import { useEscapeKey } from '~/app/features/ai-assistant/utils/utils';
 
 const styles = {
   container: {
@@ -22,7 +21,7 @@ interface PredictiveMessageProps {
   editorText: string;
 }
 export function PredictiveMessage({ editorText }: PredictiveMessageProps) {
-  const { isAIAssistantOpen, toggleAIAssistant, prediction, gradeEditorText } = useAIAssistant();
+  const { prediction, gradeEditorText } = useAIAssistant();
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -32,7 +31,9 @@ export function PredictiveMessage({ editorText }: PredictiveMessageProps) {
     return () => clearTimeout(timeoutId);
   }, [editorText, gradeEditorText]);
 
-  useEscapeKey(isAIAssistantOpen, () => toggleAIAssistant(false));
+  if (!editorText) {
+    return null;
+  }
 
   return (
     <div style={styles.container}>
