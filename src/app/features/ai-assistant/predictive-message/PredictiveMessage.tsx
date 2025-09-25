@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Spinner, Box, Icon, IconButton, Icons } from 'folds';
+import { Spinner, Box } from 'folds';
 import { useAIAssistant } from '~/app/features/ai-assistant/AIAssistantContext';
 import { GeneratedResponseBox } from '~/app/features/ai-assistant/gen-response/GeneratedResponseBox';
 
@@ -45,14 +45,7 @@ interface PredictiveMessageProps {
   editorText: string;
 }
 export function PredictiveMessage({ editorText }: PredictiveMessageProps) {
-  const {
-    isAIAssistantOpen,
-    toggleAIAssistant,
-    generateInitialResponse,
-    prediction,
-    gradeEditorText,
-  } = useAIAssistant();
-  const aiAssistantBtnRef = React.useRef<HTMLButtonElement>(null);
+  const { isAIAssistantOpen, toggleAIAssistant, prediction, gradeEditorText } = useAIAssistant();
   const popoutContentRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -78,21 +71,6 @@ export function PredictiveMessage({ editorText }: PredictiveMessageProps) {
       <p style={styles.text}>
         {prediction.emoji} &nbsp; {prediction.grade} ({prediction.score}%)
       </p>
-      <IconButton
-        ref={aiAssistantBtnRef}
-        onClick={() => {
-          if (isAIAssistantOpen) {
-            toggleAIAssistant(false);
-          } else {
-            generateInitialResponse();
-          }
-        }}
-        variant="SurfaceVariant"
-        size="300"
-        radii="300"
-      >
-        <Icon src={Icons.Setting} />
-      </IconButton>
       {isAIAssistantOpen && (
         <Box ref={popoutContentRef} direction="Column" style={styles.popout}>
           <GeneratedResponseBox />
