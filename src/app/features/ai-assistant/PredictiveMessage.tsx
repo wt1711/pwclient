@@ -1,8 +1,28 @@
 import React, { useEffect } from 'react';
 import { Spinner, Box, Icon, IconButton, Icons } from 'folds';
-import './PredictiveMessage.scss';
 import { useAIAssistant } from '~/app/features/ai-assistant/AIAssistantContext';
 import { GeneratedResponseBox } from '~/app/features/ai-assistant/gen-response/GeneratedResponseBox';
+
+const styles = {
+  container: {
+    padding: '8px 14px',
+    fontSize: '14px',
+    color: 'var(--tc-surface-low)',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+  },
+  text: {
+    margin: 0,
+    lineHeight: 1.4,
+  },
+  popout: {
+    position: 'absolute',
+    bottom: 'calc(100%)',
+    left: 0,
+    zIndex: 1000,
+  },
+} as const;
 
 const useEscapeKey = (isOpen: boolean, onClose: () => void) => {
   useEffect(() => {
@@ -47,15 +67,15 @@ export function PredictiveMessage({ editorText }: PredictiveMessageProps) {
 
   if (!prediction) {
     return (
-      <div className="predictive-message">
+      <div style={styles.container}>
         <Spinner size="200" />
       </div>
     );
   }
 
   return (
-    <div className="predictive-message">
-      <p>
+    <div style={styles.container}>
+      <p style={styles.text}>
         {prediction.emoji} &nbsp; {prediction.grade} ({prediction.score}%)
       </p>
       <IconButton
@@ -74,16 +94,7 @@ export function PredictiveMessage({ editorText }: PredictiveMessageProps) {
         <Icon src={Icons.Setting} />
       </IconButton>
       {isAIAssistantOpen && (
-        <Box
-          ref={popoutContentRef}
-          direction="Column"
-          style={{
-            position: 'absolute',
-            bottom: 'calc(100%)',
-            left: 0,
-            zIndex: 1000,
-          }}
-        >
+        <Box ref={popoutContentRef} direction="Column" style={styles.popout}>
           <GeneratedResponseBox />
         </Box>
       )}
