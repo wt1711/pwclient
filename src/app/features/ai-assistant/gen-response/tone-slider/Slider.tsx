@@ -6,9 +6,9 @@ import './Slider.scss';
 
 export function Slider() {
   const { selectedProperty, toneValues, handleSliderChange } = useAIAssistant();
-  
+
   const value = toneValues[selectedProperty.id];
-  const label = selectedProperty.label;
+  const { label } = selectedProperty;
   const min = 0;
   const max = 100;
   const step = 1;
