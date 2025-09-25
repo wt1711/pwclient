@@ -42,23 +42,21 @@ export function PredictiveMessage({ editorText }: PredictiveMessageProps) {
 
   useEscapeKey(isAIAssistantOpen, () => toggleAIAssistant(false));
 
-  if (!prediction) {
-    return (
-      <div style={styles.container}>
-        <Spinner size="200" />
-      </div>
-    );
-  }
-
   return (
     <div style={styles.container}>
-      <p style={styles.text}>
-        {prediction.emoji} &nbsp; {prediction.grade} ({prediction.score}%)
-      </p>
-      {isAIAssistantOpen && (
-        <Box ref={popoutContentRef} direction="Column" style={styles.popout}>
-          <GeneratedResponseBox />
-        </Box>
+      {prediction ? (
+        <>
+          <p style={styles.text}>
+            {prediction.emoji} &nbsp; {prediction.grade} ({prediction.score}%)
+          </p>
+          {isAIAssistantOpen && (
+            <Box ref={popoutContentRef} direction="Column" style={styles.popout}>
+              <GeneratedResponseBox />
+            </Box>
+          )}
+        </>
+      ) : (
+        <Spinner size="200" />
       )}
     </div>
   );
