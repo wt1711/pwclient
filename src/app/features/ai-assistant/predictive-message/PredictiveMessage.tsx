@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Spinner, Box } from 'folds';
 import { useAIAssistant } from '~/app/features/ai-assistant/AIAssistantContext';
 import { GeneratedResponseBox } from '~/app/features/ai-assistant/gen-response/GeneratedResponseBox';
+import { useEscapeKey } from '~/app/features/ai-assistant/utils/utils';
 
 const styles = {
   container: {
@@ -23,23 +24,6 @@ const styles = {
     zIndex: 1000,
   },
 } as const;
-
-const useEscapeKey = (isOpen: boolean, onClose: () => void) => {
-  useEffect(() => {
-    if (!isOpen) return undefined;
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose();
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isOpen, onClose]);
-};
 
 interface PredictiveMessageProps {
   editorText: string;
