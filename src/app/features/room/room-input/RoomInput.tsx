@@ -1,22 +1,23 @@
 import React, { RefObject, forwardRef, useCallback, useState } from 'react';
 import { Descendant, Editor, Node } from 'slate';
 import { Room } from 'matrix-js-sdk';
-import { Icon, IconButton, Icons, Line } from 'folds';
+import { Box, Icon, IconButton, Icons, Line } from 'folds';
 
 import { CustomEditor, Toolbar } from '../../../components/editor';
 import { GetPowerLevelTag } from '../../../hooks/usePowerLevelTags';
+import { useDebounceValue } from '~/app/hooks/useDebounceValue';
+import { useAIAssistant } from '~/app/features/ai-assistant/AIAssistantContext';
+import { PredictiveMessage } from '~/app/features/ai-assistant/predictive-message/PredictiveMessage';
+import { GeneratedResponseBox } from '~/app/features/ai-assistant/gen-response/GeneratedResponseBox';
 
 import { ReplyPreview } from './ReplyPreview';
 import { RoomInputActions } from './RoomInputActions';
 import { UploadArea } from './UploadArea';
 import { AutocompleteHandler } from './AutocompleteHandler';
 import { RoomInputProvider, useRoomInputContext } from './RoomInputContext';
-import { PredictiveMessage } from '../../ai-assistant/predictive-message/PredictiveMessage';
-import { useDebounceValue } from '../../../hooks/useDebounceValue';
-import { useAIAssistant } from '../../ai-assistant/AIAssistantContext';
 
 const RoomInputInternal = forwardRef<HTMLDivElement>((props, ref) => {
-  const { editor, handleKeyDown, handleKeyUp, handlePaste, pickFile, toolbar, room } =
+  const { editor, handleKeyDown, handleKeyUp, handlePaste, pickFile, toolbar } =
     useRoomInputContext();
   const { isAIAssistantOpen } = useAIAssistant();
 
@@ -31,6 +32,8 @@ const RoomInputInternal = forwardRef<HTMLDivElement>((props, ref) => {
     [setEditorText]
   );
   const hasText = debouncedEditorText.trim().length > 0;
+
+  const popoutContentRef = React.useRef<HTMLDivElement>(null);
 
   return (
     <div ref={ref} style={{ position: 'relative' }}>
@@ -47,7 +50,23 @@ const RoomInputInternal = forwardRef<HTMLDivElement>((props, ref) => {
         top={
           <>
             {(hasText || isAIAssistantOpen) && (
-              <PredictiveMessage room={room} editorText={debouncedEditorText} />
+              <>
+                <PredictiveMessage editorText={debouncedEditorText} />
+                {isAIAssistantOpen && (
+                  <Box
+                    ref={popoutContentRef}
+                    direction="Column"
+                    style={{
+                      position: 'absolute',
+                      bottom: 'calc(100%)',
+                      left: 0,
+                      zIndex: 1000,
+                    }}
+                  >
+                    <GeneratedResponseBox />
+                  </Box>
+                )}
+              </>
             )}
             <ReplyPreview />
           </>
