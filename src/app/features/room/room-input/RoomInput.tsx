@@ -11,12 +11,13 @@ import { RoomInputActions } from './RoomInputActions';
 import { UploadArea } from './UploadArea';
 import { AutocompleteHandler } from './AutocompleteHandler';
 import { RoomInputProvider, useRoomInputContext } from './RoomInputContext';
-import { PredictiveMessage } from '../../ai-assistant/PredictiveMessage';
-import { useDebounceValue } from '../../../hooks/useDebounceValue';
-import { useAIAssistant } from '../../ai-assistant/AIAssistantContext';
+
+import { useDebounceValue } from '~/app/hooks/useDebounceValue';
+import { useAIAssistant } from '~/app/features/ai-assistant/AIAssistantContext';
+import { PredictiveMessage } from '~/app/features/ai-assistant/predictive-message/PredictiveMessage';
 
 const RoomInputInternal = forwardRef<HTMLDivElement>((props, ref) => {
-  const { editor, handleKeyDown, handleKeyUp, handlePaste, pickFile, toolbar, room } =
+  const { editor, handleKeyDown, handleKeyUp, handlePaste, pickFile, toolbar } =
     useRoomInputContext();
   const { isAIAssistantOpen } = useAIAssistant();
 
