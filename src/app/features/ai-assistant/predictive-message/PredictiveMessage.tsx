@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
-import { Spinner, Box } from 'folds';
+import { Spinner } from 'folds';
 import { useAIAssistant } from '~/app/features/ai-assistant/AIAssistantContext';
-import { GeneratedResponseBox } from '~/app/features/ai-assistant/gen-response/GeneratedResponseBox';
 import { useEscapeKey } from '~/app/features/ai-assistant/utils/utils';
 
 const styles = {
@@ -17,12 +16,6 @@ const styles = {
     margin: 0,
     lineHeight: 1.4,
   },
-  popout: {
-    position: 'absolute',
-    bottom: 'calc(100%)',
-    left: 0,
-    zIndex: 1000,
-  },
 } as const;
 
 interface PredictiveMessageProps {
@@ -30,7 +23,6 @@ interface PredictiveMessageProps {
 }
 export function PredictiveMessage({ editorText }: PredictiveMessageProps) {
   const { isAIAssistantOpen, toggleAIAssistant, prediction, gradeEditorText } = useAIAssistant();
-  const popoutContentRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -45,16 +37,9 @@ export function PredictiveMessage({ editorText }: PredictiveMessageProps) {
   return (
     <div style={styles.container}>
       {prediction ? (
-        <>
-          <p style={styles.text}>
-            {prediction.emoji} &nbsp; {prediction.grade} ({prediction.score}%)
-          </p>
-          {isAIAssistantOpen && (
-            <Box ref={popoutContentRef} direction="Column" style={styles.popout}>
-              <GeneratedResponseBox />
-            </Box>
-          )}
-        </>
+        <p style={styles.text}>
+          {prediction.emoji} &nbsp; {prediction.grade} ({prediction.score}%)
+        </p>
       ) : (
         <Spinner size="200" />
       )}
