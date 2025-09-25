@@ -1,0 +1,40 @@
+.persona-selector {
+  display: flex;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.44);
+  background: var(--white-shade-opacity-10, rgba(255, 255, 255, 0.1));
+  box-shadow: 0 15px 26px 0 rgba(29, 29, 29, 0.2);
+  backdrop-filter: blur(50px);
+  gap: 8px;
+  justify-content: space-evenly;
+
+  &__button {
+    flex: 0 0 auto;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    height: 40px;
+    padding: 8px 20px;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 4px;
+    color: var(--white-shade-opacity-100, #fff);
+    font-feature-settings: 'liga' off, 'clig' off;
+    font-family: 'SF Pro';
+    font-size: 15px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 20px;
+    letter-spacing: -0.2px;
+    white-space: nowrap;
+
+    &--selected {
+      border-radius: 999px;
+      background: var(--white-shade-opacity-25, rgba(255, 255, 255, 0.25));
+    }
+  }
+}

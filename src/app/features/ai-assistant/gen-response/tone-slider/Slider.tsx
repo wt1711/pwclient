@@ -15,11 +15,10 @@ export function Slider() {
   const numTicks = 50;
 
   return (
-    <Box direction="Column" className="generatedResponseBox__sliderContainer">
+    <Box direction="Column">
       <Text
         size="O400"
         align="Center"
-        className="generatedResponseBox__toneLabel"
         style={{
           color: colorScale(value).hex(),
         }}
