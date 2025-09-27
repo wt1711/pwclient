@@ -86,3 +86,8 @@ export const INBOX_INVITES_PATH = `/inbox/${_INVITES_PATH}`;
 export const SPACE_SETTINGS_PATH = '/space-settings/';
 
 export const ROOM_SETTINGS_PATH = '/room-settings/';
+
+// Instagram Chat paths
+export const INSTAGRAM_CHAT_PATH = '/instagram/chat/:id/';
+export const _INSTAGRAM_CHAT_PATH = 'instagram/:id/';
+export const HOME_INSTAGRAM_CHAT_PATH = `/home/${_INSTAGRAM_CHAT_PATH}`;

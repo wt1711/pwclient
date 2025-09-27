@@ -102,7 +102,7 @@ export default defineConfig({
       plugins: [
         // Enable esbuild polyfill plugins
         NodeGlobalsPolyfillPlugin({
-          process: false,
+          process: true,
           buffer: true,
         }),
       ],

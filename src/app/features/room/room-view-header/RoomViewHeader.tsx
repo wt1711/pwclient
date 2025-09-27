@@ -1,5 +1,6 @@
 import React, {
-  // MouseEventHandler,  useState
+  // MouseEventHandler,  
+  useState,
   forwardRef,
 } from 'react';
 import FocusTrap from 'focus-trap-react';
@@ -74,6 +75,8 @@ import {
 import { JumpToTime } from '../jump-to-time';
 import { useRoomNavigate } from '../../../hooks/useRoomNavigate';
 import wingmanPFP from '../../ai-assistant/assets/wingman.png';
+import { usePaymentVerification } from '../../../hooks/usePaymentVerification';
+import { PaymentModal } from '../../../components/payment/PaymentModal';
 
 type RoomMenuProps = {
   room: Room;
@@ -257,6 +260,10 @@ export function RoomViewHeader() {
   // const [pinMenuAnchor, setPinMenuAnchor] = useState<RectCords>();
   const [aiAssistantOpen, setAIAssistantOpen] = useSetting(settingsAtom, 'isAiDrawerOpen');
   const mDirects = useAtomValue(mDirectAtom);
+  const matrixUserId = mx.getUserId();
+  const { paymentState, refreshPaymentStatus } = usePaymentVerification(matrixUserId || undefined);
+  const { hasPaid, isLoading: paymentLoading } = paymentState;
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   // const pinnedEvents = useRoomPinnedEvents(room);
   // const encryptionEvent = useStateEvent(room, StateEvent.RoomEncryption);
@@ -287,6 +294,38 @@ export function RoomViewHeader() {
   // const handleOpenPinMenu: MouseEventHandler<HTMLButtonElement> = (evt) => {
   //   setPinMenuAnchor(evt.currentTarget.getBoundingClientRect());
   // };
+
+  const handleAIAssistantClick = () => {
+    console.log('🤖 AI Assistant clicked - Payment state:', { hasPaid, paymentLoading, showPaymentModal });
+    
+    if (!hasPaid && !paymentLoading) {
+      console.log('💳 Payment required - showing payment modal');
+      setShowPaymentModal(true);
+      return;
+    }
+    
+    console.log('✅ Payment verified - toggling AI assistant');
+    setAIAssistantOpen(!aiAssistantOpen);
+  };
+
+  const handlePaymentSuccess = () => {
+    console.log('🎉 [RoomViewHeader] Payment success callback triggered');
+    console.log('📊 [RoomViewHeader] Current payment state before refresh:', paymentState);
+    console.log('🔄 [RoomViewHeader] Calling refreshPaymentStatus...');
+    
+    refreshPaymentStatus().then(() => {
+      console.log('✅ [RoomViewHeader] refreshPaymentStatus completed');
+      console.log('📊 [RoomViewHeader] Payment state after refresh:', paymentState);
+    }).catch((error) => {
+      console.error('❌ [RoomViewHeader] refreshPaymentStatus failed:', error);
+    });
+    
+    setShowPaymentModal(false);
+    console.log('🚪 [RoomViewHeader] Payment modal closed');
+    
+    console.log('🤖 [RoomViewHeader] Opening AI assistant...');
+    setAIAssistantOpen(true);
+  };
 
   return (
     <PageHeader balance={screenSize === ScreenSize.Mobile}>
@@ -430,7 +469,7 @@ export function RoomViewHeader() {
               {(triggerRef) => (
                 <IconButton
                   ref={triggerRef}
-                  onClick={() => setAIAssistantOpen(!aiAssistantOpen)}
+                  onClick={handleAIAssistantClick}
                   aria-pressed={aiAssistantOpen}
                 >
                   <img src={wingmanPFP} alt="Wingman" style={{ width: '20px', height: '20px' }} />
@@ -512,6 +551,14 @@ export function RoomViewHeader() {
           /> */}
         </Box>
       </Box>
+      {showPaymentModal && (
+        <PaymentModal
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          onSuccess={handlePaymentSuccess}
+          matrixUserId={mx.getUserId() || ''}
+        />
+      )}
     </PageHeader>
   );
 }

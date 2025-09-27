@@ -12,3 +12,8 @@ dist
 .DS_Store
 .idea
 .vercel
+
+
+# env files (can opt-in for committing if needed)
+.env
+.env.local

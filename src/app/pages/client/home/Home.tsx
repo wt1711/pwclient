@@ -1,7 +1,10 @@
-import React, { MouseEventHandler, forwardRef, useMemo, useRef, useState } from 'react';
+import React, { MouseEventHandler, forwardRef, useMemo, useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getHomeInstagramChatPath } from '../../pathUtils';
+import { fetchInstagramContacts, InstagramContact } from '../../../services/instagramApi';
 import {
   Avatar,
+  Badge,
   Box,
   Button,
   Icon,
@@ -11,6 +14,7 @@ import {
   MenuItem,
   PopOut,
   RectCords,
+  Spinner,
   Text,
   config,
   toRem,
@@ -53,6 +57,7 @@ import {
   getRoomNotificationMode,
   useRoomsNotificationPreferencesContext,
 } from '../../../hooks/useRoomsNotificationPreferences';
+import { InstagramLoginModal } from '../../../components/InstagramLoginModal';
 
 type HomeMenuProps = {
   requestClose: () => void;
@@ -197,6 +202,278 @@ function HomeEmpty() {
 }
 
 const DEFAULT_CATEGORY_ID = makeNavCategoryId('home', 'room');
+
+// Instagram DM List Component
+function InstagramDMList() {
+  const [contacts, setContacts] = useState<InstagramContact[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  // Fetch Instagram threads on component mount
+  useEffect(() => {
+    const loadContacts = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const fetchedContacts = await fetchInstagramContacts();
+        setContacts(fetchedContacts);
+      } catch (err) {
+        console.error('Failed to load Instagram contacts:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load conversations');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadContacts();
+  }, []);
+
+  const handleContactClick = (contactId: string) => {
+    // Navigate to Instagram chat view
+    navigate(getHomeInstagramChatPath(contactId));
+  };
+
+  return (
+    <NavCategory>
+      <NavCategoryHeader>
+        <RoomNavCategoryButton
+          closed={false}
+          data-category-id="instagram-dms"
+          onClick={() => console.log('Instagram DMs category clicked')}
+        >
+          Instagram DMs
+        </RoomNavCategoryButton>
+      </NavCategoryHeader>
+      
+      {isLoading ? (
+        <NavItem variant="Background" radii="400">
+          <NavItemContent>
+            <Box as="span" grow="Yes" alignItems="Center" gap="200" style={{ padding: '8px 0' }}>
+              <Spinner size="100" />
+              <Text as="span" size="T300" priority="300" truncate>
+                Loading conversations...
+              </Text>
+            </Box>
+          </NavItemContent>
+        </NavItem>
+      ) : error ? (
+        <NavItem variant="Background" radii="400">
+          <NavItemContent>
+            <Box as="span" grow="Yes" alignItems="Center" gap="200" style={{ padding: '8px 0' }}>
+              <Icon src={Icons.Warning} size="100" />
+              <Text as="span" size="T300" priority="300" truncate>
+                {error}
+              </Text>
+            </Box>
+          </NavItemContent>
+        </NavItem>
+      ) : contacts.length === 0 ? (
+        <NavItem variant="Background" radii="400">
+          <NavItemContent>
+            <Box as="span" grow="Yes" alignItems="Center" gap="200" style={{ padding: '8px 0' }}>
+              <Text as="span" size="T300" priority="300" truncate>
+                No direct messages yet
+              </Text>
+            </Box>
+          </NavItemContent>
+        </NavItem>
+      ) : (
+        contacts.map((contact) => {
+          const displayName = contact.fullName || contact.username || 'Unknown';
+          const hasUnread = (contact.unreadCount || 0) > 0;
+          
+          return (
+            <NavItem key={contact.id} variant="Background" radii="400">
+              <NavButton onClick={() => handleContactClick(contact.id)}>
+                <NavItemContent>
+                  <Box as="span" grow="Yes" alignItems="Center" gap="200">
+                    <Avatar size="200" radii="400">
+                      {contact.profilePicUrl ? (
+                        <img 
+                          src={contact.profilePicUrl} 
+                          alt={displayName}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                      ) : (
+                        <Icon src={Icons.User} size="100" />
+                      )}
+                    </Avatar>
+                    <Box as="span" grow="Yes" direction="Column" alignItems="Start">
+                      <Text as="span" size="Inherit" truncate priority={hasUnread ? '500' : '400'}>
+                        {displayName}
+                      </Text>
+                      <Text as="span" size="T200" priority="300" truncate>
+                        {contact.lastMessageTime ? 'Recent activity' : 'No messages'}
+                      </Text>
+                    </Box>
+                    {hasUnread && (
+                      <Badge variant="Primary" size="300" radii="Pill">
+                        <Text size="L400">{contact.unreadCount}</Text>
+                      </Badge>
+                    )}
+                  </Box>
+                </NavItemContent>
+              </NavButton>
+            </NavItem>
+          );
+        })
+      )}
+    </NavCategory>
+  );
+}
+
+// Helper function to check Instagram connection status
+function useInstagramConnection() {
+  const [isConnected, setIsConnected] = useState(false);
+
+  useEffect(() => {
+    const checkConnection = () => {
+      const token = localStorage.getItem('instagram_token');
+      setIsConnected(!!token);
+    };
+
+    // Check initial connection
+    checkConnection();
+
+    // Listen for storage changes (when token is added/removed)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'instagram_token') {
+        checkConnection();
+      }
+    };
+
+    // Listen for custom events (for same-tab updates)
+    const handleTokenChange = () => {
+      checkConnection();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('instagram-token-changed', handleTokenChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('instagram-token-changed', handleTokenChange);
+    };
+  }, []);
+
+  return isConnected;
+}
+
+// Instagram Connect Component
+function InstagramConnectSection() {
+  const [isConnected, setIsConnected] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Check for existing token on component mount
+  useEffect(() => {
+    const token = localStorage.getItem('instagram_token');
+    if (token) {
+      setIsConnected(true);
+    }
+  }, []);
+
+  // Don't render anything if already connected
+  if (isConnected) {
+    return null;
+  }
+
+  const handleInstagramLogin = async (username: string, password: string) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        // Store the token in localStorage
+        localStorage.setItem('instagram_token', data.token);
+        localStorage.setItem('instagram_user', JSON.stringify(data.user));
+        
+        // Dispatch custom event to notify other components
+        window.dispatchEvent(new CustomEvent('instagram-token-changed'));
+        
+        setIsConnected(true);
+        setIsModalOpen(false);
+        console.log('Successfully connected to Instagram:', data.user);
+      } else {
+        const errorMessage = data.error || 'Failed to connect to Instagram';
+        setError(errorMessage);
+        throw new Error(errorMessage);
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Network error. Make sure the Instagram service is running on port 3000.';
+      setError(errorMessage);
+      console.error('Instagram connection error:', err);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleConnectClick = () => {
+    setError(null);
+    setIsModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    if (!isLoading) {
+      setIsModalOpen(false);
+      setError(null);
+    }
+  };
+
+  // Don't render the connect button if already connected
+  if (isConnected) {
+    return null;
+  }
+
+  return (
+    <>
+      <NavCategory>
+        <NavItem variant="Background" radii="400">
+          <NavButton onClick={handleConnectClick} disabled={isLoading}>
+            <NavItemContent>
+              <Box as="span" grow="Yes" alignItems="Center" gap="200">
+                <Avatar size="200" radii="400">
+                  <Icon src={Icons.Photo} size="100" />
+                </Avatar>
+                <Box as="span" grow="Yes">
+                  <Text as="span" size="Inherit" truncate>
+                    Connect to Instagram
+                  </Text>
+                  {error && (
+                    <Text as="span" size="T200" priority="300" truncate>
+                      {error}
+                    </Text>
+                  )}
+                </Box>
+              </Box>
+            </NavItemContent>
+          </NavButton>
+        </NavItem>
+      </NavCategory>
+      
+      <InstagramLoginModal
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        onLogin={handleInstagramLogin}
+        isLoading={isLoading}
+        error={error}
+      />
+    </>
+  );
+}
 export function Home() {
   const mx = useMatrixClient();
   useNavToActivePathMapper('home');
@@ -204,6 +481,7 @@ export function Home() {
   const rooms = useHomeRooms();
   const notificationPreferences = useRoomsNotificationPreferencesContext();
   const roomToUnread = useAtomValue(roomToUnreadAtom);
+  const isInstagramConnected = useInstagramConnection();
 
   const selectedRoomId = useSelectedRoom();
   const searchSelected = useHomeSearchSelected();
@@ -241,6 +519,12 @@ export function Home() {
       ) : (
         <PageNavContent scrollRef={scrollRef}>
           <Box direction="Column" gap="300">
+            {/* Instagram Connect Button - only show if not connected */}
+            <InstagramConnectSection />
+            
+            {/* Instagram DM List - only show if connected */}
+            {isInstagramConnected && <InstagramDMList />}
+            
             {/* <NavCategory>
               <NavItem variant="Background" radii="400">
                 <NavButton onClick={() => openCreateRoom()}>
@@ -333,6 +617,8 @@ export function Home() {
                 })}
               </div>
             </NavCategory>
+            
+
           </Box>
         </PageNavContent>
       )}

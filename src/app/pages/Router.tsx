@@ -14,6 +14,7 @@ import {
   DIRECT_PATH,
   EXPLORE_PATH,
   HOME_PATH,
+  INSTAGRAM_CHAT_PATH,
   LOGIN_PATH,
   INBOX_PATH,
   REGISTER_PATH,
@@ -21,6 +22,7 @@ import {
   SPACE_PATH,
   _CREATE_PATH,
   _FEATURED_PATH,
+  _INSTAGRAM_CHAT_PATH,
   _INVITES_PATH,
   _JOIN_PATH,
   _LOBBY_PATH,
@@ -61,6 +63,7 @@ import { AutoRestoreBackupOnVerification } from '../components/BackupRestore';
 import { RoomSettingsRenderer } from '../features/room-settings';
 import { ClientRoomsNotificationPreferences } from './client/ClientRoomsNotificationPreferences';
 import { SpaceSettingsRenderer } from '../features/space-settings';
+import { InstagramChat } from './client/instagram-chat/InstagramChat';
 
 export const createRouter = (clientConfig: ClientConfig, screenSize: ScreenSize) => {
   const { hashRouter } = clientConfig;
@@ -163,6 +166,7 @@ export const createRouter = (clientConfig: ClientConfig, screenSize: ScreenSize)
               </HomeRouteRoomProvider>
             }
           />
+          <Route path={_INSTAGRAM_CHAT_PATH} element={<InstagramChat />} />
         </Route>
         <Route
           path={DIRECT_PATH}
@@ -277,6 +281,7 @@ export const createRouter = (clientConfig: ClientConfig, screenSize: ScreenSize)
           <Route path={_NOTIFICATIONS_PATH} element={<Notifications />} />
           <Route path={_INVITES_PATH} element={<Invites />} />
         </Route>
+
       </Route>
       <Route path="/*" element={<p>Page not found</p>} />
     </Route>

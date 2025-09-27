@@ -1,0 +1,52 @@
+{
+  "name": "instagram-chat-nextjs",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build --turbopack",
+    "start": "next start",
+    "lint": "eslint",
+    "ws-server": "node websocket-server.mjs",
+    "dev:full": "concurrently \"npm run dev\" \"npm run ws-server\"",
+    "migrate:up": "node scripts/migrate.js up",
+    "migrate:down": "node scripts/migrate.js down",
+    "migrate:status": "node scripts/migrate.js status",
+    "migrate:rollback": "node scripts/migrate.js down 1",
+    "migrate:create": "node scripts/create-migration.js"
+  },
+  "dependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/pg": "^8.15.5",
+    "@types/ws": "^8.18.1",
+    "bcryptjs": "^3.0.2",
+    "concurrently": "9.2.1",
+    "dotenv": "^17.2.2",
+    "instagram_mqtt": "^1.2.3",
+    "instagram-private-api": "^1.46.1",
+    "ioredis": "^5.7.0",
+    "jsonwebtoken": "^9.0.2",
+    "lucide-react": "^0.544.0",
+    "next": "15.5.3",
+    "next-auth": "^4.24.11",
+    "pg": "^8.16.3",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "redis": "^5.8.2",
+    "stripe": "^18.5.0",
+    "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.3",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

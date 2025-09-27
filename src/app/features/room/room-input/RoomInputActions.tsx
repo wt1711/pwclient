@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Box, Icon, IconButton, Icons, PopOut } from 'folds';
 import { ReactEditor } from 'slate-react';
 import { EmojiBoard, EmojiBoardTab } from '~/app/components/emoji-board';
@@ -7,6 +7,10 @@ import { mobileOrTablet } from '~/app/utils/user-agent';
 import { useRoomInputContext } from './RoomInputContext';
 import { GenerateResponseButton } from '~/app/features/ai-assistant/gen-response/GenerateResponseButton';
 import { useAIAssistant } from '~/app/features/ai-assistant/AIAssistantContext';
+
+import { usePaymentVerification } from '~/app/hooks/usePaymentVerification';
+import { PaymentModal } from '~/app/components/payment/PaymentModal';
+import { useMatrixClient } from '~/app/hooks/useMatrixClient';
 
 export function RoomInputActions() {
   const {
@@ -18,8 +22,49 @@ export function RoomInputActions() {
     hideStickerBtn,
   } = useRoomInputContext();
   const { isAIAssistantOpen, toggleAIAssistant, generateInitialResponse } = useAIAssistant();
+  const mx = useMatrixClient();
+  const matrixUserId = mx.getUserId();
+  const { paymentState, refreshPaymentStatus } = usePaymentVerification(matrixUserId || undefined);
+  const { hasPaid, isLoading: paymentLoading } = paymentState;
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const emojiBtnRef = useRef<HTMLButtonElement>(null);
   const aiAssistantBtnRef = useRef<HTMLButtonElement>(null);
+
+  const handleAIAssistantClick = () => {
+    console.log('🤖 [RoomInputActions] AI Assistant clicked - Payment state:', { hasPaid, paymentLoading, showPaymentModal });
+    
+    if (!hasPaid && !paymentLoading) {
+      console.log('💳 [RoomInputActions] Payment required - showing payment modal');
+      setShowPaymentModal(true);
+      return;
+    }
+
+    if (isAIAssistantOpen) {
+      toggleAIAssistant(false);
+    } else {
+      generateInitialResponse();
+    }
+  };
+
+  const handlePaymentSuccess = () => {
+    console.log('🎉 [RoomInputActions] Payment success callback triggered');
+    console.log('📊 [RoomInputActions] Current payment state before refresh:', paymentState);
+    console.log('🔄 [RoomInputActions] Calling refreshPaymentStatus...');
+    
+    refreshPaymentStatus().then(() => {
+      console.log('✅ [RoomInputActions] refreshPaymentStatus completed');
+      console.log('📊 [RoomInputActions] Payment state after refresh:', paymentState);
+    }).catch((error) => {
+      console.error('❌ [RoomInputActions] refreshPaymentStatus failed:', error);
+    });
+    
+    setShowPaymentModal(false);
+    console.log('🚪 [RoomInputActions] Payment modal closed');
+    
+    // Open AI assistant after successful payment
+    console.log('🤖 [RoomInputActions] Generating initial AI response...');
+    generateInitialResponse();
+  };
 
   return (
     <>
@@ -28,16 +73,11 @@ export function RoomInputActions() {
       </Box>
       <IconButton
         ref={aiAssistantBtnRef}
-        onClick={() => {
-          if (isAIAssistantOpen) {
-            toggleAIAssistant(false);
-          } else {
-            generateInitialResponse();
-          }
-        }}
         variant="SurfaceVariant"
         size="300"
         radii="300"
+        onClick={handleAIAssistantClick}
+        disabled={paymentLoading}
       >
         <Icon src={Icons.Setting} />
       </IconButton>
@@ -95,6 +135,14 @@ export function RoomInputActions() {
       <IconButton onClick={submit} variant="SurfaceVariant" size="300" radii="300">
         <Icon src={Icons.Send} />
       </IconButton>
+      {showPaymentModal && (
+          <PaymentModal
+            isOpen={showPaymentModal}
+            onClose={() => setShowPaymentModal(false)}
+            onSuccess={handlePaymentSuccess}
+            matrixUserId={mx.getUserId() || ''}
+          />
+        )}
     </>
   );
 }
