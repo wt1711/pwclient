@@ -7,7 +7,7 @@ import { CustomEditor, Toolbar } from '../../../components/editor';
 import { GetPowerLevelTag } from '../../../hooks/usePowerLevelTags';
 import { useDebounceValue } from '~/app/hooks/useDebounceValue';
 import { useAIAssistant } from '~/app/features/ai-assistant/AIAssistantContext';
-import { PredictiveMessage } from '~/app/features/ai-assistant/predictive-message/PredictiveMessage';
+// import { PredictiveMessage } from '~/app/features/ai-assistant/predictive-message/PredictiveMessage';
 import { GeneratedResponseBox } from '~/app/features/ai-assistant/gen-response/GeneratedResponseBox';
 
 import { ReplyPreview } from './ReplyPreview';
@@ -51,7 +51,7 @@ const RoomInputInternal = forwardRef<HTMLDivElement>((props, ref) => {
           <>
             {(hasText || isAIAssistantOpen) && (
               <>
-                <PredictiveMessage editorText={debouncedEditorText} />
+                {/* <PredictiveMessage editorText={debouncedEditorText} /> */}
                 {isAIAssistantOpen && (
                   <Box
                     ref={popoutContentRef}
