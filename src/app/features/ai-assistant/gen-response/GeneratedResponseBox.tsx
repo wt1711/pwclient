@@ -15,6 +15,7 @@ export function GeneratedResponseBox() {
     <Box
       direction="Column"
       style={{
+        maxWidth: '468px',
         width: '100%',
         display: 'flex',
         flexDirection: 'column',
