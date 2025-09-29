@@ -1,8 +1,7 @@
 import React from 'react';
 import { Box } from 'folds';
 import { PersonaSelector } from '~/app/features/ai-assistant/gen-response/personal-selector/PersonaSelector';
-import { Slider } from '~/app/features/ai-assistant/gen-response/tone-slider/Slider';
-import { ToneSelector } from '~/app/features/ai-assistant/gen-response/tone-selector/ToneSelector';
+import { ToneTuning } from '~/app/features/ai-assistant/gen-response/tone-tuning/ToneTuning';
 import { useAIAssistant } from '~/app/features/ai-assistant/AIAssistantContext';
 import { useEscapeKey } from '~/app/features/ai-assistant/utils/utils';
 
@@ -23,8 +22,7 @@ export function GeneratedResponseBox() {
       }}
     >
       <Box direction="Column" gap="200">
-        <Slider />
-        <ToneSelector />
+        <ToneTuning />
         <PersonaSelector />
       </Box>
     </Box>
