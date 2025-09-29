@@ -38,6 +38,56 @@ services:
       timeout: 10s
       retries: 3
 
+  migrate:
+    image: node:18-alpine
+    container_name: ${MIGRATE_CONTAINER_NAME:-instagram-chat-migrate}
+    working_dir: /app
+    env_file:
+      - .env.local
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-instagram_chat}
+      DB_USER: ${DB_USER:-instagram_user}
+      DB_PASSWORD: ${DB_PASSWORD:-instagram_password}
+    volumes:
+      - ./:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles:
+      - migrate
+    command: sh -c "npm install && npm run migrate:up"
+
+  app:
+    image: node:18-alpine
+    container_name: ${APP_CONTAINER_NAME:-instagram-chat-app}
+    working_dir: /app
+    env_file:
+      - .env.local
+    environment:
+      DATABASE_URL: postgresql://instagram_user:instagram_password@postgres:5432/instagram_chat
+      REDIS_URL: redis://redis:6379
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-instagram_chat}
+      DB_USER: ${DB_USER:-instagram_user}
+      DB_PASSWORD: ${DB_PASSWORD:-instagram_password}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    ports:
+      - "3000:3000"
+      - "8088:8088"
+    volumes:
+      - ./:/app
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: sh -c "npm install && npm run dev:full"
+
 volumes:
   redis_data:
   postgres_data:

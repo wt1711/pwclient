@@ -1,5 +1,27 @@
 -- Initialize database schema for Instagram Chat App
 
+-- Create the instagram_user role if it doesn't exist
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'instagram_user') THEN
+        CREATE ROLE instagram_user WITH LOGIN PASSWORD 'instagram_password';
+    END IF;
+END
+$$;
+
+-- Grant necessary permissions to the instagram_user role
+GRANT CONNECT ON DATABASE instagram_chat TO instagram_user;
+GRANT USAGE ON SCHEMA public TO instagram_user;
+GRANT CREATE ON SCHEMA public TO instagram_user;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO instagram_user;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO instagram_user;
+GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO instagram_user;
+
+-- Grant permissions on future objects
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO instagram_user;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO instagram_user;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON FUNCTIONS TO instagram_user;
+
 -- Users table to store Instagram user information
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,

@@ -3,7 +3,7 @@ import { Pool } from 'pg';
 
 // CORS headers
 const corsHeaders = {
-  'Access-Control-Allow-Origin': (process.env.CORS_ALLOW_ORIGIN ?? 'http://localhost:5173'),
+  'Access-Control-Allow-Origin': process.env.CORS_ALLOW_ORIGIN ?? 'http://localhost:5173',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
   'Access-Control-Allow-Credentials': 'true',
@@ -21,6 +21,8 @@ export async function OPTIONS(request: NextRequest) {
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
+
+console.log('DATABASE_URL:', process.env.DATABASE_URL);
 
 export async function GET(request: NextRequest) {
   try {
@@ -46,12 +48,15 @@ export async function GET(request: NextRequest) {
       const hasPaid = result.rows.length > 0;
       const paymentId = hasPaid ? result.rows[0].payment_id : undefined;
 
-      return NextResponse.json({
-        payed: hasPaid,
-        paymentId: paymentId,
-      }, {
-        headers: corsHeaders
-      });
+      return NextResponse.json(
+        {
+          payed: hasPaid,
+          paymentId: paymentId,
+        },
+        {
+          headers: corsHeaders,
+        }
+      );
     } finally {
       client.release();
     }
