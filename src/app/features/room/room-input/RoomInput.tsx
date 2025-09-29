@@ -1,7 +1,7 @@
 import React, { RefObject, forwardRef, useCallback, useState } from 'react';
 import { Descendant, Editor, Node } from 'slate';
 import { Room } from 'matrix-js-sdk';
-import { Box, Icon, IconButton, Icons, Line } from 'folds';
+import { Box, config, Icon, IconButton, Icons, Line } from 'folds';
 
 import { CustomEditor, Toolbar } from '../../../components/editor';
 import { GetPowerLevelTag } from '../../../hooks/usePowerLevelTags';
@@ -37,9 +37,10 @@ const RoomInputInternal = forwardRef<HTMLDivElement>((props, ref) => {
     <Box
       style={{
         flexDirection: 'column',
-        padding: '12px',
         background: 'rgba(255, 255, 255, 0.10)',
         backdropFilter: 'blur(50px)',
+        padding: '8px 19px 19px 19px',
+        gap: config.space.S300,
       }}
     >
       <GeneratedResponseBox />

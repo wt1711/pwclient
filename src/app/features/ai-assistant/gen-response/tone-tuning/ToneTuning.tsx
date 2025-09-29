@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Button, Icon, Icons, Text } from 'folds';
+import { Box, Icon, Icons, config } from 'folds';
 import { Slider } from './Slider';
 import { ToneSelector } from './ToneSelector';
 
@@ -8,21 +8,25 @@ export function ToneTuning() {
 
   return (
     <Box direction="Column" gap="100">
-      <Button
-        variant="Secondary"
-        fill="Soft"
-        size="300"
-        radii="300"
-        outlined
-        before={
-          <Icon src={isExpanded ? Icons.ChevronTop : Icons.ChevronBottom} size="100" filled />
-        }
+      <Box
+        as="button"
+        type="button"
         onClick={() => setIsExpanded((prev) => !prev)}
+        style={{
+          border: 'none',
+          background: 'transparent',
+          padding: 0,
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+        aria-label={isExpanded ? 'Hide Tone Tuning' : 'Show Tone Tuning'}
       >
-        <Text size="B300">{isExpanded ? 'Hide Tone Tuning' : 'Show Tone Tuning'}</Text>
-      </Button>
+        <Icon src={isExpanded ? Icons.ChevronBottom : Icons.ChevronTop} size="200" />
+      </Box>
       {isExpanded && (
-        <Box direction="Column" gap="200">
+        <Box direction="Column" style={{ gap: config.space.S300 }}>
           <Slider />
           <ToneSelector />
         </Box>

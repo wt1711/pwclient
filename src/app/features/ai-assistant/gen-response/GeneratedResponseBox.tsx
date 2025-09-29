@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box } from 'folds';
+import { Box, config } from 'folds';
 import { PersonaSelector } from '~/app/features/ai-assistant/gen-response/personal-selector/PersonaSelector';
 import { ToneTuning } from '~/app/features/ai-assistant/gen-response/tone-tuning/ToneTuning';
 import { useAIAssistant } from '~/app/features/ai-assistant/AIAssistantContext';
@@ -18,10 +18,9 @@ export function GeneratedResponseBox() {
         width: '100%',
         display: 'flex',
         flexDirection: 'column',
-        padding: '21px 19px 19px 19px',
       }}
     >
-      <Box direction="Column" gap="200">
+      <Box direction="Column" style={{ gap: config.space.S300 }}>
         <ToneTuning />
         <PersonaSelector />
       </Box>
