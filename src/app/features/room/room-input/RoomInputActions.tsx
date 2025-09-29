@@ -6,7 +6,6 @@ import { UseStateProvider } from '~/app/components/UseStateProvider';
 import { mobileOrTablet } from '~/app/utils/user-agent';
 import { useRoomInputContext } from './RoomInputContext';
 import { GenerateResponseButton } from '~/app/features/ai-assistant/gen-response/GenerateResponseButton';
-import { useAIAssistant } from '~/app/features/ai-assistant/AIAssistantContext';
 
 export function RoomInputActions() {
   const {
@@ -17,30 +16,13 @@ export function RoomInputActions() {
     handleStickerSelect,
     hideStickerBtn,
   } = useRoomInputContext();
-  const { isAIAssistantOpen, toggleAIAssistant, generateInitialResponse } = useAIAssistant();
   const emojiBtnRef = useRef<HTMLButtonElement>(null);
-  const aiAssistantBtnRef = useRef<HTMLButtonElement>(null);
 
   return (
     <>
       <Box direction="Row" alignItems="Center" gap="100">
         <GenerateResponseButton />
       </Box>
-      <IconButton
-        ref={aiAssistantBtnRef}
-        onClick={() => {
-          if (isAIAssistantOpen) {
-            toggleAIAssistant(false);
-          } else {
-            generateInitialResponse();
-          }
-        }}
-        variant="SurfaceVariant"
-        size="300"
-        radii="300"
-      >
-        <Icon src={Icons.Setting} />
-      </IconButton>
       <UseStateProvider initial={undefined}>
         {(
           emojiBoardTab: EmojiBoardTab | undefined,

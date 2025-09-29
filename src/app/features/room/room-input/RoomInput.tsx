@@ -42,7 +42,7 @@ const RoomInputInternal = forwardRef<HTMLDivElement>((props, ref) => {
         backdropFilter: 'blur(50px)',
       }}
     >
-      {isAIAssistantOpen && <GeneratedResponseBox />}
+      <GeneratedResponseBox />
       <div ref={ref} style={{ width: '100%' }}>
         <UploadArea />
         <AutocompleteHandler />
