@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Box, Icon, Icons, config } from 'folds';
+import { Box, Icon, Icons, config, Spinner } from 'folds';
 import { useAIAssistant } from '~/app/features/ai-assistant/AIAssistantContext';
 import { Slider } from './Slider';
+
 import { ToneSelector } from './ToneSelector';
 
 export function ToneTuning() {
@@ -9,7 +10,7 @@ export function ToneTuning() {
   const { regenerateResponse, isGeneratingResponse } = useAIAssistant();
 
   return (
-    <Box direction="Column" gap="100">
+    <Box direction="Column" style={{ gap: config.space.S300 }}>
       <Box
         as="button"
         type="button"
@@ -58,7 +59,11 @@ export function ToneTuning() {
               }}
               aria-label="Regenerate tone response"
             >
-              <Icon src={Icons.Reload} size="200" />
+              {isGeneratingResponse ? (
+                <Spinner size="200" />
+              ) : (
+                <Icon src={Icons.Reload} size="200" />
+              )}
             </Box>
           </Box>
           <ToneSelector />
