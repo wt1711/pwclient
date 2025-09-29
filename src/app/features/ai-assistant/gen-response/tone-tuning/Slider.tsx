@@ -15,7 +15,7 @@ export function Slider() {
   const numTicks = 50;
 
   return (
-    <Box direction="Column">
+    <Box direction="Column" style={{ width: '100%' }}>
       <Text
         size="O400"
         align="Center"

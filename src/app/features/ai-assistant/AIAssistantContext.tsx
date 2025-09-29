@@ -39,7 +39,7 @@ type AIAssistantContextType = {
   setInputValue: (value: string) => void;
   handleSend: () => void;
   generateInitialResponse: () => void;
-  regenerateResponse: (spec?: object) => void;
+  regenerateResponse: (spec?: object) => Promise<void>;
   handleUseSuggestion: (response: string) => void;
   clearChatHistory: () => void;
   toggleAIAssistant: (isOpen?: boolean) => void;
@@ -118,7 +118,6 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
   const regenerateResponse = useCallback(
     async (spec = {}) => {
       setIsGeneratingResponse(true);
-      deleteText();
 
       try {
         // Get the actual room conversation from timeline
@@ -146,7 +145,7 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
         setInitialMessageGenerated(true);
       }
     },
-    [room, mx, handleUseSuggestion, deleteText]
+    [room, mx, handleUseSuggestion]
   );
 
   const handleSliderChange = useCallback(
