@@ -7,7 +7,7 @@ import { CustomEditor, Toolbar } from '../../../components/editor';
 import { GetPowerLevelTag } from '../../../hooks/usePowerLevelTags';
 import { useDebounceValue } from '~/app/hooks/useDebounceValue';
 import { useAIAssistant } from '~/app/features/ai-assistant/AIAssistantContext';
-// import { PredictiveMessage } from '~/app/features/ai-assistant/predictive-message/PredictiveMessage';
+import { PredictiveMessage } from '~/app/features/ai-assistant/predictive-message/PredictiveMessage';
 import { GeneratedResponseBox } from '~/app/features/ai-assistant/gen-response/GeneratedResponseBox';
 
 import { ReplyPreview } from './ReplyPreview';
@@ -33,60 +33,57 @@ const RoomInputInternal = forwardRef<HTMLDivElement>((props, ref) => {
   );
   const hasText = debouncedEditorText.trim().length > 0;
 
-  const popoutContentRef = React.useRef<HTMLDivElement>(null);
-
   return (
-    <div ref={ref} style={{ position: 'relative' }}>
-      <UploadArea />
-      <AutocompleteHandler />
-      <CustomEditor
-        editableName="RoomInput"
-        editor={editor}
-        placeholder="Send a message..."
-        onKeyDown={handleKeyDown}
-        onKeyUp={handleKeyUp}
-        onPaste={handlePaste}
-        onChange={handleEditorChange}
-        top={
-          <>
-            {(hasText || isAIAssistantOpen) && (
-              <>
-                {/* <PredictiveMessage editorText={debouncedEditorText} /> */}
-                {isAIAssistantOpen && (
-                  <Box
-                    ref={popoutContentRef}
-                    direction="Column"
-                    style={{
-                      position: 'absolute',
-                      bottom: 'calc(100%)',
-                      left: 0,
-                      zIndex: 1000,
-                    }}
-                  >
-                    <GeneratedResponseBox />
-                  </Box>
-                )}
-              </>
-            )}
-            <ReplyPreview />
-          </>
-        }
-        before={
-          <IconButton onClick={() => pickFile('*')} variant="SurfaceVariant" size="300" radii="300">
-            <Icon src={Icons.PlusCircle} />
-          </IconButton>
-        }
-        after={<RoomInputActions />}
-        bottom={
-          toolbar && (
-            <div>
-              <Line variant="SurfaceVariant" size="300" />
-              <Toolbar />
-            </div>
-          )
-        }
-      />
-    </div>
+    <Box
+      style={{
+        flexDirection: 'column',
+        padding: '12px',
+        background: 'rgba(255, 255, 255, 0.10)',
+        backdropFilter: 'blur(50px)',
+      }}
+    >
+      {isAIAssistantOpen && <GeneratedResponseBox />}
+      <div ref={ref} style={{ width: '100%' }}>
+        <UploadArea />
+        <AutocompleteHandler />
+        <CustomEditor
+          editableName="RoomInput"
+          editor={editor}
+          placeholder="Send a message..."
+          onKeyDown={handleKeyDown}
+          onKeyUp={handleKeyUp}
+          onPaste={handlePaste}
+          onChange={handleEditorChange}
+          top={
+            <>
+              {(hasText || isAIAssistantOpen) && (
+                <PredictiveMessage editorText={debouncedEditorText} />
+              )}
+              <ReplyPreview />
+            </>
+          }
+          before={
+            <IconButton
+              onClick={() => pickFile('*')}
+              variant="SurfaceVariant"
+              size="300"
+              radii="300"
+            >
+              <Icon src={Icons.PlusCircle} />
+            </IconButton>
+          }
+          after={<RoomInputActions />}
+          bottom={
+            toolbar && (
+              <div>
+                <Line variant="SurfaceVariant" size="300" />
+                <Toolbar />
+              </div>
+            )
+          }
+        />
+      </div>
+    </Box>
   );
 });
 
