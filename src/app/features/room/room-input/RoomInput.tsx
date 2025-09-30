@@ -15,14 +15,18 @@ import { RoomInputActions } from './RoomInputActions';
 import { UploadArea } from './UploadArea';
 import { AutocompleteHandler } from './AutocompleteHandler';
 import { RoomInputProvider, useRoomInputContext } from './RoomInputContext';
+import { InstagramImageUploadArea } from './InstagramImageUploadArea';
 
 const RoomInputInternal = forwardRef<HTMLDivElement>((props, ref) => {
-  const { editor, handleKeyDown, handleKeyUp, handlePaste, pickFile, toolbar } =
+  const { editor, handleKeyDown, handleKeyUp, handlePaste, pickFile, toolbar, roomId } =
     useRoomInputContext();
   const { isAIAssistantOpen } = useAIAssistant();
 
   const [editorText, setEditorText] = useState('');
   const debouncedEditorText = useDebounceValue(editorText, 500);
+
+  // Check if this is an Instagram chat room
+  const isInstagramChat = roomId?.startsWith('instagram-') || false;
 
   const handleEditorChange = useCallback(
     (value: Descendant[]) => {
@@ -39,6 +43,15 @@ const RoomInputInternal = forwardRef<HTMLDivElement>((props, ref) => {
     <div ref={ref} style={{ position: 'relative' }}>
       <UploadArea />
       <AutocompleteHandler />
+      {isInstagramChat && (
+        <InstagramImageUploadArea
+          contactId={roomId.replace('instagram-', '')}
+          onImageSent={() => {
+            // Optional callback when image is sent
+            console.log('Image sent from InstagramImageUploadArea');
+          }}
+        />
+      )}
       <CustomEditor
         editableName="RoomInput"
         editor={editor}

@@ -49,6 +49,9 @@ export async function generateResponseFromMessage({
   spec: object;
 }): Promise<string> {
   try {
+    console.log('generateResponseFromMessage called with:', { message, context, spec });
+    console.log('Making API call to:', 'https://wmaide-server.vercel.app/api/generate-response');
+
     const response = await fetch('https://wmaide-server.vercel.app/api/generate-response', {
       method: 'POST',
       headers: {
@@ -61,14 +64,20 @@ export async function generateResponseFromMessage({
       }),
     });
 
+    console.log('API response status:', response.status);
+    console.log('API response ok:', response.ok);
+
     if (!response.ok) {
       const errorData = await response.json();
+      console.error('API error response:', errorData);
       throw new Error(errorData.error || 'Failed to generate response from server.');
     }
 
     const data = await response.json();
+    console.log('API success response data:', data);
     return data.response;
   } catch (error) {
+    console.error('Error in generateResponseFromMessage:', error);
     return 'Xin lỗi, đã có lỗi khi tạo phản hồi.';
   }
 }

@@ -117,12 +117,15 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
 
   const regenerateResponse = useCallback(
     async (spec = {}) => {
+      console.log('regenerateResponse called with spec:', spec);
       setIsGeneratingResponse(true);
       deleteText();
 
       try {
+        console.log('Getting timeline from room:', room);
         // Get the actual room conversation from timeline
         const timeline = room.getLiveTimeline().getEvents();
+        console.log('Timeline events:', timeline);
         const roomContext = timeline
           .filter((event) => event.getSender() && event.getContent().body)
           .map((event) => ({
@@ -131,15 +134,21 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
             timestamp: new Date(event.getTs()).toISOString(),
             is_from_me: isFromMe(event.getSender() as string, mx.getUserId() as string),
           }));
+        console.log('Room context:', roomContext);
         const lastNonUserMsg = [...roomContext].reverse().find((msg) => !msg.is_from_me);
+        console.log('Last non-user message:', lastNonUserMsg);
 
         // Find the last message in the room conversation that is not from the current user
         const message = lastNonUserMsg ? lastNonUserMsg.text : 'Nói gì cũng được';
+        console.log('Message to generate response for:', message);
 
+        console.log('Calling generateResponseFromMessage API...');
         const response = await generateResponseFromMessage({ message, context: roomContext, spec });
+        console.log('API response:', response);
         setGeneratedResponse(response);
         handleUseSuggestion(response);
       } catch (error) {
+        console.error('Error in regenerateResponse:', error);
         setGeneratedResponse('Xin lỗi, đã có lỗi');
       } finally {
         setIsGeneratingResponse(false);

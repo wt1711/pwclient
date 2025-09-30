@@ -107,7 +107,7 @@ export async function GET(
       // TODO: adsdsadas
       const threadFeed = ig.feed.directThread({
         thread_id: thread.thread_id,
-        oldest_cursor: thread.oldest_cursor,
+        oldest_cursor: thread.newest_cursor,
       });
 
       // Get messages from the thread

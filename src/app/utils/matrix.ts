@@ -152,6 +152,19 @@ export const uploadContent = async (
 ) => {
   const { name, fileType, hideFilename, onProgress, onPromise, onSuccess, onError } = options;
 
+  // Debug logging to check MatrixClient instance
+  console.log('🔍 uploadContent called with mx:', mx);
+  console.log('🔍 mx type:', typeof mx);
+  console.log('🔍 mx constructor:', mx?.constructor?.name);
+  console.log('🔍 mx is MatrixClient instance:', mx instanceof MatrixClient);
+  console.log(
+    '🔍 Available methods on mx:',
+    Object.getOwnPropertyNames(Object.getPrototypeOf(mx || {}))
+  );
+  console.log('🔍 mx.uploadContent exists:', typeof (mx as any)?.uploadContent);
+  console.log('🔍 mx.upload exists:', typeof (mx as any)?.upload);
+  console.log('🔍 mx.sendMessage exists:', typeof mx?.sendMessage);
+
   const uploadPromise = mx.uploadContent(file, {
     name,
     type: fileType,
@@ -225,7 +238,12 @@ export const addRoomIdToMDirect = async (
   roomId: string,
   userId: string
 ): Promise<void> => {
-  const mDirectsEvent = mx.getAccountData(AccountDataEvent.Direct);
+  if (!mx || typeof mx.getAccountData !== 'function') {
+    console.warn('Matrix client not properly initialized for getAccountData');
+    return;
+  }
+
+  const mDirectsEvent = mx.getAccountData(AccountDataEvent.Direct as any);
   const userIdToRoomIds: Record<string, string[]> = mDirectsEvent?.getContent() ?? {};
 
   // remove it from the lists of any others users
@@ -247,11 +265,16 @@ export const addRoomIdToMDirect = async (
   }
   userIdToRoomIds[userId] = roomIds;
 
-  await mx.setAccountData(AccountDataEvent.Direct, userIdToRoomIds);
+  await (mx as any).setAccountData(AccountDataEvent.Direct, userIdToRoomIds);
 };
 
 export const removeRoomIdFromMDirect = async (mx: MatrixClient, roomId: string): Promise<void> => {
-  const mDirectsEvent = mx.getAccountData(AccountDataEvent.Direct);
+  if (!mx || typeof mx.getAccountData !== 'function') {
+    console.warn('Matrix client not properly initialized for getAccountData');
+    return;
+  }
+
+  const mDirectsEvent = mx.getAccountData(AccountDataEvent.Direct as any);
   const userIdToRoomIds: Record<string, string[]> = mDirectsEvent?.getContent() ?? {};
 
   Object.keys(userIdToRoomIds).forEach((targetUserId) => {
@@ -262,7 +285,7 @@ export const removeRoomIdFromMDirect = async (mx: MatrixClient, roomId: string):
     }
   });
 
-  await mx.setAccountData(AccountDataEvent.Direct, userIdToRoomIds);
+  await (mx as any).setAccountData(AccountDataEvent.Direct, userIdToRoomIds);
 };
 
 export const mxcUrlToHttp = (

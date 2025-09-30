@@ -136,12 +136,41 @@ export const toggleBlock = (editor: Editor, format: BlockType, option?: BlockOpt
 };
 
 export const resetEditor = (editor: Editor) => {
-  Transforms.delete(editor, {
-    at: {
-      anchor: Editor.start(editor, []),
-      focus: Editor.end(editor, []),
-    },
-  });
+  // Check if editor has valid content before attempting operations
+  if (!editor.children || editor.children.length === 0) {
+    // Initialize editor with proper structure if empty
+    editor.children = [
+      {
+        type: BlockType.Paragraph,
+        children: [{ text: '' }],
+      },
+    ];
+    return;
+  }
+
+  try {
+    // Only attempt delete if editor has valid start/end points
+    const start = Editor.start(editor, []);
+    const end = Editor.end(editor, []);
+
+    if (start && end) {
+      Transforms.delete(editor, {
+        at: {
+          anchor: start,
+          focus: end,
+        },
+      });
+    }
+  } catch (error) {
+    // If delete fails, reset editor structure manually
+    console.warn('Failed to delete editor content, resetting structure:', error);
+    editor.children = [
+      {
+        type: BlockType.Paragraph,
+        children: [{ text: '' }],
+      },
+    ];
+  }
 
   toggleBlock(editor, BlockType.Paragraph);
   removeAllMark(editor);

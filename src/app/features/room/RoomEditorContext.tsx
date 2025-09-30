@@ -12,10 +12,12 @@ const RoomEditorContext = createContext<RoomEditorContextType | undefined>(undef
 
 type RoomEditorProviderProps = {
   children: ReactNode;
+  editor?: Editor;
 };
 
-export function RoomEditorProvider({ children }: RoomEditorProviderProps) {
-  const editor = useEditor();
+export function RoomEditorProvider({ children, editor: providedEditor }: RoomEditorProviderProps) {
+  const defaultEditor = useEditor();
+  const editor = providedEditor || defaultEditor;
 
   const insertText = useCallback(
     (text: string) => {

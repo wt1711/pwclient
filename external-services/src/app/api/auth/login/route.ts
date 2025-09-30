@@ -6,7 +6,7 @@ import { getRealtimeService } from '@/lib/realtime';
 
 // CORS headers
 const corsHeaders = {
-  'Access-Control-Allow-Origin': (process.env.CORS_ALLOW_ORIGIN ?? 'http://localhost:5173'),
+  'Access-Control-Allow-Origin': process.env.CORS_ALLOW_ORIGIN ?? 'http://localhost:5173',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
   'Access-Control-Allow-Credentials': 'true',
@@ -42,39 +42,59 @@ export async function POST(request: NextRequest) {
 
     // Create Instagram API client
     const ig = new IgApiClient();
-    
+
     // Generate device ID based on username
     ig.state.generateDevice(username);
-    
+
     try {
       // Attempt to login
       const loggedInUser = await ig.account.login(username, password);
-      
+
       // Create session ID
       const sessionId = `${username}_${Date.now()}`;
-      
+
       // Create JWT token
       const token = jwt.sign(
-        { 
+        {
           userId: loggedInUser.pk.toString(),
           username: loggedInUser.username,
-          sessionId: sessionId
+          sessionId: sessionId,
         },
         JWT_SECRET,
         { expiresIn: '24h' }
       );
 
       // Store session data in Redis
-      await sessionManager.setSession(sessionId, {
-        userId: loggedInUser.pk.toString(),
-        username: loggedInUser.username,
-        fullName: loggedInUser.full_name,
-        profilePicUrl: loggedInUser.profile_pic_url,
-        loginTime: new Date().toISOString()
-      }, 86400); // 24 hours expiration
+      await sessionManager.setSession(
+        sessionId,
+        {
+          userId: loggedInUser.pk.toString(),
+          username: loggedInUser.username,
+          fullName: loggedInUser.full_name,
+          profilePicUrl: loggedInUser.profile_pic_url,
+          loginTime: new Date().toISOString(),
+        },
+        86400
+      ); // 24 hours expiration
 
-      // Store Instagram client instance in memory cache
-      igClientCache.set(sessionId, ig);
+      // Debug: Check cookies before storing
+      console.log(`🔍 Login successful for user ${loggedInUser.pk.toString()}:`);
+      console.log(
+        `- Cookies after login: ${ig.state.cookieJar.getCookies('https://instagram.com').length}`
+      );
+
+      let cookieUserId = 'Not set';
+      try {
+        cookieUserId = ig.state.cookieUserId || 'Not set';
+      } catch (error) {
+        console.log(
+          `- Cookie error after login: ${error instanceof Error ? error.message : 'Unknown error'}`
+        );
+      }
+      console.log(`- User ID after login: ${cookieUserId}`);
+
+      // Store Instagram client instance in database instead of memory cache
+      await sessionManager.storeInstagramClient(loggedInUser.pk.toString(), ig, 24);
 
       // Initialize realtime service for this user
       try {
@@ -86,49 +106,52 @@ export async function POST(request: NextRequest) {
         // Don't fail the login if realtime service fails
       }
 
-      // Clean up old client instances (keep only last 10 per user)
-      const userSessions = Array.from(igClientCache.keys())
-        .filter(key => key.startsWith(`${username}_`))
-        .sort()
-        .slice(0, -10);
-      
-      userSessions.forEach(sessionId => {
+      // Clean up old client instances from memory cache (if any remain)
+      const userSessions = Array.from(igClientCache.keys()).filter((key) =>
+        key.startsWith(`${username}_`)
+      );
+
+      userSessions.forEach((sessionId) => {
         igClientCache.delete(sessionId);
       });
 
-      return NextResponse.json({
-        success: true,
-        token,
-        user: {
-          id: loggedInUser.pk.toString(),
-          username: loggedInUser.username,
-          fullName: loggedInUser.full_name,
-          profilePicUrl: loggedInUser.profile_pic_url,
+      return NextResponse.json(
+        {
+          success: true,
+          token,
+          user: {
+            id: loggedInUser.pk.toString(),
+            username: loggedInUser.username,
+            fullName: loggedInUser.full_name,
+            profilePicUrl: loggedInUser.profile_pic_url,
+          },
+        },
+        {
+          headers: corsHeaders,
         }
-      }, {
-        headers: corsHeaders
-      });
-
+      );
     } catch (loginError: unknown) {
       console.error('Instagram login error:', loginError);
-      
+
       const errorMessage = loginError instanceof Error ? loginError.message : String(loginError);
-      
+
       // Handle specific Instagram errors
       if (errorMessage.includes('challenge_required')) {
         return NextResponse.json(
-          { error: 'Account verification required. Please log in through the Instagram app first.' },
+          {
+            error: 'Account verification required. Please log in through the Instagram app first.',
+          },
           { status: 400, headers: corsHeaders }
         );
       }
-      
+
       if (errorMessage.includes('bad_password')) {
         return NextResponse.json(
           { error: 'Invalid username or password' },
           { status: 401, headers: corsHeaders }
         );
       }
-      
+
       if (errorMessage.includes('rate_limit')) {
         return NextResponse.json(
           { error: 'Too many login attempts. Please try again later.' },
@@ -141,7 +164,6 @@ export async function POST(request: NextRequest) {
         { status: 401, headers: corsHeaders }
       );
     }
-
   } catch (error) {
     console.error('Login API error:', error);
     return NextResponse.json(

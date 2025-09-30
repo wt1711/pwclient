@@ -20,6 +20,7 @@ export function RoomInputActions() {
     handleEmoticonSelect,
     handleStickerSelect,
     hideStickerBtn,
+    roomId,
   } = useRoomInputContext();
   const { isAIAssistantOpen, toggleAIAssistant, generateInitialResponse } = useAIAssistant();
   const mx = useMatrixClient();
@@ -31,8 +32,12 @@ export function RoomInputActions() {
   const aiAssistantBtnRef = useRef<HTMLButtonElement>(null);
 
   const handleAIAssistantClick = () => {
-    console.log('🤖 [RoomInputActions] AI Assistant clicked - Payment state:', { hasPaid, paymentLoading, showPaymentModal });
-    
+    console.log('🤖 [RoomInputActions] AI Assistant clicked - Payment state:', {
+      hasPaid,
+      paymentLoading,
+      showPaymentModal,
+    });
+
     if (!hasPaid && !paymentLoading) {
       console.log('💳 [RoomInputActions] Payment required - showing payment modal');
       setShowPaymentModal(true);
@@ -50,17 +55,19 @@ export function RoomInputActions() {
     console.log('🎉 [RoomInputActions] Payment success callback triggered');
     console.log('📊 [RoomInputActions] Current payment state before refresh:', paymentState);
     console.log('🔄 [RoomInputActions] Calling refreshPaymentStatus...');
-    
-    refreshPaymentStatus().then(() => {
-      console.log('✅ [RoomInputActions] refreshPaymentStatus completed');
-      console.log('📊 [RoomInputActions] Payment state after refresh:', paymentState);
-    }).catch((error) => {
-      console.error('❌ [RoomInputActions] refreshPaymentStatus failed:', error);
-    });
-    
+
+    refreshPaymentStatus()
+      .then(() => {
+        console.log('✅ [RoomInputActions] refreshPaymentStatus completed');
+        console.log('📊 [RoomInputActions] Payment state after refresh:', paymentState);
+      })
+      .catch((error) => {
+        console.error('❌ [RoomInputActions] refreshPaymentStatus failed:', error);
+      });
+
     setShowPaymentModal(false);
     console.log('🚪 [RoomInputActions] Payment modal closed');
-    
+
     // Open AI assistant after successful payment
     console.log('🤖 [RoomInputActions] Generating initial AI response...');
     generateInitialResponse();
@@ -136,13 +143,13 @@ export function RoomInputActions() {
         <Icon src={Icons.Send} />
       </IconButton>
       {showPaymentModal && (
-          <PaymentModal
-            isOpen={showPaymentModal}
-            onClose={() => setShowPaymentModal(false)}
-            onSuccess={handlePaymentSuccess}
-            matrixUserId={mx.getUserId() || ''}
-          />
-        )}
+        <PaymentModal
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          onSuccess={handlePaymentSuccess}
+          matrixUserId={mx.getUserId() || ''}
+        />
+      )}
     </>
   );
 }

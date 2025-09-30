@@ -407,7 +407,11 @@ function InstagramConnectSection() {
         setIsModalOpen(false);
         console.log('Successfully connected to Instagram:', data.user);
       } else {
-        const errorMessage = data.error || 'Failed to connect to Instagram';
+        // Handle error response with potential suggestion
+        let errorMessage = data.error || 'Failed to connect to Instagram';
+        if (data.suggestion) {
+          errorMessage += `\n\n${data.suggestion}`;
+        }
         setError(errorMessage);
         throw new Error(errorMessage);
       }

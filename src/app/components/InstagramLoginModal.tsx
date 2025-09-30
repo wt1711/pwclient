@@ -136,7 +136,14 @@ export function InstagramLoginModal({
                       border: '1px solid var(--bg-danger)',
                     }}
                   >
-                    <Text size="T300" priority="400" style={{ color: 'var(--tc-danger)' }}>
+                    <Text 
+                      size="T300" 
+                      priority="400" 
+                      style={{ 
+                        color: 'var(--tc-danger)',
+                        whiteSpace: 'pre-line' // This allows line breaks in the error message
+                      }}
+                    >
                       {error}
                     </Text>
                   </Box>
@@ -148,7 +155,7 @@ export function InstagramLoginModal({
                     type="button"
                     onClick={handleClose}
                     disabled={isLoading}
-                    variant="Background"
+                    variant="Secondary"
                     size="400"
                   >
                     <Text as="span" size="B400">

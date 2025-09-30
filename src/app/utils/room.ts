@@ -44,7 +44,12 @@ export const getStateEvents = (room: Room, eventType: StateEvent): MatrixEvent[]
 export const getAccountData = (
   mx: MatrixClient,
   eventType: AccountDataEvent
-): MatrixEvent | undefined => mx.getAccountData(eventType);
+): MatrixEvent | undefined => {
+  if (!mx || typeof mx.getAccountData !== 'function') {
+    return undefined;
+  }
+  return mx.getAccountData(eventType as any);
+};
 
 export const getMDirects = (mDirectEvent: MatrixEvent): Set<string> => {
   const roomIds = new Set<string>();

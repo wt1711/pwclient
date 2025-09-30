@@ -1,18 +1,7 @@
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useWebSocket } from '../../../hooks/useWebSocket';
-import {
-  Avatar,
-  Box,
-  Button,
-  Header,
-  Icon,
-  IconButton,
-  Icons,
-  Scroll,
-  Spinner,
-  Text,
-} from 'folds';
+import { Avatar, Box, Button, Header, Icon, IconButton, Icons, Scroll, Spinner, Text } from 'folds';
 import { createEditor } from 'slate';
 import { withReact } from 'slate-react';
 import { withHistory } from 'slate-history';
@@ -20,11 +9,14 @@ import { Room } from 'matrix-js-sdk';
 import {
   fetchInstagramMessages,
   sendInstagramMessage,
+  sendInstagramImage,
   markInstagramContactAsRead,
   getInstagramProfile,
+  fetchInstagramDMInfo,
   InstagramMessage,
   InstagramContact,
 } from '../../../services/instagramApi';
+import { useInstagramImageUploads } from '../../../features/room/room-input/hooks/useInstagramImageUploads';
 import { RoomInput } from '../../../features/room/room-input/RoomInput';
 import { RoomInputProvider } from '../../../features/room/room-input/RoomInputContext';
 import { BlockType } from '../../../components/editor/types';
@@ -63,11 +55,13 @@ const withVoid = (editor: any) => {
 };
 
 // Mock MatrixClient for Instagram chat
-const createMockMatrixClient = (handleSendMessage: (text: string) => Promise<void>): MatrixClient => {
+const createMockMatrixClient = (
+  handleSendMessage: (text: string) => Promise<void>
+): MatrixClient => {
   const mockClient = {
     sendMessage: async (roomId: string, content: any) => {
       console.log('Mock sendMessage called:', { roomId, content });
-      
+
       // Extract text from Matrix message content
       let messageText = '';
       if (typeof content === 'string') {
@@ -75,16 +69,33 @@ const createMockMatrixClient = (handleSendMessage: (text: string) => Promise<voi
       } else if (content && typeof content === 'object') {
         messageText = content.body || content.formatted_body || '';
       }
-      
+
       if (messageText.trim()) {
         // Call the actual Instagram message sending function
         await handleSendMessage(messageText.trim());
       }
-      
+
       // Simulate successful message sending
       return Promise.resolve({ event_id: `$${Date.now()}:mock.matrix.org` });
     },
-    getUserId: () => localStorage.getItem(cons.secretKey.USER_ID) || '@instagram_user:mock.matrix.org',
+    uploadContent: async (file: File | ArrayBuffer | Uint8Array, opts?: any) => {
+      console.log('Mock uploadContent called:', { file, opts });
+
+      // For Instagram chat, we'll simulate a successful upload
+      // In a real implementation, this would upload to Instagram's servers
+      return Promise.resolve({
+        content_uri: `mxc://mock.matrix.org/${Date.now()}_${Math.random()
+          .toString(36)
+          .substr(2, 9)}`,
+      });
+    },
+    cancelUpload: async (promise: Promise<any>) => {
+      console.log('Mock cancelUpload called');
+      // For mock implementation, we'll just resolve
+      return Promise.resolve();
+    },
+    getUserId: () =>
+      localStorage.getItem(cons.secretKey.USER_ID) || '@instagram_user:mock.matrix.org',
     getRoom: (roomId: string) => null,
     on: () => {},
     removeListener: () => {},
@@ -97,7 +108,11 @@ const createMockMatrixClient = (handleSendMessage: (text: string) => Promise<voi
 };
 
 // Mock Room object for Instagram chat
-const createMockRoom = (roomId: string): Room => {
+const createMockRoom = (
+  roomId: string,
+  messages: InstagramMessage[],
+  currentUserId: string | null
+): Room => {
   const mockRoom = {
     roomId,
     name: 'Instagram Chat',
@@ -109,6 +124,19 @@ const createMockRoom = (roomId: string): Room => {
     currentState: {
       getStateEvents: () => null,
     },
+    getLiveTimeline: () => ({
+      getEvents: () => {
+        // Convert Instagram messages to mock Matrix events
+        return messages.map((msg, index) => ({
+          getSender: () => (msg.isFromMe ? currentUserId : msg.contactId),
+          getContent: () => ({ body: msg.text }),
+          getTs: () => new Date(msg.timestamp).getTime(),
+          eventId: msg.id || `event-${index}`,
+        }));
+      },
+    }),
+    // Instagram chats are not encrypted, so return false
+    hasEncryptionStateEvent: () => false,
     on: () => {},
     removeListener: () => {},
   } as unknown as Room;
@@ -145,7 +173,15 @@ export function InstagramChat() {
   const navigate = useNavigate();
   const [messages, setMessages] = useState<InstagramMessage[]>([]);
   const [contact, setContact] = useState<InstagramContact | null>(null);
+
+  // Debug contact state changes
+  useEffect(() => {
+    console.log('Contact state changed:', contact);
+  }, [contact]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMoreMessages, setHasMoreMessages] = useState(true);
+  const [nextCursor, setNextCursor] = useState<string | undefined>(undefined);
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reloadInterval, setReloadInterval] = useState<number>(30); // seconds
@@ -153,6 +189,7 @@ export function InstagramChat() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileDropContainerRef = useRef<HTMLDivElement>(null);
   const reloadIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const loadMoreTriggerRef = useRef<HTMLDivElement>(null);
   const currentUserId = localStorage.getItem('instagram_user_id');
 
   // WebSocket connection for real-time messaging
@@ -170,18 +207,18 @@ export function InstagramChat() {
     onMessage: (message: any) => {
       console.log('Received WebSocket message:', message);
       console.log('Current chat ID:', id);
-      
+
       // Handle different message types
       if (message.type === 'new_message' && message.data) {
         const newMessage: InstagramMessage = message.data;
         console.log('New message contactId:', newMessage.contactId, 'Current ID:', id);
-        
+
         // Only add message if it's for the current chat
         if (newMessage.contactId === id) {
           console.log('Adding message to chat:', newMessage);
-          setMessages(prev => {
+          setMessages((prev) => {
             // Check if message already exists to avoid duplicates
-            const exists = prev.some(msg => msg.id === newMessage.id);
+            const exists = prev.some((msg) => msg.id === newMessage.id);
             if (!exists) {
               console.log('Message added successfully');
               return [...prev, newMessage];
@@ -207,74 +244,96 @@ export function InstagramChat() {
     },
   });
 
+  // Instagram image upload functionality
+  const handleImageMessageSent = useCallback((message: InstagramMessage) => {
+    console.log('📝 Adding image message to chat state:', message);
+    setMessages((prev) => {
+      // Check if message already exists to avoid duplicates
+      const exists = prev.some((msg) => msg.id === message.id);
+      if (!exists) {
+        console.log('Image message added successfully');
+        return [...prev, message];
+      }
+      console.log('Image message already exists, skipping');
+      return prev;
+    });
+  }, []);
+
+  const imageUploads = useInstagramImageUploads(id || '', handleImageMessageSent);
+
   // Create Slate editor for RoomInput
-  const editor = useMemo(
-    () => withInline(withVoid(withReact(withHistory(createEditor())))),
-    []
-  );
+  const editor = useMemo(() => withInline(withVoid(withReact(withHistory(createEditor())))), []);
 
   // Handle sending messages to Instagram API
-  const handleSendMessage = useCallback(async (messageText: string) => {
-    if (!messageText.trim() || !id || isSending) return;
+  const handleSendMessage = useCallback(
+    async (messageText: string) => {
+      if (!messageText.trim() || !id || isSending) return;
 
-    const text = messageText.trim();
-    setIsSending(true);
+      const text = messageText.trim();
+      setIsSending(true);
 
-    try {
-      // Optimistically add message to UI
-      const optimisticMessage: InstagramMessage = {
-        id: `temp-${Date.now()}`,
-        contactId: id,
-        userId: currentUserId || '',
-        text,
-        timestamp: new Date().toISOString(),
-        messageType: 'text',
-        isFromMe: true,
-      };
-      setMessages(prev => [...prev, optimisticMessage]);
+      try {
+        // Optimistically add message to UI
+        const optimisticMessage: InstagramMessage = {
+          id: `temp-${Date.now()}`,
+          contactId: id,
+          userId: currentUserId || '',
+          text,
+          timestamp: new Date().toISOString(),
+          messageType: 'text',
+          isFromMe: true,
+        };
+        setMessages((prev) => [...prev, optimisticMessage]);
 
-      // Send message to API
-      await sendInstagramMessage(id, text);
-      
-      // Send message through WebSocket for real-time delivery
-      if (wsConnected) {
-        wsSendMessage({
-          type: 'send_message',
-          data: {
-            contactId: id,
-            text: text,
-            messageType: 'text'
-          }
-        });
+        // Send message to API
+        await sendInstagramMessage(id, text);
+
+        // Send message through WebSocket for real-time delivery
+        if (wsConnected) {
+          wsSendMessage({
+            type: 'send_message',
+            data: {
+              contactId: id,
+              text: text,
+              messageType: 'text',
+            },
+          });
+        }
+
+        // Refresh messages to get the actual message from server
+        const updatedData = await fetchInstagramMessages(id);
+        setMessages(updatedData.messages);
+      } catch (err) {
+        console.error('Failed to send message:', err);
+        // Remove optimistic message on error
+        setMessages((prev) => prev.filter((msg) => !msg.id.startsWith('temp-')));
+        setError('Failed to send message');
+      } finally {
+        setIsSending(false);
       }
-      
-      // Refresh messages to get the actual message from server
-      const updatedData = await fetchInstagramMessages(id);
-      setMessages(updatedData.messages);
-    } catch (err) {
-      console.error('Failed to send message:', err);
-      // Remove optimistic message on error
-      setMessages(prev => prev.filter(msg => !msg.id.startsWith('temp-')));
-      setError('Failed to send message');
-    } finally {
-      setIsSending(false);
-    }
-  }, [id, isSending, currentUserId, wsConnected, wsSendMessage]);
+    },
+    [id, isSending, currentUserId, wsConnected, wsSendMessage]
+  );
 
   // Create mock MatrixClient and Room objects
-  const mockMatrixClient = useMemo(() => createMockMatrixClient(handleSendMessage), [handleSendMessage]);
-  const room = useMemo(() => createMockRoom(id || 'instagram-chat'), [id]);
+  const mockMatrixClient = useMemo(
+    () => createMockMatrixClient(handleSendMessage),
+    [handleSendMessage]
+  );
+  const room = useMemo(
+    () => createMockRoom(id || 'instagram-chat', messages, currentUserId),
+    [id, messages, currentUserId]
+  );
 
   // Create GetPowerLevelTag function
-  const getPowerLevelTag: GetPowerLevelTag = useCallback(
-    (powerLevel: number): PowerLevelTag => {
-      return DEFAULT_POWER_LEVEL_TAGS[powerLevel as keyof typeof DEFAULT_POWER_LEVEL_TAGS] || {
+  const getPowerLevelTag: GetPowerLevelTag = useCallback((powerLevel: number): PowerLevelTag => {
+    return (
+      DEFAULT_POWER_LEVEL_TAGS[powerLevel as keyof typeof DEFAULT_POWER_LEVEL_TAGS] || {
         name: 'Member',
         color: '#91cfdf',
-      };
-    },
-    []
-  );
+      }
+    );
+  }, []);
 
   // Create accessible tag colors
   const accessibleTagColors = useMemo(() => {
@@ -286,6 +345,75 @@ export function InstagramChat() {
     });
     return colors;
   }, []);
+
+  // Load more messages for lazy loading
+  const loadMoreMessages = useCallback(async () => {
+    if (!id || isLoadingMore || !hasMoreMessages) {
+      console.log('🚫 Skipping loadMoreMessages:', { id: !!id, isLoadingMore, hasMoreMessages });
+      return;
+    }
+
+    try {
+      console.log('📥 Loading more messages with cursor:', nextCursor);
+      setIsLoadingMore(true);
+      const fetchedData = await fetchInstagramMessages(id, nextCursor, 20);
+
+      console.log('📦 Fetched data:', {
+        messageCount: fetchedData.messages.length,
+        nextCursor: fetchedData.nextCursor,
+      });
+
+      if (fetchedData.messages.length === 0) {
+        setHasMoreMessages(false);
+        return;
+      }
+
+      // Prepend older messages to the beginning of the list
+      setMessages((prev) => {
+        const newMessages = [...fetchedData.messages, ...prev];
+        console.log('📝 Updated messages count:', newMessages.length);
+        return newMessages;
+      });
+      setNextCursor(fetchedData.nextCursor);
+
+      // If no more cursor, we've reached the end
+      if (!fetchedData.nextCursor) {
+        setHasMoreMessages(false);
+        console.log('🏁 Reached end of messages');
+      }
+    } catch (err) {
+      console.error('Failed to load more messages:', err);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [id, isLoadingMore, hasMoreMessages, nextCursor]);
+
+  // Intersection Observer for lazy loading
+  useEffect(() => {
+    if (!loadMoreTriggerRef.current || !hasMoreMessages) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry.isIntersecting && !isLoadingMore) {
+          console.log('🔄 Lazy loading triggered - loading more messages');
+          loadMoreMessages();
+        }
+      },
+      {
+        threshold: 0.1,
+        rootMargin: '20px',
+        // Use the scroll container as root
+        root: scrollRef.current,
+      }
+    );
+
+    observer.observe(loadMoreTriggerRef.current);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [loadMoreMessages, hasMoreMessages, isLoadingMore]);
 
   // Cleanup WebSocket on unmount
   useEffect(() => {
@@ -302,18 +430,57 @@ export function InstagramChat() {
       try {
         setIsLoading(true);
         setError(null);
-        
-        // Fetch messages
-        const fetchedData = await fetchInstagramMessages(id);
+
+        // Fetch initial messages (most recent)
+        const fetchedData = await fetchInstagramMessages(id, undefined, 20);
         setMessages(fetchedData.messages);
-        
-        // Get contact info from first message that's not from current user
-        const otherUserMessage = fetchedData.messages.find(msg => msg.userId !== currentUserId);
-        if (otherUserMessage) {
-          const contactProfile = await getInstagramProfile();
-          setContact(contactProfile);
+        setNextCursor(fetchedData.nextCursor);
+        setHasMoreMessages(!!fetchedData.nextCursor);
+
+        // Fetch detailed contact info using the new DM info API
+        try {
+          console.log('Fetching DM info for contact:', id);
+          const contactInfo = await fetchInstagramDMInfo(id);
+          console.log('DM info received:', contactInfo);
+          setContact(contactInfo);
+        } catch (dmInfoError) {
+          console.warn('Failed to fetch DM info, falling back to profile:', dmInfoError);
+          // Fallback: try to get contact info from the first message
+          if (fetchedData.messages && fetchedData.messages.length > 0) {
+            const firstMessage = fetchedData.messages.find((msg) => !msg.isFromMe);
+            if (firstMessage) {
+              const fallbackContact: InstagramContact = {
+                id: firstMessage.contactId || id,
+                username: `user_${firstMessage.contactId || id}`,
+                fullName: `User ${firstMessage.contactId || id}`,
+                profilePicUrl: undefined,
+                isVerified: false,
+              };
+              setContact(fallbackContact);
+            } else {
+              // If no messages from other user, create a basic contact
+              const basicContact: InstagramContact = {
+                id: id,
+                username: `user_${id}`,
+                fullName: `User ${id}`,
+                profilePicUrl: undefined,
+                isVerified: false,
+              };
+              setContact(basicContact);
+            }
+          } else {
+            // If no messages at all, create a basic contact
+            const basicContact: InstagramContact = {
+              id: id,
+              username: `user_${id}`,
+              fullName: `User ${id}`,
+              profilePicUrl: undefined,
+              isVerified: false,
+            };
+            setContact(basicContact);
+          }
         }
-        
+
         // Mark contact as read
         await markInstagramContactAsRead(id);
       } catch (err) {
@@ -359,19 +526,20 @@ export function InstagramChat() {
     }
   }, [messages]);
 
-
-
-
-
   const formatMessageTime = (timestamp: string) => {
     const date = new Date(timestamp);
     const now = new Date();
     const isToday = date.toDateString() === now.toDateString();
-    
+
     if (isToday) {
       return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     } else {
-      return date.toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      return date.toLocaleDateString([], {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
     }
   };
 
@@ -382,6 +550,8 @@ export function InstagramChat() {
       </Box>
     );
   }
+
+  console.log('contact', contact);
 
   return (
     <Box grow="Yes" direction="Column" style={{ height: '100vh' }}>
@@ -397,25 +567,47 @@ export function InstagramChat() {
           >
             <Icon src={Icons.ArrowLeft} size="200" />
           </IconButton>
-          
+
           {contact && (
             <>
               <Avatar size="300" radii="300">
                 {contact.profilePicUrl ? (
-                  <img 
-                    src={contact.profilePicUrl} 
+                  <img
+                    src={contact.profilePicUrl}
                     alt={contact.fullName || contact.username}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      borderRadius: '50%',
+                    }}
+                    onError={(e) => {
+                      // If image fails to load, hide it and show default icon
+                      e.currentTarget.style.display = 'none';
+                      const parent = e.currentTarget.parentElement;
+                      if (parent) {
+                        const icon = parent.querySelector('.default-avatar-icon');
+                        if (icon) {
+                          (icon as HTMLElement).style.display = 'block';
+                        }
+                      }
+                    }}
                   />
-                ) : (
-                  <Icon src={Icons.User} size="200" />
-                )}
+                ) : null}
+                <Icon
+                  src={Icons.User}
+                  size="200"
+                  className="default-avatar-icon"
+                  style={{
+                    display: contact.profilePicUrl ? 'none' : 'block',
+                  }}
+                />
               </Avatar>
               <Box direction="Column" grow="Yes">
                 <Text size="H4" priority="500">
-                  {contact.fullName || contact.username}
+                  {contact?.fullName || contact?.username || 'Loading...'}
                 </Text>
-                {contact.fullName && (
+                {contact?.fullName && contact.fullName !== contact.username && (
                   <Text size="T200" priority="300">
                     @{contact.username}
                   </Text>
@@ -423,32 +615,38 @@ export function InstagramChat() {
               </Box>
             </>
           )}
-          
+
           {/* WebSocket Status Indicator */}
           <Box alignItems="Center" gap="200">
             {wsConnecting && (
               <Box alignItems="Center" gap="100">
                 <Spinner size="100" />
-                <Text size="T200" priority="300">Connecting...</Text>
+                <Text size="T200" priority="300">
+                  Connecting...
+                </Text>
               </Box>
             )}
             {wsConnected && (
               <Box alignItems="Center" gap="100">
-                <Box 
+                <Box
                   style={{
                     width: '8px',
                     height: '8px',
                     borderRadius: '50%',
-                    backgroundColor: '#4CAF50'
+                    backgroundColor: '#4CAF50',
                   }}
                 />
-                <Text size="T200" priority="300">Live</Text>
+                <Text size="T200" priority="300">
+                  Live
+                </Text>
               </Box>
             )}
             {wsError && !wsConnected && !wsConnecting && (
               <Box alignItems="Center" gap="100">
                 <Icon src={Icons.Warning} size="100" />
-                <Text size="T200" priority="300">Offline</Text>
+                <Text size="T200" priority="300">
+                  Offline
+                </Text>
               </Box>
             )}
           </Box>
@@ -488,10 +686,12 @@ export function InstagramChat() {
         ) : error ? (
           <Box grow="Yes" alignItems="Center" justifyContent="Center">
             <Icon src={Icons.Warning} size="400" />
-            <Text style={{ marginTop: '16px' }} priority="300">{error}</Text>
-            <Button 
-              variant="Primary" 
-              size="300" 
+            <Text style={{ marginTop: '16px' }} priority="300">
+              {error}
+            </Text>
+            <Button
+              variant="Primary"
+              size="300"
               style={{ marginTop: '16px' }}
               onClick={() => window.location.reload()}
             >
@@ -507,12 +707,35 @@ export function InstagramChat() {
                 </Box>
               ) : (
                 <>
+                  {/* Lazy loading trigger at the top */}
+                  {hasMoreMessages && (
+                    <Box
+                      ref={loadMoreTriggerRef}
+                      alignItems="Center"
+                      justifyContent="Center"
+                      style={{ padding: '16px' }}
+                    >
+                      {isLoadingMore ? (
+                        <Box alignItems="Center" gap="200">
+                          <Spinner size="200" />
+                          <Text size="T200" priority="300">
+                            Loading older messages...
+                          </Text>
+                        </Box>
+                      ) : (
+                        <Text size="T200" priority="300">
+                          Scroll up to load more messages
+                        </Text>
+                      )}
+                    </Box>
+                  )}
+
                   {messages.map((message) => {
                     const isFromMe = message.isFromMe || message.userId === currentUserId;
-                    
+
                     return (
-                      <Box 
-                        key={message.id} 
+                      <Box
+                        key={message.id}
                         alignSelf={isFromMe ? 'End' : 'Start'}
                         style={{ maxWidth: '70%' }}
                       >
@@ -522,33 +745,40 @@ export function InstagramChat() {
                           style={{
                             padding: '8px 12px',
                             borderRadius: '12px',
-                            backgroundColor: isFromMe 
-                              ? 'var(--bg-primary)' 
+                            backgroundColor: isFromMe
+                              ? 'var(--bg-primary)'
                               : 'var(--bg-surface-hover)',
                             color: isFromMe ? 'var(--text-on-primary)' : 'inherit',
                           }}
                         >
-                          {message.text && (
-                            <Text size="T400">{message.text}</Text>
-                          )}
+                          {message.text && <Text size="T400">{message.text}</Text>}
                           {message.mediaUrl && (
-                            <img 
-                              src={message.mediaUrl} 
-                              alt="Media message"
-                              style={{ 
-                                maxWidth: '200px', 
-                                borderRadius: '8px',
-                                display: 'block'
-                              }}
-                            />
+                            <>
+                              {console.log('🖼️ Rendering image with mediaUrl:', message.mediaUrl)}
+                              <img
+                                src={message.mediaUrl}
+                                alt="Media message"
+                                style={{
+                                  maxWidth: '200px',
+                                  borderRadius: '8px',
+                                  display: 'block',
+                                }}
+                                onError={(e) => {
+                                  console.error('❌ Image failed to load:', message.mediaUrl, e);
+                                }}
+                                onLoad={() => {
+                                  console.log('✅ Image loaded successfully:', message.mediaUrl);
+                                }}
+                              />
+                            </>
                           )}
-                          <Text 
-                            size="T200" 
+                          <Text
+                            size="T200"
                             priority="300"
-                            style={{ 
+                            style={{
                               alignSelf: 'End',
                               opacity: 0.7,
-                              color: isFromMe ? 'var(--text-on-primary)' : 'inherit'
+                              color: isFromMe ? 'var(--text-on-primary)' : 'inherit',
                             }}
                           >
                             {formatMessageTime(message.timestamp)}
@@ -569,7 +799,7 @@ export function InstagramChat() {
         <MatrixClientProvider value={mockMatrixClient}>
           <PowerLevelsContextProvider value={MOCK_POWER_LEVELS}>
             <RoomProvider value={room}>
-              <RoomEditorProvider>
+              <RoomEditorProvider editor={editor}>
                 <RoomMessageProvider>
                   <AIAssistantProvider isMobile={false}>
                     <RoomInputProvider

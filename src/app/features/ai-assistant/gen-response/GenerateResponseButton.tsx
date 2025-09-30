@@ -16,10 +16,13 @@ export function GenerateResponseButton() {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   const handleClick = () => {
+    console.log('GenerateResponseButton clicked', { hasPaid, paymentLoading });
     if (!hasPaid) {
+      console.log('Payment not verified, showing payment modal');
       setShowPaymentModal(true);
       return;
     }
+    console.log('Calling regenerateResponse...');
     regenerateResponse();
   };
 
@@ -49,7 +52,7 @@ export function GenerateResponseButton() {
       >
         {renderGenerateIcon()}
       </IconButton>
-      
+
       <PaymentModal
         isOpen={showPaymentModal}
         matrixUserId={mx.getUserId() || ''}
