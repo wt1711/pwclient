@@ -366,6 +366,10 @@ function InstagramConnectSection() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [requires2FA, setRequires2FA] = useState(false);
+  const [challengeId, setChallengeId] = useState<string | null>(null);
+  const [availableMethods, setAvailableMethods] = useState<Array<{id: string, name: string}>>([]);
+  const [savedCredentials, setSavedCredentials] = useState<{username: string, password: string} | null>(null);
 
   // Check for existing token on component mount
   useEffect(() => {
@@ -380,32 +384,80 @@ function InstagramConnectSection() {
     return null;
   }
 
-  const handleInstagramLogin = async (username: string, password: string) => {
+  const handleInstagramLogin = async (username: string, password: string, verificationCode?: string, challengeId?: string, verificationMethod?: string) => {
     setIsLoading(true);
     setError(null);
 
+    // For 2FA verification, use saved credentials if available
+    let actualUsername = username;
+    let actualPassword = password;
+    
+    if (verificationCode && challengeId && savedCredentials) {
+      actualUsername = savedCredentials.username;
+      actualPassword = savedCredentials.password;
+    }
+
+    // Save credentials for potential 2FA use (only on initial login)
+    if (!verificationCode) {
+      setSavedCredentials({ username: actualUsername, password: actualPassword });
+    }
+
     try {
+      const requestBody: any = { username: actualUsername, password: actualPassword };
+      
+      // Add 2FA parameters if provided
+      if (verificationCode && challengeId) {
+        requestBody.verificationCode = verificationCode;
+        requestBody.challengeId = challengeId;
+        if (verificationMethod) {
+          requestBody.verificationMethod = verificationMethod;
+        }
+      }
+
+      console.log('Sending login request:', { ...requestBody, password: '[REDACTED]' });
+
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify(requestBody),
       });
 
       const data = await response.json();
+      console.log('Login response:', data);
 
-      if (response.ok && data.success) {
-        // Store the token in localStorage
-        localStorage.setItem('instagram_token', data.token);
-        localStorage.setItem('instagram_user', JSON.stringify(data.user));
-        
-        // Dispatch custom event to notify other components
-        window.dispatchEvent(new CustomEvent('instagram-token-changed'));
-        
-        setIsConnected(true);
-        setIsModalOpen(false);
-        console.log('Successfully connected to Instagram:', data.user);
+      if (response.ok) {
+        if (data.requires2FA) {
+          // Handle 2FA challenge
+          console.log('🔐 2FA required, showing verification modal');
+          setRequires2FA(true);
+          setChallengeId(data.challengeId);
+          
+          // Transform backend availableMethods format to frontend format
+          const transformedMethods = (data.availableMethods || []).map((method: any) => ({
+            id: method.verificationMethod,
+            name: method.label
+          }));
+          setAvailableMethods(transformedMethods);
+          
+          setError(null);
+          console.log('2FA required:', data.message);
+          console.log('Available methods:', transformedMethods);
+        } else if (data.success) {
+          // Successful login
+          localStorage.setItem('instagram_token', data.token);
+          localStorage.setItem('instagram_user', JSON.stringify(data.user));
+          
+          // Dispatch custom event to notify other components
+          window.dispatchEvent(new CustomEvent('instagram-token-changed'));
+          
+          setIsConnected(true);
+          setIsModalOpen(false);
+          setRequires2FA(false);
+          setChallengeId(null);
+          console.log('Successfully connected to Instagram:', data.user);
+        }
       } else {
         // Handle error response with potential suggestion
         let errorMessage = data.error || 'Failed to connect to Instagram';
@@ -413,6 +465,18 @@ function InstagramConnectSection() {
           errorMessage += `\n\n${data.suggestion}`;
         }
         setError(errorMessage);
+        
+        // Only reset 2FA state if it's not a 2FA verification error
+        // If it's a 2FA verification error (401 with specific message), keep 2FA state active
+        const is2FAVerificationError = response.status === 401 && 
+          (data.error?.includes('Invalid verification code') || data.error?.includes('verification'));
+        
+        if (requires2FA && !is2FAVerificationError) {
+          // Reset 2FA state only for non-verification errors
+          setRequires2FA(false);
+          setChallengeId(null);
+        }
+        
         throw new Error(errorMessage);
       }
     } catch (err) {
@@ -434,6 +498,9 @@ function InstagramConnectSection() {
     if (!isLoading) {
       setIsModalOpen(false);
       setError(null);
+      setRequires2FA(false);
+      setChallengeId(null);
+      setSavedCredentials(null);
     }
   };
 
@@ -474,6 +541,11 @@ function InstagramConnectSection() {
         onLogin={handleInstagramLogin}
         isLoading={isLoading}
         error={error}
+        requires2FA={requires2FA}
+        challengeId={challengeId || undefined}
+        availableMethods={availableMethods}
+        initialUsername={savedCredentials?.username || ''}
+        initialPassword={savedCredentials?.password || ''}
       />
     </>
   );
