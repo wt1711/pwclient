@@ -1,7 +1,6 @@
 version: '3.8'
 
 services:
-  
   # Backend API (Next.js)
   app:
     build:
@@ -20,7 +19,7 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: ${REDIS_PORT:-6379}
       JWT_SECRET: ${JWT_SECRET}
-      CORS_ALLOW_ORIGIN: *
+      CORS_ALLOW_ORIGIN: '*'
     env_file:
       - .env.local
     depends_on:
@@ -38,14 +37,8 @@ services:
       timeout: 10s
       retries: 5
       start_period: 60s
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-          cpus: '1.0'
-        reservations:
-          memory: 512M
-          cpus: '0.5'
+    mem_limit: 1g
+    cpus: 1.0
     logging:
       driver: 'json-file'
       options:
@@ -76,14 +69,8 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-          cpus: '0.5'
-        reservations:
-          memory: 256M
-          cpus: '0.25'
+    mem_limit: 512m
+    cpus: 0.5
 
   # Redis Cache
   redis:
@@ -101,14 +88,8 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-          cpus: '0.5'
-        reservations:
-          memory: 256M
-          cpus: '0.25'
+    mem_limit: 512m
+    cpus: 0.5
     logging:
       driver: 'json-file'
       options:
@@ -136,14 +117,8 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-          cpus: '1.0'
-        reservations:
-          memory: 512M
-          cpus: '0.5'
+    mem_limit: 1g
+    cpus: 1.0
     logging:
       driver: 'json-file'
       options:
@@ -171,11 +146,8 @@ services:
     networks:
       - backend-network
     restart: 'no'
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-          cpus: '0.25'
+    mem_limit: 256m
+    cpus: 0.25
 
 volumes:
   redis_data:
