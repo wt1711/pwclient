@@ -395,6 +395,14 @@ export function InstagramChat() {
     const observer = new IntersectionObserver(
       (entries) => {
         const [entry] = entries;
+        console.log('🔍 IntersectionObserver entry:', {
+          isIntersecting: entry.isIntersecting,
+          intersectionRatio: entry.intersectionRatio,
+          boundingClientRect: entry.boundingClientRect,
+          isLoadingMore,
+          hasMoreMessages
+        });
+        
         if (entry.isIntersecting && !isLoadingMore) {
           console.log('🔄 Lazy loading triggered - loading more messages');
           loadMoreMessages();
@@ -402,9 +410,9 @@ export function InstagramChat() {
       },
       {
         threshold: 0.1,
-        rootMargin: '20px',
-        // Use the scroll container as root
-        root: scrollRef.current,
+        rootMargin: '50px',
+        // Use viewport as root instead of scroll container for better detection
+        root: null,
       }
     );
 
@@ -428,11 +436,27 @@ export function InstagramChat() {
 
     const loadChatData = async () => {
       try {
+        console.log('🔄 Starting to load chat data for contact:', id);
         setIsLoading(true);
         setError(null);
 
+        // Check if Instagram token exists
+        const token = localStorage.getItem('instagram_token');
+        console.log('🔑 Instagram token exists:', !!token);
+        
+        if (!token) {
+          throw new Error('Instagram token not found. Please log in first.');
+        }
+
         // Fetch initial messages (most recent)
+        console.log('📥 Fetching initial messages...');
         const fetchedData = await fetchInstagramMessages(id, undefined, 20);
+        console.log('📦 Fetched data:', {
+          messageCount: fetchedData.messages.length,
+          nextCursor: fetchedData.nextCursor,
+          messages: fetchedData.messages.slice(0, 3) // Log first 3 messages for debugging
+        });
+        
         setMessages(fetchedData.messages);
         setNextCursor(fetchedData.nextCursor);
         setHasMoreMessages(!!fetchedData.nextCursor);
@@ -483,9 +507,17 @@ export function InstagramChat() {
 
         // Mark contact as read
         await markInstagramContactAsRead(id);
+        
+        console.log('✅ Chat data loaded successfully');
       } catch (err) {
-        console.error('Failed to load chat data:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load chat');
+        console.error('❌ Failed to load chat data:', err);
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load chat';
+        setError(errorMessage);
+        
+        // If it's an authentication error, show a more helpful message
+        if (errorMessage.includes('token') || errorMessage.includes('Authentication')) {
+          setError('Authentication failed. Please log in to Instagram again.');
+        }
       } finally {
         setIsLoading(false);
       }
@@ -500,8 +532,30 @@ export function InstagramChat() {
 
     const reloadMessages = async () => {
       try {
-        const fetchedData = await fetchInstagramMessages(id);
-        setMessages(fetchedData.messages);
+        // Only fetch the latest messages without cursor to get new messages
+        const fetchedData = await fetchInstagramMessages(id, undefined, 20);
+        
+        // Only update if we have new messages (compare with current latest message)
+        if (fetchedData.messages.length > 0 && messages.length > 0) {
+          const latestFetchedMessage = fetchedData.messages[fetchedData.messages.length - 1];
+          const currentLatestMessage = messages[messages.length - 1];
+          
+          // If the latest fetched message is different from current latest, update
+          if (latestFetchedMessage.id !== currentLatestMessage.id) {
+            // Find new messages that aren't already in our current messages
+            const currentMessageIds = new Set(messages.map(msg => msg.id));
+            const newMessages = fetchedData.messages.filter(msg => !currentMessageIds.has(msg.id));
+            
+            if (newMessages.length > 0) {
+              setMessages(prev => [...prev, ...newMessages]);
+            }
+          }
+        } else if (fetchedData.messages.length > 0 && messages.length === 0) {
+          // If we have no messages but fetched some, set them
+          setMessages(fetchedData.messages);
+          setNextCursor(fetchedData.nextCursor);
+          setHasMoreMessages(!!fetchedData.nextCursor);
+        }
       } catch (err) {
         console.error('Failed to reload messages:', err);
       }
@@ -517,7 +571,7 @@ export function InstagramChat() {
         reloadIntervalRef.current = null;
       }
     };
-  }, [id, reloadInterval, isAutoReloadEnabled]);
+  }, [id, reloadInterval, isAutoReloadEnabled, messages]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -713,7 +767,12 @@ export function InstagramChat() {
                       ref={loadMoreTriggerRef}
                       alignItems="Center"
                       justifyContent="Center"
-                      style={{ padding: '16px' }}
+                      style={{ 
+                        padding: '16px',
+                        minHeight: '60px', // Ensure the trigger has sufficient height
+                        backgroundColor: 'rgba(0, 0, 0, 0.05)', // Subtle background for debugging
+                        border: '1px dashed rgba(0, 0, 0, 0.1)' // Subtle border for debugging
+                      }}
                     >
                       {isLoadingMore ? (
                         <Box alignItems="Center" gap="200">
@@ -723,9 +782,12 @@ export function InstagramChat() {
                           </Text>
                         </Box>
                       ) : (
-                        <Text size="T200" priority="300">
-                          Scroll up to load more messages
-                        </Text>
+                        <Box alignItems="Center" gap="200" onClick={loadMoreMessages} style={{ cursor: 'pointer' }}>
+                          <Icon src={Icons.ChevronTop} size="200" />
+                          <Text size="T200" priority="300">
+                            Scroll up to load more messages (or click here)
+                          </Text>
+                        </Box>
                       )}
                     </Box>
                   )}

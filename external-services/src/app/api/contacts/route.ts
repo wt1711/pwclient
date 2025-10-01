@@ -6,7 +6,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-this';
 
 // CORS headers
 const corsHeaders = {
-  'Access-Control-Allow-Origin': (process.env.CORS_ALLOW_ORIGIN ?? 'http://localhost:5173'),
+  'Access-Control-Allow-Origin': process.env.CORS_ALLOW_ORIGIN ?? 'http://localhost:5173',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
   'Access-Control-Allow-Credentials': 'true',
@@ -44,82 +44,94 @@ export async function GET(request: NextRequest) {
     } catch (jwtError) {
       return NextResponse.json(
         { error: 'Invalid or expired token' },
-        { status: 401, headers: corsHeaders }   
+        { status: 401, headers: corsHeaders }
       );
     }
+
+    // Debug logging
+    console.log('🔍 Contacts API Debug:');
+    console.log('- JWT sessionId:', decoded.sessionId);
+    console.log('- Available cache keys:', Array.from(igClientCache.keys()));
+    console.log('- Cache size:', igClientCache.size);
 
     // Check session in Redis
     const sessionData = await sessionManager.getSession(decoded.sessionId);
     if (!sessionData) {
+      console.log('❌ Session not found in Redis for sessionId:', decoded.sessionId);
       return NextResponse.json(
         { error: 'Session expired. Please log in again.' },
         { status: 401, headers: corsHeaders }
       );
     }
+    console.log('✅ Session found in Redis:', sessionData, igClientCache);
 
     // Get the Instagram client from cache
     const ig = igClientCache.get(decoded.sessionId);
     if (!ig) {
+      console.log('❌ Instagram client not found in cache for sessionId:', decoded.sessionId);
       return NextResponse.json(
         { error: 'Session expired. Please log in again.' },
-        { status: 401, headers: corsHeaders } 
+        { status: 401, headers: corsHeaders }
       );
     }
+    console.log('✅ Instagram client found in cache');
 
     try {
       // Get direct message threads (conversations)
       const inbox = await ig.feed.directInbox();
       const threads = await inbox.items();
-      
+
       // Format contacts from threads
-      const contacts = threads.map(thread => {
-        // Get the other user in the conversation (not the current user)
-        const otherUser = thread.users.find(user => user.pk.toString() !== decoded.userId);
-        
-        if (!otherUser) {
-          return null;
+      const contacts = threads
+        .map((thread) => {
+          // Get the other user in the conversation (not the current user)
+          const otherUser = thread.users.find((user) => user.pk.toString() !== decoded.userId);
+
+          if (!otherUser) {
+            return null;
+          }
+
+          return {
+            id: otherUser.pk.toString(),
+            username: otherUser.username,
+            fullName: otherUser.full_name || '',
+            profilePicUrl: otherUser.profile_pic_url || '',
+            isVerified: otherUser.is_verified || false,
+            lastMessage: thread.items?.[0]?.text || '',
+            lastMessageTime: thread.items?.[0]?.timestamp
+              ? new Date(parseInt(thread.items[0].timestamp) / 1000).toISOString()
+              : null,
+            threadId: thread.thread_id,
+            unreadCount: 0, // Instagram API doesn't provide unread count in this format
+          };
+        })
+        .filter((contact) => contact !== null);
+
+      return NextResponse.json(
+        {
+          success: true,
+          contacts,
+        },
+        {
+          headers: corsHeaders,
         }
-        
-        return {
-          id: otherUser.pk.toString(),
-          username: otherUser.username,
-          fullName: otherUser.full_name || '',
-          profilePicUrl: otherUser.profile_pic_url || '',
-          isOnline: false, // Instagram API doesn't provide real-time online status
-          lastMessage: thread.items[0]?.text || '',
-          lastMessageTime: thread.items[0]?.timestamp ? new Date(Number(thread.items[0].timestamp) / 1000).toISOString() : null,
-          threadId: thread.thread_id
-        };
-      }).filter(contact => contact !== null);
+      );
+    } catch (instagramError) {
+      console.error('Instagram API error:', instagramError);
 
-      return NextResponse.json({
-        success: true,
-        contacts: contacts.slice(0, 50) // Limit to 50 contacts
-      }, {
-        headers: corsHeaders
-      });
-
-    } catch (contactsError) {
-      console.error('Contacts fetch error:', contactsError);
-      const errorMessage = contactsError instanceof Error ? contactsError.message : String(contactsError);
-      
-      if (errorMessage.includes('rate_limit')) {
-        return NextResponse.json(
-          { error: 'Rate limit exceeded. Please wait before loading contacts again.' },
-          { status: 429, headers: corsHeaders }
-        );
-      }
-      
-      // Return empty contacts list if there's an error, rather than failing completely
-      return NextResponse.json({
-        success: true,
-        contacts: [],
-        error: 'Could not load existing conversations. You can still search for users to start new conversations.'
-      }, {
-        headers: corsHeaders
-      });
+      // Return empty contacts list with error message for graceful degradation
+      return NextResponse.json(
+        {
+          success: true,
+          contacts: [],
+          error:
+            'Could not load existing conversations. You can still search for users to start new conversations.',
+        },
+        {
+          headers: corsHeaders,
+        }
+      );
     }
-
   } catch (error) {
     console.error('Contacts API error:', error);
     return NextResponse.json(

@@ -67,6 +67,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get the Instagram client from cache
+    const ig = igClientCache.get(decoded.sessionId);
+    if (!ig) {
+      return NextResponse.json(
+        { error: 'Session expired. Please log in again.' },
+        { status: 401, headers: corsHeaders }
+      );
+    }
+
     // Try to use realtime service first, fallback to regular API
     const realtimeService = getRealtimeService();
     

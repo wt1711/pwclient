@@ -245,7 +245,7 @@ function InstagramDMList() {
           Instagram DMs
         </RoomNavCategoryButton>
       </NavCategoryHeader>
-      
+
       {isLoading ? (
         <NavItem variant="Background" radii="400">
           <NavItemContent>
@@ -282,7 +282,7 @@ function InstagramDMList() {
         contacts.map((contact) => {
           const displayName = contact.fullName || contact.username || 'Unknown';
           const hasUnread = (contact.unreadCount || 0) > 0;
-          
+
           return (
             <NavItem key={contact.id} variant="Background" radii="400">
               <NavButton onClick={() => handleContactClick(contact.id)}>
@@ -290,8 +290,8 @@ function InstagramDMList() {
                   <Box as="span" grow="Yes" alignItems="Center" gap="200">
                     <Avatar size="200" radii="400">
                       {contact.profilePicUrl ? (
-                        <img 
-                          src={contact.profilePicUrl} 
+                        <img
+                          src={contact.profilePicUrl}
                           alt={displayName}
                           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />
@@ -368,8 +368,11 @@ function InstagramConnectSection() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [requires2FA, setRequires2FA] = useState(false);
   const [challengeId, setChallengeId] = useState<string | null>(null);
-  const [availableMethods, setAvailableMethods] = useState<Array<{id: string, name: string}>>([]);
-  const [savedCredentials, setSavedCredentials] = useState<{username: string, password: string} | null>(null);
+  const [availableMethods, setAvailableMethods] = useState<Array<{ id: string; name: string }>>([]);
+  const [savedCredentials, setSavedCredentials] = useState<{
+    username: string;
+    password: string;
+  } | null>(null);
 
   // Check for existing token on component mount
   useEffect(() => {
@@ -384,14 +387,20 @@ function InstagramConnectSection() {
     return null;
   }
 
-  const handleInstagramLogin = async (username: string, password: string, verificationCode?: string, challengeId?: string, verificationMethod?: string) => {
+  const handleInstagramLogin = async (
+    username: string,
+    password: string,
+    verificationCode?: string,
+    challengeId?: string,
+    verificationMethod?: string
+  ) => {
     setIsLoading(true);
     setError(null);
 
     // For 2FA verification, use saved credentials if available
     let actualUsername = username;
     let actualPassword = password;
-    
+
     if (verificationCode && challengeId && savedCredentials) {
       actualUsername = savedCredentials.username;
       actualPassword = savedCredentials.password;
@@ -404,7 +413,7 @@ function InstagramConnectSection() {
 
     try {
       const requestBody: any = { username: actualUsername, password: actualPassword };
-      
+
       // Add 2FA parameters if provided
       if (verificationCode && challengeId) {
         requestBody.verificationCode = verificationCode;
@@ -433,14 +442,14 @@ function InstagramConnectSection() {
           console.log('🔐 2FA required, showing verification modal');
           setRequires2FA(true);
           setChallengeId(data.challengeId);
-          
+
           // Transform backend availableMethods format to frontend format
           const transformedMethods = (data.availableMethods || []).map((method: any) => ({
             id: method.verificationMethod,
-            name: method.label
+            name: method.label,
           }));
           setAvailableMethods(transformedMethods);
-          
+
           setError(null);
           console.log('2FA required:', data.message);
           console.log('Available methods:', transformedMethods);
@@ -448,10 +457,10 @@ function InstagramConnectSection() {
           // Successful login
           localStorage.setItem('instagram_token', data.token);
           localStorage.setItem('instagram_user', JSON.stringify(data.user));
-          
+
           // Dispatch custom event to notify other components
           window.dispatchEvent(new CustomEvent('instagram-token-changed'));
-          
+
           setIsConnected(true);
           setIsModalOpen(false);
           setRequires2FA(false);
@@ -465,22 +474,27 @@ function InstagramConnectSection() {
           errorMessage += `\n\n${data.suggestion}`;
         }
         setError(errorMessage);
-        
+
         // Only reset 2FA state if it's not a 2FA verification error
         // If it's a 2FA verification error (401 with specific message), keep 2FA state active
-        const is2FAVerificationError = response.status === 401 && 
-          (data.error?.includes('Invalid verification code') || data.error?.includes('verification'));
-        
+        const is2FAVerificationError =
+          response.status === 401 &&
+          (data.error?.includes('Invalid verification code') ||
+            data.error?.includes('verification'));
+
         if (requires2FA && !is2FAVerificationError) {
           // Reset 2FA state only for non-verification errors
           setRequires2FA(false);
           setChallengeId(null);
         }
-        
+
         throw new Error(errorMessage);
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Network error. Make sure the Instagram service is running on port 3000.';
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : 'Network error. Make sure the Instagram service is running on port 3000.';
       setError(errorMessage);
       console.error('Instagram connection error:', err);
       throw err;
@@ -534,7 +548,7 @@ function InstagramConnectSection() {
           </NavButton>
         </NavItem>
       </NavCategory>
-      
+
       <InstagramLoginModal
         isOpen={isModalOpen}
         onClose={handleModalClose}
@@ -597,10 +611,10 @@ export function Home() {
           <Box direction="Column" gap="300">
             {/* Instagram Connect Button - only show if not connected */}
             <InstagramConnectSection />
-            
+
             {/* Instagram DM List - only show if connected */}
             {isInstagramConnected && <InstagramDMList />}
-            
+
             {/* <NavCategory>
               <NavItem variant="Background" radii="400">
                 <NavButton onClick={() => openCreateRoom()}>
@@ -693,8 +707,6 @@ export function Home() {
                 })}
               </div>
             </NavCategory>
-            
-
           </Box>
         </PageNavContent>
       )}

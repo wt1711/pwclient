@@ -22,12 +22,18 @@ import { stopPropagation } from '../utils/keyboard';
 type InstagramLoginModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  onLogin: (username: string, password: string, verificationCode?: string, challengeId?: string, verificationMethod?: string) => Promise<void>;
+  onLogin: (
+    username: string,
+    password: string,
+    verificationCode?: string,
+    challengeId?: string,
+    verificationMethod?: string
+  ) => Promise<void>;
   isLoading: boolean;
   error: string | null;
   requires2FA?: boolean;
   challengeId?: string;
-  availableMethods?: Array<{id: string, name: string}>;
+  availableMethods?: Array<{ id: string; name: string }>;
   initialUsername?: string;
   initialPassword?: string;
 };
@@ -55,22 +61,37 @@ export function InstagramLoginModal({
     setPassword(initialPassword);
   }, [initialUsername, initialPassword]);
 
+  // Reset selectedMethod when switching between 2FA and regular login
+  useEffect(() => {
+    if (!requires2FA) {
+      setSelectedMethod('');
+    }
+  }, [requires2FA]);
+  console.log('usernmae', username);
+
   // Auto-select first method when available methods change
   useEffect(() => {
-    if (availableMethods.length > 0 && !selectedMethod) {
+    if (requires2FA && availableMethods.length > 0) {
+      // Always set the first method when entering 2FA mode
       setSelectedMethod(availableMethods[0].id);
     }
-  }, [availableMethods, selectedMethod]);
+  }, [requires2FA, availableMethods]);
 
   const handleSubmit: FormEventHandler<HTMLFormElement> = async (evt) => {
     evt.preventDefault();
-    
+
     if (requires2FA) {
       // For 2FA verification, we need the verification code and challenge ID
       if (!verificationCode.trim() || !challengeId) return;
-      
+
       try {
-        await onLogin(username.trim(), password, verificationCode.trim(), challengeId, selectedMethod);
+        await onLogin(
+          username.trim(),
+          password,
+          verificationCode.trim(),
+          challengeId,
+          selectedMethod
+        );
         // Clear form on successful login
         setUsername('');
         setPassword('');
@@ -84,7 +105,7 @@ export function InstagramLoginModal({
     } else {
       // Regular login flow
       if (!username.trim() || !password.trim()) return;
-      
+
       try {
         await onLogin(username.trim(), password);
         // Clear form on successful login
@@ -183,11 +204,12 @@ export function InstagramLoginModal({
                   <>
                     <Box direction="Column" gap="200">
                       <Text size="T400" priority="300">
-                        Please enter the 6-digit verification code from your authenticator app or SMS.
+                        Please enter the 6-digit verification code from your authenticator app or
+                        SMS.
                       </Text>
                       <Text size="T300" priority="300">
-                         Username: <strong>{username}</strong>
-                       </Text>
+                        Username: <strong>{username || initialUsername}</strong>
+                      </Text>
                     </Box>
 
                     {/* 2FA Method Selection */}
@@ -197,23 +219,67 @@ export function InstagramLoginModal({
                           Verification Method
                         </Text>
                         <Box direction="Column" gap="100">
-                          {availableMethods.map((method) => (
-                            <Box key={method.id} direction="Row" gap="100" alignItems="Center">
-                              <input
-                                type="radio"
-                                id={`method-${method.id}`}
-                                name="verificationMethod"
-                                value={method.id}
-                                checked={selectedMethod === method.id}
-                                onChange={(e) => setSelectedMethod(e.target.value)}
-                                disabled={isLoading}
-                                style={{ margin: 0 }}
-                              />
-                              <Text as="label" htmlFor={`method-${method.id}`} size="T400" priority="300" style={{ cursor: 'pointer' }}>
-                                {method.name}
-                              </Text>
-                            </Box>
-                          ))}
+                          {availableMethods.map((method) => {
+                            const isSelected = selectedMethod === method.id;
+                            return (
+                              <Box
+                                key={method.id}
+                                direction="Row"
+                                gap="100"
+                                alignItems="Center"
+                                style={{
+                                  padding: '12px 16px',
+                                  borderRadius: '8px',
+                                  border: `2px solid ${isSelected ? '#007bff' : '#e0e0e0'}`,
+                                  backgroundColor: isSelected ? '#f0f8ff' : '#ffffff',
+                                  cursor: 'pointer',
+                                  transition: 'all 0.2s ease',
+                                  opacity: isLoading ? 0.6 : 1,
+                                }}
+                                onClick={() => !isLoading && setSelectedMethod(method.id)}
+                              >
+                                <input
+                                  type="radio"
+                                  id={`method-${method.id}`}
+                                  name="verificationMethod"
+                                  value={method.id}
+                                  checked={isSelected}
+                                  onChange={(e) => {
+                                    console.log('Radio button clicked:', e.target.value);
+                                    setSelectedMethod(e.target.value);
+                                  }}
+                                  disabled={isLoading}
+                                  style={{
+                                    margin: 0,
+                                    accentColor: '#007bff',
+                                    transform: 'scale(1.2)',
+                                  }}
+                                />
+                                <Text
+                                  as="label"
+                                  htmlFor={`method-${method.id}`}
+                                  size="T400"
+                                  priority={isSelected ? '400' : '300'}
+                                  style={{
+                                    cursor: 'pointer',
+                                    fontWeight: isSelected ? '600' : '400',
+                                    color: isSelected ? '#007bff' : '#333333',
+                                  }}
+                                >
+                                  {method.name}
+                                </Text>
+                                {isSelected && (
+                                  <Box style={{ marginLeft: 'auto' }}>
+                                    <Icon
+                                      src={Icons.Check}
+                                      size="100"
+                                      style={{ color: '#007bff' }}
+                                    />
+                                  </Box>
+                                )}
+                              </Box>
+                            );
+                          })}
                         </Box>
                       </Box>
                     )}
@@ -224,7 +290,9 @@ export function InstagramLoginModal({
                       </Text>
                       <Input
                         value={verificationCode}
-                        onChange={(evt) => setVerificationCode((evt.target as HTMLInputElement).value)}
+                        onChange={(evt) =>
+                          setVerificationCode((evt.target as HTMLInputElement).value)
+                        }
                         name="verificationCode"
                         variant="Background"
                         size="500"
@@ -249,12 +317,12 @@ export function InstagramLoginModal({
                       border: '1px solid var(--bg-danger)',
                     }}
                   >
-                    <Text 
-                      size="T300" 
-                      priority="400" 
-                      style={{ 
+                    <Text
+                      size="T300"
+                      priority="400"
+                      style={{
                         color: 'var(--tc-danger)',
-                        whiteSpace: 'pre-line' // This allows line breaks in the error message
+                        whiteSpace: 'pre-line', // This allows line breaks in the error message
                       }}
                     >
                       {error}
@@ -278,11 +346,10 @@ export function InstagramLoginModal({
                   <Button
                     type="submit"
                     disabled={
-                      isLoading || 
-                      (requires2FA 
+                      isLoading ||
+                      (requires2FA
                         ? !verificationCode.trim() || !challengeId
-                        : !username.trim() || !password.trim()
-                      )
+                        : !username.trim() || !password.trim())
                     }
                     variant="Primary"
                     size="400"
