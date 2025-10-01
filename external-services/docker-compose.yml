@@ -7,12 +7,12 @@ services:
     env_file:
       - .env.local
     ports:
-      - "${REDIS_PORT:-6379}:6379"
+      - '${REDIS_PORT:-6379}:6379'
     volumes:
       - redis_data:/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -25,7 +25,7 @@ services:
       POSTGRES_USER: ${DB_USER:-instagram_user}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-instagram_password}
     ports:
-      - "${DB_PORT:-5432}:5432"
+      - '${DB_PORT:-5432}:5432'
     env_file:
       - .env.local
     volumes:
@@ -33,7 +33,7 @@ services:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-instagram_user} -d ${DB_NAME:-instagram_chat}"]
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER:-instagram_user} -d ${DB_NAME:-instagram_chat}']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -75,9 +75,10 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-instagram_password}
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      CORS_ALLOW_ORIGIN: '*'
     ports:
-      - "3000:3000"
-      - "8088:8088"
+      - '3000:3000'
+      - '8088:8088'
     volumes:
       - ./:/app
       - /app/node_modules
