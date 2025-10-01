@@ -125,7 +125,9 @@ export async function GET(
         externalUrl: userInfo?.external_url || '',
         isBusinessAccount: userInfo?.is_business || false,
         businessCategoryName: '',
-        lastMessageTime: thread.last_activity_at ? new Date(Number(thread.last_activity_at) / 1000).toISOString() : null,
+        lastMessageTime: thread.last_activity_at
+          ? new Date(Number(thread.last_activity_at) / 1000).toISOString()
+          : null,
         unreadCount: 0, // Simplified unread count calculation
       };
 
@@ -140,8 +142,7 @@ export async function GET(
       );
     } catch (dmInfoError) {
       console.error('DM info fetch error:', dmInfoError);
-      const errorMessage =
-        dmInfoError instanceof Error ? dmInfoError.message : String(dmInfoError);
+      const errorMessage = dmInfoError instanceof Error ? dmInfoError.message : String(dmInfoError);
 
       if (errorMessage.includes('rate_limit')) {
         return NextResponse.json(

@@ -79,89 +79,71 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    try {
-      // Get Instagram client
-      const ig = igClientCache.get(decoded.sessionId);
-      if (!ig) {
-        return NextResponse.json(
-          { error: 'Session expired. Please log in again.' },
-          { status: 401, headers: corsHeaders }
-        );
-      }
-
-      // Determine if recipientId is a username or user ID
-      let userId: string;
-      
-      if (isNaN(Number(recipientId))) {
-        // It's a username, need to get user ID
-        try {
-          const userInfo = await ig.user.searchExact(recipientId.replace('@', ''));
-          userId = userInfo.pk.toString();
-        } catch (searchError) {
-          return NextResponse.json(
-            { error: `User '${recipientId}' not found` },
-            { status: 404, headers: corsHeaders }
-          );
-        }
-      } else {
-        userId = recipientId;
-      }
-
-      // Convert File to Buffer
-      const arrayBuffer = await imageFile.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-
-      // Send the image using the thread method
-      const thread = ig.entity.directThread([userId]);
-      
-      // Send image
-      const result = await thread.broadcastPhoto({
-        file: buffer,
-      });
-
-      // Send caption as separate text message if provided
-      if (caption && caption.trim()) {
-        await thread.broadcastText(caption);
-      }
-
-      const messageId = Date.now().toString();
-      const timestamp = Date.now();
-      
-      return NextResponse.json({
-        success: true,
-        messageId,
-        timestamp,
-        message: {
-          id: messageId,
-          text: caption || '',
-          senderId: decoded.userId,
-          recipientId: recipientId,
-          timestamp,
-          messageType: 'media',
-          mediaUrl: `data:${imageFile.type};base64,${buffer.toString('base64')}`,
-          status: 'sent'
-        },
-        method: 'api'
-      }, {
-        headers: corsHeaders
-      });
-
-    } catch (error) {
-      console.error('Image sending error:', error);
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      
-      if (errorMessage.includes('rate_limit')) {
-        return NextResponse.json(
-          { error: 'Rate limit exceeded. Please wait before sending more images.' },
-          { status: 429, headers: corsHeaders }
-        );
-      }
-      
+    // Get the Instagram client from cache
+    const ig = igClientCache.get(decoded.sessionId);
+    if (!ig) {
       return NextResponse.json(
-        { error: 'Failed to send image' },
-        { status: 500, headers: corsHeaders }
+        { error: 'Session expired. Please log in again.' },
+        { status: 401, headers: corsHeaders }
       );
     }
+
+    // Determine if recipientId is a username or user ID
+    let userId: string;
+    
+    if (isNaN(Number(recipientId))) {
+      // It's a username, need to get user ID
+      try {
+        const userInfo = await ig.user.searchExact(recipientId.replace('@', ''));
+        userId = userInfo.pk.toString();
+      } catch (searchError) {
+        return NextResponse.json(
+          { error: `User '${recipientId}' not found` },
+          { status: 404, headers: corsHeaders }
+        );
+      }
+    } else {
+      userId = recipientId;
+    }
+
+    // Convert File to Buffer
+    const arrayBuffer = await imageFile.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // Send the image using the thread method
+    const thread = ig.entity.directThread([userId]);
+    
+    // Send image
+    const result = await thread.broadcastPhoto({
+      file: buffer,
+    });
+
+    // Send caption as separate text message if provided
+    if (caption && caption.trim()) {
+      await thread.broadcastText(caption);
+    }
+
+    const messageId = Date.now().toString();
+    const timestamp = Date.now();
+    
+    return NextResponse.json({
+      success: true,
+      messageId,
+      timestamp,
+      message: {
+        id: messageId,
+        text: caption || '',
+        senderId: decoded.userId,
+        recipientId: recipientId,
+        timestamp,
+        messageType: 'media',
+        mediaUrl: `data:${imageFile.type};base64,${buffer.toString('base64')}`,
+        status: 'sent'
+      },
+      method: 'api'
+    }, {
+      headers: corsHeaders
+    });
 
   } catch (error) {
     console.error('Send image API error:', error);

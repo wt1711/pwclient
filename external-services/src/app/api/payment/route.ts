@@ -7,7 +7,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 });
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': 'http://localhost:5173',
+  'Access-Control-Allow-Origin': process.env.CORS_ALLOW_ORIGIN ?? 'http://localhost:5173',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
   'Access-Control-Allow-Credentials': 'true',
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     // Validate payment with Stripe
     try {
       const paymentIntent = await stripe.paymentIntents.retrieve(paymentId);
-      
+
       // Check if payment is successful
       if (paymentIntent.status !== 'succeeded') {
         return NextResponse.json(
@@ -62,12 +62,15 @@ export async function POST(request: NextRequest) {
         [matrixUserId, matrixHost, paymentId]
       );
 
-      return NextResponse.json({ 
-        success: true,
-        message: 'Payment validated and stored successfully'
-      }, {
-        headers: corsHeaders
-      });
+      return NextResponse.json(
+        {
+          success: true,
+          message: 'Payment validated and stored successfully',
+        },
+        {
+          headers: corsHeaders,
+        }
+      );
     } finally {
       client.release();
     }

@@ -23,16 +23,11 @@ const igClientCache = new Map<string, any>();
 
 // Helper function to handle successful login flow
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function handleSuccessfulLogin(
-  loggedInUser: any,
-  username: string,
-  ig: IgApiClient,
-  password: string
-) {
+async function handleSuccessfulLogin(loggedInUser: any, username: string, ig: IgApiClient) {
   // Debug: Log the structure of loggedInUser
   console.log('🔍 loggedInUser structure:', JSON.stringify(loggedInUser, null, 2));
   console.log('🔍 loggedInUser keys:', Object.keys(loggedInUser || {}));
-
+  
   // Create session ID
   const sessionId = `${username}_${Date.now()}`;
 
@@ -78,16 +73,8 @@ async function handleSuccessfulLogin(
     {
       userId: userId,
       username: userUsername,
-      fullName:
-        loggedInUser?.full_name ||
-        loggedInUser?.logged_in_user?.full_name ||
-        loggedInUser?.account?.full_name ||
-        '',
-      profilePicUrl:
-        loggedInUser?.profile_pic_url ||
-        loggedInUser?.logged_in_user?.profile_pic_url ||
-        loggedInUser?.account?.profile_pic_url ||
-        '',
+      fullName: loggedInUser?.full_name || loggedInUser?.logged_in_user?.full_name || loggedInUser?.account?.full_name || '',
+      profilePicUrl: loggedInUser?.profile_pic_url || loggedInUser?.logged_in_user?.profile_pic_url || loggedInUser?.account?.profile_pic_url || '',
       loginTime: new Date().toISOString(),
     },
     86400
@@ -111,27 +98,24 @@ async function handleSuccessfulLogin(
 
   // Store Instagram client instance in database instead of memory cache
   await sessionManager.storeInstagramClient(userId, ig, 24);
-  // Also store in memory cache for immediate access by other APIs
-  igClientCache.set(sessionId, ig);
 
   // Initialize realtime service for this user
   try {
     const realtimeService = getRealtimeService();
-    await realtimeService.initialize(username, password);
+    await realtimeService.initialize(username, ''); // Don't pass password for security
     console.log('✅ Realtime service initialized for user:', username);
   } catch (realtimeError) {
     console.warn('⚠️ Failed to initialize realtime service:', realtimeError);
     // Don't fail the login if realtime service fails
   }
 
-  // Clean up old client instances from memory cache (but keep the current one)
+  // Clean up old client instances from memory cache (if any remain)
   const userSessions = Array.from(igClientCache.keys()).filter((key: string) =>
-    key.startsWith(`${username}_`) && key !== sessionId
+    key.startsWith(`${username}_`)
   );
 
-  userSessions.forEach((oldSessionId: string) => {
-    console.log(`🧹 Cleaning up old session: ${oldSessionId}`);
-    igClientCache.delete(oldSessionId);
+  userSessions.forEach((sessionId: string) => {
+    igClientCache.delete(sessionId);
   });
 
   return NextResponse.json(
@@ -141,16 +125,8 @@ async function handleSuccessfulLogin(
       user: {
         id: userId,
         username: userUsername,
-        fullName:
-          loggedInUser?.full_name ||
-          loggedInUser?.logged_in_user?.full_name ||
-          loggedInUser?.account?.full_name ||
-          '',
-        profilePicUrl:
-          loggedInUser?.profile_pic_url ||
-          loggedInUser?.logged_in_user?.profile_pic_url ||
-          loggedInUser?.account?.profile_pic_url ||
-          '',
+        fullName: loggedInUser?.full_name || loggedInUser?.logged_in_user?.full_name || loggedInUser?.account?.full_name || '',
+        profilePicUrl: loggedInUser?.profile_pic_url || loggedInUser?.logged_in_user?.profile_pic_url || loggedInUser?.account?.profile_pic_url || '',
       },
     },
     {
@@ -169,8 +145,7 @@ export async function OPTIONS(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { username, password, verificationCode, challengeId, verificationMethod } =
-      await request.json();
+    const { username, password, verificationCode, challengeId, verificationMethod } = await request.json();
 
     if (!username || !password) {
       return NextResponse.json(
@@ -189,7 +164,7 @@ export async function POST(request: NextRequest) {
       // If we have a verification code and challenge ID, handle 2FA verification
       if (verificationCode && challengeId) {
         console.log(`🔐 Processing 2FA verification for user: ${username}`);
-
+        
         // Retrieve the stored challenge data from cache
         const cachedData = igClientCache.get(`challenge_${challengeId}`);
         if (!cachedData) {
@@ -203,16 +178,16 @@ export async function POST(request: NextRequest) {
           // Process the 2FA verification using the cached Instagram client
           console.log(`🔐 Attempting 2FA verification with code: ${verificationCode}`);
           console.log(`🔐 Two-factor identifier: ${cachedData.twoFactorIdentifier}`);
-
+          
           // Create a fresh Instagram client for 2FA verification
           const ig = new IgApiClient();
-
+          
           // Generate device for the username to maintain consistency
           ig.state.generateDevice(cachedData.username);
-
+          
           // Convert verification code to string FIRST and ensure it's properly formatted
           const codeAsString = String(verificationCode).trim();
-
+          
           // Validate the verification code format
           if (!/^\d{6}$/.test(codeAsString)) {
             console.error(`❌ Invalid verification code format: ${codeAsString}`);
@@ -221,60 +196,53 @@ export async function POST(request: NextRequest) {
               { status: 400, headers: corsHeaders }
             );
           }
-
-          console.log(
-            `🔐 Verification code type: ${typeof verificationCode}, value: ${verificationCode}`
-          );
+          
+          console.log(`🔐 Verification code type: ${typeof verificationCode}, value: ${verificationCode}`);
           console.log(`🔐 Code as string: ${codeAsString}, length: ${codeAsString.length}`);
           console.log(`🔐 Username: ${cachedData.username}`);
           console.log(`🔐 Cached two factor identifier: ${cachedData.twoFactorIdentifier}`);
-
+          
           // Perform a fresh login attempt with the cached credentials
           // This ensures we have the proper session state for 2FA
           let freshTwoFactorIdentifier = cachedData.twoFactorIdentifier;
-
+          
           try {
             await ig.account.login(cachedData.username, cachedData.password);
             // If login succeeds without 2FA, something changed - proceed normally
             console.log('✅ Login succeeded without 2FA - account settings may have changed');
             const loggedInUser = await ig.account.currentUser();
-
+            
             // Clean up the challenge from cache
             igClientCache.delete(`challenge_${challengeId}`);
-
-            return await handleSuccessfulLogin(
-              loggedInUser,
-              cachedData.username,
-              ig,
-              cachedData.password
-            );
+            
+            return await handleSuccessfulLogin(loggedInUser, cachedData.username, ig);
           } catch (loginError) {
-            // Expected: login should fail with 2FA required, giving us the proper session state
-            console.log('🔐 Login failed as expected, proceeding with 2FA verification');
-
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const errorBody = (loginError as any)?.response?.body;
-            const is2FARequired = errorBody?.two_factor_required;
-
-            if (!is2FARequired) {
-              console.error('❌ Unexpected login error during 2FA setup:', loginError);
-              throw loginError;
-            }
-
-            // Extract the fresh 2FA identifier from the login error response
-            const freshIdentifierFromResponse = errorBody?.two_factor_info?.two_factor_identifier;
-
-            if (freshIdentifierFromResponse) {
-              console.log(`🔐 Using fresh two-factor identifier: ${freshIdentifierFromResponse}`);
-              freshTwoFactorIdentifier = freshIdentifierFromResponse;
-            } else {
-              console.log(`🔐 Using cached two-factor identifier: ${freshTwoFactorIdentifier}`);
-            }
-          }
-
+             // Expected: login should fail with 2FA required, giving us the proper session state
+             console.log('🔐 Login failed as expected, proceeding with 2FA verification');
+             
+             // eslint-disable-next-line @typescript-eslint/no-explicit-any
+             const errorBody = (loginError as any)?.response?.body;
+             const is2FARequired = errorBody?.two_factor_required;
+             
+             if (!is2FARequired) {
+               console.error('❌ Unexpected login error during 2FA setup:', loginError);
+               throw loginError;
+             }
+             
+             // Extract the fresh 2FA identifier from the login error response
+             const freshIdentifierFromResponse = errorBody?.two_factor_info?.two_factor_identifier;
+             
+             if (freshIdentifierFromResponse) {
+               console.log(`🔐 Using fresh two-factor identifier: ${freshIdentifierFromResponse}`);
+               freshTwoFactorIdentifier = freshIdentifierFromResponse;
+             } else {
+               console.log(`🔐 Using cached two-factor identifier: ${freshTwoFactorIdentifier}`);
+             }
+           }
+          
           // Determine the verification method to use
           let methodToUse = '0'; // Default to TOTP
-
+          
           if (verificationMethod) {
             // If user provided a specific method, use it
             methodToUse = verificationMethod;
@@ -286,14 +254,10 @@ export async function POST(request: NextRequest) {
               methodToUse = availableMethods[0].verificationMethod;
             }
           }
-
-          console.log(
-            `🔐 Using verification method: ${methodToUse} (${
-              methodToUse === '0' ? 'TOTP/Google Authenticator' : 'SMS'
-            })`
-          );
+          
+          console.log(`🔐 Using verification method: ${methodToUse} (${methodToUse === '0' ? 'TOTP/Google Authenticator' : 'SMS'})`);
           console.log(`🔐 Final two factor identifier: ${freshTwoFactorIdentifier}`);
-
+          
           const loggedInUser = await ig.account.twoFactorLogin({
             username: cachedData.username,
             verificationCode: codeAsString,
@@ -301,26 +265,22 @@ export async function POST(request: NextRequest) {
             verificationMethod: methodToUse,
             trustThisDevice: '1', // Can be omitted as '1' is used by default
           });
-
+          
           console.log(`✅ 2FA verification successful for user: ${username}`);
-
+          
           // Clean up the challenge from cache
           igClientCache.delete(`challenge_${challengeId}`);
-
+          
           // Continue with successful login flow
-          return await handleSuccessfulLogin(loggedInUser, username, ig, password);
+          return await handleSuccessfulLogin(loggedInUser, username, ig);
+          
         } catch (verificationError: unknown) {
           console.error('❌ 2FA verification failed:', verificationError);
           console.error('❌ Error type:', typeof verificationError);
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           console.error('❌ Error name:', (verificationError as any)?.name);
-          console.error(
-            '❌ Error message:',
-            verificationError instanceof Error
-              ? verificationError.message
-              : String(verificationError)
-          );
-
+          console.error('❌ Error message:', verificationError instanceof Error ? verificationError.message : String(verificationError));
+          
           // Log additional error details for debugging
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           if ((verificationError as any)?.response) {
@@ -331,7 +291,7 @@ export async function POST(request: NextRequest) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             console.error(`❌ Response headers:`, (verificationError as any)?.response?.headers);
           }
-
+          
           // Log the exact parameters that were used in the failed request
           console.error(`❌ Failed request parameters:`);
           console.error(`   - Username: ${cachedData.username}`);
@@ -339,12 +299,11 @@ export async function POST(request: NextRequest) {
           console.error(`   - Two factor identifier: [REDACTED]`);
           console.error(`   - Verification method: [REDACTED]`);
           console.error(`   - Trust this device: 1`);
-
+          
           return NextResponse.json(
-            {
+            { 
               error: 'Invalid verification code. Please try again.',
-              suggestion:
-                'Make sure you entered the 6-digit code correctly from your authenticator app or SMS.',
+              suggestion: 'Make sure you entered the 6-digit code correctly from your authenticator app or SMS.'
             },
             { status: 401, headers: corsHeaders }
           );
@@ -354,62 +313,15 @@ export async function POST(request: NextRequest) {
       // Attempt to login (initial login attempt)
       const loggedInUser = await ig.account.login(username, password);
 
-      console.log('✅ Login successful without 2FA', loggedInUser);
-
-      // Test if the client can access protected endpoints to detect hidden 2FA requirement
-      try {
-        console.log('🔍 Testing direct inbox access to validate authentication...');
-        const testInbox = ig.feed.directInbox();
-        await testInbox.items();
-        console.log('✅ Direct inbox access successful - authentication is complete');
-        
-        // If login is successful and inbox access works, proceed normally
-        return await handleSuccessfulLogin(loggedInUser, username, ig, password);
-      } catch (inboxError: unknown) {
-        console.error('❌ Direct inbox access failed:', inboxError);
-        
-        // Check if this is a 404 error indicating incomplete authentication (hidden 2FA requirement)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const errorName = (inboxError as any)?.name || '';
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const statusCode = (inboxError as any)?.response?.statusCode || (inboxError as any)?.statusCode;
-        
-        if (errorName === 'IgNotFoundError' || statusCode === 404) {
-          console.log('🔐 Account requires 2FA but bypassed initial detection - triggering 2FA flow');
-          
-          // Create a synthetic 2FA error to trigger the existing 2FA flow
-          const synthetic2FAError = {
-            name: 'IgTwoFactorAuthRequiredError',
-            message: 'two_factor_required',
-            response: {
-              body: {
-                two_factor_required: true,
-                two_factor_info: {
-                  two_factor_identifier: `synthetic_${username}_${Date.now()}`,
-                  sms_two_factor_on: true,
-                  totp_two_factor_on: true
-                }
-              }
-            }
-          };
-          
-          // Throw the synthetic error to trigger the existing 2FA handling logic
-          throw synthetic2FAError;
-        }
-        
-        // If it's not a 404, log the error but continue with login
-        console.warn('⚠️ Direct inbox test failed with non-404 error, proceeding with login');
-        return await handleSuccessfulLogin(loggedInUser, username, ig, password);
-      }
+      // If login is successful without 2FA, proceed normally
+      return await handleSuccessfulLogin(loggedInUser, username, ig);
+      
     } catch (loginError: unknown) {
       console.error('Instagram login error:', loginError);
       console.error('Error type:', typeof loginError);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       console.error('Error name:', (loginError as any)?.name);
-      console.error(
-        'Error message:',
-        loginError instanceof Error ? loginError.message : String(loginError)
-      );
+      console.error('Error message:', loginError instanceof Error ? loginError.message : String(loginError));
       console.error('Full error object:', JSON.stringify(loginError, null, 2));
 
       const errorMessage = loginError instanceof Error ? loginError.message : String(loginError);
@@ -417,7 +329,7 @@ export async function POST(request: NextRequest) {
       const errorName = (loginError as any)?.name || '';
 
       // Handle 2FA challenge requirement - check multiple patterns
-      const is2FARequired =
+      const is2FARequired = 
         errorMessage.includes('challenge_required') ||
         errorMessage.includes('two_factor_required') ||
         errorMessage.includes('checkpoint_required') ||
@@ -433,18 +345,15 @@ export async function POST(request: NextRequest) {
         console.log(`🔐 2FA challenge required for user: ${username}`);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         console.log('Challenge details:', (loginError as any)?.response?.body);
-
+        
         try {
           // Generate a unique challenge ID
-          const challengeId = `${username}_${Date.now()}_${Math.random()
-            .toString(36)
-            .substr(2, 9)}`;
-
+          const challengeId = `${username}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          
           // Extract the two-factor identifier from the error response
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const twoFactorIdentifier = (loginError as any)?.response?.body?.two_factor_info
-            ?.two_factor_identifier;
-
+          const twoFactorIdentifier = (loginError as any)?.response?.body?.two_factor_info?.two_factor_identifier;
+          
           if (!twoFactorIdentifier) {
             console.error('❌ No two-factor identifier found in response');
             return NextResponse.json(
@@ -452,32 +361,32 @@ export async function POST(request: NextRequest) {
               { status: 400, headers: corsHeaders }
             );
           }
-
+          
           // Extract available 2FA methods from the response
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const twoFactorInfo = (loginError as any)?.response?.body?.two_factor_info;
           const availableMethods = [];
-
+          
           // Check if SMS is available
           if (twoFactorInfo?.sms_two_factor_on) {
             availableMethods.push({
               method: 'sms',
               label: 'SMS',
               description: 'Send code via SMS',
-              verificationMethod: '1',
+              verificationMethod: '1'
             });
           }
-
+          
           // Check if TOTP (Google Authenticator) is available
           if (twoFactorInfo?.totp_two_factor_on) {
             availableMethods.push({
               method: 'totp',
               label: 'Authenticator App',
               description: 'Use Google Authenticator or similar app',
-              verificationMethod: '0',
+              verificationMethod: '0'
             });
           }
-
+          
           // Fallback: if we can't determine available methods, provide both options
           if (availableMethods.length === 0) {
             availableMethods.push(
@@ -485,37 +394,36 @@ export async function POST(request: NextRequest) {
                 method: 'sms',
                 label: 'SMS',
                 description: 'Send code via SMS',
-                verificationMethod: '1',
+                verificationMethod: '1'
               },
               {
                 method: 'totp',
                 label: 'Authenticator App',
                 description: 'Use Google Authenticator or similar app',
-                verificationMethod: '0',
+                verificationMethod: '0'
               }
             );
           }
-
+          
           // Store only the essential data needed for 2FA verification
           igClientCache.set(`challenge_${challengeId}`, {
             twoFactorIdentifier: twoFactorIdentifier,
             username: username,
             password: password, // Store password to retry login after 2FA
             timestamp: Date.now(),
-            availableMethods: availableMethods, // Store available methods for fallback
+            availableMethods: availableMethods // Store available methods for fallback
           });
-
+          
           // Set expiration for the challenge (5 minutes)
           setTimeout(() => {
             igClientCache.delete(`challenge_${challengeId}`);
           }, 5 * 60 * 1000);
-
+          
           return NextResponse.json(
             {
               requires2FA: true,
               challengeId: challengeId,
-              message:
-                'Two-factor authentication required. Please choose your verification method and enter your code.',
+              message: 'Two-factor authentication required. Please choose your verification method and enter your code.',
               availableMethods: availableMethods,
             },
             { status: 200, headers: corsHeaders }
@@ -524,24 +432,18 @@ export async function POST(request: NextRequest) {
           console.error('Error handling 2FA challenge:', challengeError);
           return NextResponse.json(
             {
-              error:
-                'Account verification required. Please log in through the Instagram app first.',
+              error: 'Account verification required. Please log in through the Instagram app first.',
             },
             { status: 400, headers: corsHeaders }
           );
         }
       }
 
-      if (
-        errorMessage.includes('bad_password') ||
-        errorMessage.includes('You can log in with your linked Facebook account')
-      ) {
+      if (errorMessage.includes('bad_password') || errorMessage.includes('You can log in with your linked Facebook account')) {
         return NextResponse.json(
-          {
-            error:
-              'Invalid credentials. If you use Facebook login for Instagram, please use your Facebook credentials or enable Instagram password login in your account settings.',
-            suggestion:
-              'Try logging in with your Facebook credentials, or enable password login in Instagram settings.',
+          { 
+            error: 'Invalid credentials. If you use Facebook login for Instagram, please use your Facebook credentials or enable Instagram password login in your account settings.',
+            suggestion: 'Try logging in with your Facebook credentials, or enable password login in Instagram settings.'
           },
           { status: 401, headers: corsHeaders }
         );

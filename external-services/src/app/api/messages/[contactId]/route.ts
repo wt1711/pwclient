@@ -104,49 +104,38 @@ export async function GET(
         );
       }
 
-      // TODO: adsdsadas
+      // Use threadFeed for proper pagination with Instagram's native cursors
       const threadFeed = ig.feed.directThread({
         thread_id: thread.thread_id,
-        oldest_cursor: thread.newest_cursor,
+        oldest_cursor: cursor || undefined, // Use provided cursor for pagination
       });
 
-      // Get messages from the thread
-      const messagesDAS = await threadFeed.items();
+      // Get messages from the thread using the feed
+      const feedMessages = await threadFeed.items();
+      
+      console.log(`📱 Loaded ${feedMessages.length} messages from threadFeed`);
 
-      console.log(
-        thread,
-        messagesDAS.length,
-        messagesDAS.map((el) => [el.text, el.uq_seq_id])
-      );
+      // Limit the number of messages returned
+      const paginatedMessages = feedMessages.slice(0, limit);
 
-      // Get all messages from the thread
-      const allMessages = thread.items;
-      console.log(
-        allMessages.length,
-        allMessages.map((el) => [el.text, el?.uq_seq_id ?? ''])
-      );
-
-      // If cursor is provided, find the starting point for pagination
-      let startIndex = 0;
-      if (cursor) {
-        const cursorIndex = allMessages.findIndex(
-          (item) => (item.item_id || `${item.timestamp}_${Math.random()}`) === cursor
-        );
-        if (cursorIndex !== -1) {
-          startIndex = cursorIndex + 1; // Start after the cursor message
+      // For older message pagination, use the oldest message's item_id as the cursor
+      // This ensures we can always fetch older messages by using the last message's ID
+      let nextCursor: string | null = null;
+      
+      if (paginatedMessages.length > 0) {
+        // Get the oldest message (last in the array since messages are in reverse chronological order)
+        const oldestMessage = paginatedMessages[paginatedMessages.length - 1];
+        
+        // Check if there are potentially more messages
+        // We have more if we got the full limit OR if the feed indicates more are available
+        const hasMore = feedMessages.length >= limit || threadFeed.isMoreAvailable();
+        
+        if (hasMore && oldestMessage.item_id) {
+          nextCursor = oldestMessage.item_id;
         }
       }
 
-      // Get the paginated slice of messages
-      const paginatedMessages = allMessages.slice(startIndex, startIndex + limit);
-
-      // Determine if there are more messages
-      const hasMore = startIndex + limit < allMessages.length;
-      const nextCursor =
-        hasMore && paginatedMessages.length > 0
-          ? paginatedMessages[paginatedMessages.length - 1].item_id ||
-            `${paginatedMessages[paginatedMessages.length - 1].timestamp}_${Math.random()}`
-          : null;
+      console.log(`📄 Pagination info: messageCount=${paginatedMessages.length}, feedMessageCount=${feedMessages.length}, limit=${limit}, nextCursor=${nextCursor}`);
 
       // Format messages
       const messages = paginatedMessages

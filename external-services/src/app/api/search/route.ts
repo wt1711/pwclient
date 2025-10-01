@@ -82,7 +82,7 @@ export async function GET(  request: NextRequest) {
     if (!ig) {
       return NextResponse.json(
         { error: 'Session expired. Please log in again.' },
-        { status: 401, headers: corsHeaders }             
+        { status: 401, headers: corsHeaders }           
       );
     }
 
