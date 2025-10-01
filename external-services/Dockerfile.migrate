@@ -1,0 +1,26 @@
+# Migration Dockerfile
+FROM node:18-alpine
+
+RUN apk add --no-cache libc6-compat
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci --only=production && npm cache clean --force
+
+# Copy migration files and scripts
+COPY scripts/ ./scripts/
+COPY migrations/ ./migrations/
+COPY init.sql ./
+
+# Create non-root user
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+RUN chown -R nextjs:nodejs /app
+
+USER nextjs
+
+CMD ["npm", "run", "migrate:up"]
