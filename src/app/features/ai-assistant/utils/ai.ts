@@ -5,6 +5,23 @@ export type Message = {
   is_from_me: boolean;
 };
 
+/**
+ * Request payload for the new AI backend service.
+ * All fields are optional.
+ */
+export type GenerateResponsePayload = {
+  message?: string;
+  context?: Message[];
+  spec?: object;
+};
+
+/**
+ * Response from the new AI backend service.
+ */
+export type GenerateResponseResult = {
+  text: string;
+};
+
 export async function getOpenAIConsultation({
   context,
   selectedMessage,
@@ -102,5 +119,62 @@ export async function gradeMessage({
   } catch (error) {
     console.error('Error grading message:', error);
     return 0;
+  }
+}
+
+/**
+ * Generates a response using the new AI backend service at pwai.vercel.app.
+ *
+ * This function calls the new AI backend API with optional parameters for message,
+ * context, and response specifications. All parameters are optional, allowing the
+ * API to be called with an empty payload if needed.
+ *
+ * @param message - The message to generate a response for (optional)
+ * @param context - Previous conversation context (optional)
+ * @param spec - Response specification such as persona, tone, etc. (optional)
+ * @returns The generated response text
+ * @throws {Error} If the API request fails or returns an error response
+ *
+ * @example
+ * ```typescript
+ * const response = await generateResponseFromNewBackend({
+ *   message: 'Hello',
+ *   context: [{ sender: '@user:matrix.org', text: 'Hi', timestamp: '...', is_from_me: false }],
+ *   spec: { tone: 'friendly' }
+ * });
+ * ```
+ */
+export async function generateResponseFromNewBackend({
+  message,
+  context,
+  spec,
+}: {
+  message?: string;
+  context?: Message[];
+  spec?: object;
+} = {}): Promise<string> {
+  try {
+    const response = await fetch('https://pwai.vercel.app/api/generate-response', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        message,
+        context,
+        spec,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+      throw new Error(errorData.error || 'Failed to generate response from server.');
+    }
+
+    const data: GenerateResponseResult = await response.json();
+    return data.text;
+  } catch (error) {
+    console.error('Error generating response:', error);
+    throw error;
   }
 }
