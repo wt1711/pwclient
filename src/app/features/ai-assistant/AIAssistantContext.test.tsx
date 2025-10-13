@@ -544,4 +544,387 @@ describe('AIAssistantContext - Story 1.2 Tests', () => {
       expect(mockInsertText).toHaveBeenCalledWith('Response with spaces');
     });
   });
+
+  describe('Error State Management - Story 2.3', () => {
+    it('should set errorMessage when stream error occurs', async () => {
+      const mockError = new Error('Stream connection error');
+      const mockAbort = vi.fn();
+      let capturedCallbacks: GenerateResponseSSECallbacks;
+
+      (aiUtils.generateResponseFromMessageSSE as Mock).mockImplementation((params) => {
+        capturedCallbacks = params;
+        return mockAbort;
+      });
+
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
+        // Intentionally empty
+      });
+
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <AIAssistantProvider isMobile={false}>{children}</AIAssistantProvider>
+      );
+
+      const { result } = renderHook(() => useAIAssistant(), { wrapper });
+
+      act(() => {
+        result.current.regenerateResponse();
+      });
+
+      // Simulate stream error
+      act(() => {
+        capturedCallbacks.onError(mockError);
+      });
+
+      // Should set error message instead of generatedResponse
+      expect(result.current.errorMessage).toBe(
+        'Connection lost. Please check your network and try again.'
+      );
+      expect(result.current.isGeneratingResponse).toBe(false);
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('should clear errorMessage when regenerateResponse is called again', async () => {
+      const mockError = new Error('Stream connection error');
+      const mockAbort = vi.fn();
+      let capturedCallbacks: GenerateResponseSSECallbacks;
+
+      (aiUtils.generateResponseFromMessageSSE as Mock).mockImplementation((params) => {
+        capturedCallbacks = params;
+        return mockAbort;
+      });
+
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
+        // Intentionally empty
+      });
+
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <AIAssistantProvider isMobile={false}>{children}</AIAssistantProvider>
+      );
+
+      const { result } = renderHook(() => useAIAssistant(), { wrapper });
+
+      // First generation with error
+      act(() => {
+        result.current.regenerateResponse();
+      });
+
+      act(() => {
+        capturedCallbacks.onError(mockError);
+      });
+
+      expect(result.current.errorMessage).toBeTruthy();
+
+      // Retry generation should clear error
+      act(() => {
+        result.current.regenerateResponse();
+      });
+
+      expect(result.current.errorMessage).toBe(null);
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('should categorize network errors correctly', async () => {
+      const mockError = new Error('Failed to initialize SSE connection');
+      const mockAbort = vi.fn();
+      let capturedCallbacks: GenerateResponseSSECallbacks;
+
+      (aiUtils.generateResponseFromMessageSSE as Mock).mockImplementation((params) => {
+        capturedCallbacks = params;
+        return mockAbort;
+      });
+
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
+        // Intentionally empty
+      });
+
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <AIAssistantProvider isMobile={false}>{children}</AIAssistantProvider>
+      );
+
+      const { result } = renderHook(() => useAIAssistant(), { wrapper });
+
+      act(() => {
+        result.current.regenerateResponse();
+      });
+
+      act(() => {
+        capturedCallbacks.onError(mockError);
+      });
+
+      expect(result.current.errorMessage).toBe(
+        'Failed to connect to AI service. Please try again later.'
+      );
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('should categorize generic errors with default message', async () => {
+      const mockError = new Error('Some unknown error');
+      const mockAbort = vi.fn();
+      let capturedCallbacks: GenerateResponseSSECallbacks;
+
+      (aiUtils.generateResponseFromMessageSSE as Mock).mockImplementation((params) => {
+        capturedCallbacks = params;
+        return mockAbort;
+      });
+
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
+        // Intentionally empty
+      });
+
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <AIAssistantProvider isMobile={false}>{children}</AIAssistantProvider>
+      );
+
+      const { result } = renderHook(() => useAIAssistant(), { wrapper });
+
+      act(() => {
+        result.current.regenerateResponse();
+      });
+
+      act(() => {
+        capturedCallbacks.onError(mockError);
+      });
+
+      expect(result.current.errorMessage).toBe('Sorry, something went wrong. Please try again.');
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('should handle initialization errors and set errorMessage', async () => {
+      (aiUtils.generateResponseFromMessageSSE as Mock).mockImplementation(() => {
+        throw new Error('Initialization error');
+      });
+
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
+        // Intentionally empty
+      });
+
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <AIAssistantProvider isMobile={false}>{children}</AIAssistantProvider>
+      );
+
+      const { result } = renderHook(() => useAIAssistant(), { wrapper });
+
+      act(() => {
+        result.current.regenerateResponse();
+      });
+
+      expect(result.current.errorMessage).toBe('Failed to start generation. Please try again.');
+      expect(result.current.isGeneratingResponse).toBe(false);
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('should allow successful retry after error', async () => {
+      const mockError = new Error('Stream connection error');
+      const mockAbort = vi.fn();
+      let capturedCallbacks: GenerateResponseSSECallbacks;
+
+      (aiUtils.generateResponseFromMessageSSE as Mock).mockImplementation((params) => {
+        capturedCallbacks = params;
+        return mockAbort;
+      });
+
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
+        // Intentionally empty
+      });
+
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <AIAssistantProvider isMobile={false}>{children}</AIAssistantProvider>
+      );
+
+      const { result } = renderHook(() => useAIAssistant(), { wrapper });
+
+      // First attempt - error
+      act(() => {
+        result.current.regenerateResponse();
+      });
+
+      act(() => {
+        capturedCallbacks.onError(mockError);
+      });
+
+      expect(result.current.errorMessage).toBeTruthy();
+      expect(result.current.isGeneratingResponse).toBe(false);
+
+      // Second attempt - success
+      act(() => {
+        result.current.regenerateResponse();
+      });
+
+      expect(result.current.errorMessage).toBe(null);
+      expect(result.current.isGeneratingResponse).toBe(true);
+
+      act(() => {
+        capturedCallbacks.onChunk('Success response');
+        capturedCallbacks.onComplete();
+      });
+
+      expect(result.current.generatedResponse).toBe('Success response');
+      expect(result.current.isGeneratingResponse).toBe(false);
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('should expose setErrorMessage function for manual error handling', async () => {
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <AIAssistantProvider isMobile={false}>{children}</AIAssistantProvider>
+      );
+
+      const { result } = renderHook(() => useAIAssistant(), { wrapper });
+
+      expect(result.current.errorMessage).toBe(null);
+
+      act(() => {
+        result.current.setErrorMessage('Manual error message');
+      });
+
+      expect(result.current.errorMessage).toBe('Manual error message');
+
+      act(() => {
+        result.current.setErrorMessage(null);
+      });
+
+      expect(result.current.errorMessage).toBe(null);
+    });
+
+    it('should maintain error message until explicitly cleared', async () => {
+      const mockError = new Error('Stream connection error');
+      const mockAbort = vi.fn();
+      let capturedCallbacks: GenerateResponseSSECallbacks;
+
+      (aiUtils.generateResponseFromMessageSSE as Mock).mockImplementation((params) => {
+        capturedCallbacks = params;
+        return mockAbort;
+      });
+
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
+        // Intentionally empty
+      });
+
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <AIAssistantProvider isMobile={false}>{children}</AIAssistantProvider>
+      );
+
+      const { result } = renderHook(() => useAIAssistant(), { wrapper });
+
+      act(() => {
+        result.current.regenerateResponse();
+      });
+
+      act(() => {
+        capturedCallbacks.onError(mockError);
+      });
+
+      const errorMsg = result.current.errorMessage;
+      expect(errorMsg).toBeTruthy();
+
+      // Error should persist across re-renders
+      await waitFor(() => {
+        expect(result.current.errorMessage).toBe(errorMsg);
+      });
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('should clear loading state on all error types', async () => {
+      const scenarios = [
+        { error: new Error('Stream connection error'), description: 'stream error' },
+        { error: new Error('Failed to initialize SSE connection'), description: 'init error' },
+        { error: new Error('network failure'), description: 'network error' },
+      ];
+
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
+        // Intentionally empty
+      });
+
+      for (const scenario of scenarios) {
+        const mockAbort = vi.fn();
+        let capturedCallbacks: GenerateResponseSSECallbacks;
+
+        (aiUtils.generateResponseFromMessageSSE as Mock).mockImplementation((params) => {
+          capturedCallbacks = params;
+          return mockAbort;
+        });
+
+        const wrapper = ({ children }: { children: React.ReactNode }) => (
+          <AIAssistantProvider isMobile={false}>{children}</AIAssistantProvider>
+        );
+
+        const { result } = renderHook(() => useAIAssistant(), { wrapper });
+
+        act(() => {
+          result.current.regenerateResponse();
+        });
+
+        expect(result.current.isGeneratingResponse).toBe(true);
+
+        act(() => {
+          capturedCallbacks.onError(scenario.error);
+        });
+
+        expect(result.current.isGeneratingResponse).toBe(false);
+      }
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it('should complete full error flow: generate → error → display → retry → success', async () => {
+      const mockError = new Error('Stream connection error');
+      const mockAbort = vi.fn();
+      let capturedCallbacks: GenerateResponseSSECallbacks;
+
+      (aiUtils.generateResponseFromMessageSSE as Mock).mockImplementation((params) => {
+        capturedCallbacks = params;
+        return mockAbort;
+      });
+
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
+        // Intentionally empty
+      });
+
+      const wrapper = ({ children }: { children: React.ReactNode }) => (
+        <AIAssistantProvider isMobile={false}>{children}</AIAssistantProvider>
+      );
+
+      const { result } = renderHook(() => useAIAssistant(), { wrapper });
+
+      // Step 1: Start generation
+      act(() => {
+        result.current.regenerateResponse();
+      });
+      expect(result.current.isGeneratingResponse).toBe(true);
+      expect(result.current.errorMessage).toBe(null);
+
+      // Step 2: Error occurs
+      act(() => {
+        capturedCallbacks.onError(mockError);
+      });
+      expect(result.current.isGeneratingResponse).toBe(false);
+      expect(result.current.errorMessage).toBe(
+        'Connection lost. Please check your network and try again.'
+      );
+
+      // Step 3: Retry
+      act(() => {
+        result.current.regenerateResponse();
+      });
+      expect(result.current.errorMessage).toBe(null);
+      expect(result.current.isGeneratingResponse).toBe(true);
+
+      // Step 4: Success
+      act(() => {
+        capturedCallbacks.onChunk('Successful response');
+        capturedCallbacks.onComplete();
+      });
+      expect(result.current.generatedResponse).toBe('Successful response');
+      expect(result.current.isGeneratingResponse).toBe(false);
+      expect(result.current.errorMessage).toBe(null);
+
+      consoleErrorSpy.mockRestore();
+    });
+  });
 });

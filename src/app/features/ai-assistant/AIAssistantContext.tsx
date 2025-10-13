@@ -43,6 +43,7 @@ type AIAssistantContextType = {
   toneValues: Record<string, number>;
   initialMessageGenerated: boolean;
   prediction: { emoji: string; grade: string; score: number } | null;
+  errorMessage: string | null;
 
   // Actions
   setInputValue: (value: string) => void;
@@ -56,6 +57,7 @@ type AIAssistantContextType = {
   handleSliderChange: (value: number) => void;
   handlePersonaChange: (persona: typeof personas[0]) => void;
   gradeEditorText: (text: string) => void;
+  setErrorMessage: (message: string | null) => void;
 };
 
 const AIAssistantContext = createContext<AIAssistantContextType | undefined>(undefined);
@@ -84,6 +86,7 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
     grade: string;
     score: number;
   } | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const room = useRoom();
   const mx = useMatrixClient();
   const { insertText, deleteText } = useRoomEditor();
@@ -150,9 +153,10 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
       abortStreamRef.current();
     }
 
-    // Reset state
+    // Reset state and clear previous errors
     setIsGeneratingResponse(true);
     setGeneratedResponse(''); // Clear previous response
+    setErrorMessage(null); // Clear previous errors
     deleteText();
 
     try {
@@ -189,7 +193,19 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
         onError: (error: Error) => {
           // eslint-disable-next-line no-console
           console.error('Stream error:', error);
-          setGeneratedResponse('Xin lỗi, đã có lỗi');
+
+          // Categorize error and set appropriate message
+          let userMessage = 'Sorry, something went wrong. Please try again.';
+
+          if (error.message.includes('Stream connection error')) {
+            userMessage = 'Connection lost. Please check your network and try again.';
+          } else if (error.message.includes('Failed to initialize SSE connection')) {
+            userMessage = 'Failed to connect to AI service. Please try again later.';
+          } else if (error.message.includes('network') || error.message.includes('fetch')) {
+            userMessage = 'Network error. Please check your connection.';
+          }
+
+          setErrorMessage(userMessage);
           setIsGeneratingResponse(false);
         },
         onComplete: () => {
@@ -203,7 +219,16 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Error starting stream:', error);
-      setGeneratedResponse('Xin lỗi, đã có lỗi');
+
+      // Categorize initialization error
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      let userMessage = 'Failed to start generation. Please try again.';
+
+      if (errorMsg.includes('network') || errorMsg.includes('fetch')) {
+        userMessage = 'Network error. Please check your connection.';
+      }
+
+      setErrorMessage(userMessage);
       setIsGeneratingResponse(false);
       setInitialMessageGenerated(true);
     }
@@ -325,6 +350,7 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
       toneValues,
       initialMessageGenerated,
       prediction,
+      errorMessage,
 
       // Actions
       setInputValue,
@@ -338,6 +364,7 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
       handleSliderChange,
       handlePersonaChange,
       gradeEditorText,
+      setErrorMessage,
     }),
     [
       inputValue,
@@ -361,6 +388,7 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
       handlePersonaChange,
       prediction,
       gradeEditorText,
+      errorMessage,
     ]
   );
 
