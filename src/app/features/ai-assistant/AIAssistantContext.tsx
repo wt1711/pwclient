@@ -1,6 +1,15 @@
-import React, { createContext, useContext, useState, ReactNode, useMemo, useCallback } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useMemo,
+  useCallback,
+  useRef,
+  useEffect,
+} from 'react';
 import {
-  generateResponseFromMessage,
+  generateResponseFromMessageSSE,
   getOpenAIConsultation,
   gradeMessage,
 } from '~/app/features/ai-assistant/utils/ai';
@@ -81,6 +90,19 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
   const setIsAiDrawer = useSetSetting(settingsAtom, 'isAiDrawerOpen');
   const { selectedMessage } = useRoomMessage();
 
+  // Ref to store SSE abort function for cleanup
+  const abortStreamRef = useRef<(() => void) | null>(null);
+
+  // Cleanup on unmount
+  useEffect(
+    () => () => {
+      if (abortStreamRef.current) {
+        abortStreamRef.current();
+      }
+    },
+    []
+  );
+
   const toggleAIAssistant = useCallback((isOpen?: boolean) => {
     setIsAIAssistantOpen((prev) => {
       const newIsOpen = isOpen ?? !prev;
@@ -111,12 +133,26 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
     [insertText, deleteText, isMobile, setIsAiDrawer]
   );
 
+  // Call handleUseSuggestion when response is complete
+  useEffect(() => {
+    if (generatedResponse && !isGeneratingResponse && initialMessageGenerated) {
+      handleUseSuggestion(generatedResponse);
+    }
+  }, [generatedResponse, isGeneratingResponse, initialMessageGenerated, handleUseSuggestion]);
+
   const generateInitialResponse = useCallback(async () => {
     toggleAIAssistant(true);
   }, [toggleAIAssistant]);
 
   const regenerateResponse = useCallback(async () => {
+    // Cancel any existing stream
+    if (abortStreamRef.current) {
+      abortStreamRef.current();
+    }
+
+    // Reset state
     setIsGeneratingResponse(true);
+    setGeneratedResponse(''); // Clear previous response
     deleteText();
 
     try {
@@ -141,24 +177,37 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
         tone: toneValues,
       };
 
-      // Call API client
-      const response = await generateResponseFromMessage({
+      // Call SSE API client with callbacks
+      const abort = generateResponseFromMessageSSE({
         message,
         context: roomContext,
         spec,
+        onChunk: (chunk: string) => {
+          // Append chunk to state - functional update to avoid stale closure
+          setGeneratedResponse((prev) => prev + chunk);
+        },
+        onError: (error: Error) => {
+          // eslint-disable-next-line no-console
+          console.error('Stream error:', error);
+          setGeneratedResponse('Xin lỗi, đã có lỗi');
+          setIsGeneratingResponse(false);
+        },
+        onComplete: () => {
+          setIsGeneratingResponse(false);
+          setInitialMessageGenerated(true);
+        },
       });
 
-      setGeneratedResponse(response);
-      handleUseSuggestion(response);
+      // Store abort function for cleanup
+      abortStreamRef.current = abort;
     } catch (error) {
-      setGeneratedResponse('Xin lỗi, đã có lỗi');
       // eslint-disable-next-line no-console
-      console.error('Error generating response:', error);
-    } finally {
+      console.error('Error starting stream:', error);
+      setGeneratedResponse('Xin lỗi, đã có lỗi');
       setIsGeneratingResponse(false);
       setInitialMessageGenerated(true);
     }
-  }, [room, mx, handleUseSuggestion, deleteText, selectedPersona, toneValues]);
+  }, [room, mx, deleteText, selectedPersona, toneValues]);
 
   const handleSliderChange = useCallback(
     (value: number) => {

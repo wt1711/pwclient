@@ -1,3 +1,5 @@
+import { fetchEventSource } from '@microsoft/fetch-event-source';
+
 export type Message = {
   sender: string;
   text: string;
@@ -165,13 +167,13 @@ export type SSEAbortFunction = () => void;
 /**
  * Generates a response using Server-Sent Events (SSE) for real-time streaming.
  *
- * This function establishes an EventSource connection to the AI backend service
+ * This function establishes a POST-based SSE connection to the AI backend service
  * and streams text chunks in real-time via callbacks. It handles the [DONE] signal
  * to properly close the connection and provides error handling and cleanup mechanisms.
  *
- * The function uses GET requests with query parameters, encoding complex objects
- * (context, spec) as JSON strings. It returns an abort function to allow manual
- * stream cancellation.
+ * Uses @microsoft/fetch-event-source to support POST requests with JSON bodies,
+ * overcoming the native EventSource limitation of GET-only requests. This allows
+ * sending large context arrays without URL length restrictions.
  *
  * @param message - The message to generate a response for (optional)
  * @param context - Previous conversation context (optional)
@@ -179,7 +181,7 @@ export type SSEAbortFunction = () => void;
  * @param onChunk - Callback invoked for each text chunk received from the stream
  * @param onError - Callback invoked when a stream error occurs (optional)
  * @param onComplete - Callback invoked when the stream completes successfully (optional)
- * @returns Abort function that closes the EventSource connection when called
+ * @returns Abort function that closes the SSE connection when called
  *
  * @example
  * ```typescript
@@ -197,11 +199,12 @@ export type SSEAbortFunction = () => void;
  * ```
  *
  * Event Flow:
- * 1. EventSource connects to streaming endpoint
- * 2. onmessage events trigger onChunk callback for each text chunk
- * 3. [DONE] signal triggers onComplete callback and closes connection
- * 4. onerror events trigger onError callback and close connection
- * 5. Abort function can be called anytime to close connection manually
+ * 1. POST request initiated with JSON body containing message, context, and spec
+ * 2. Server responds with SSE stream
+ * 3. onmessage events trigger onChunk callback for each text chunk
+ * 4. [DONE] signal triggers onComplete callback and closes connection
+ * 5. Error events trigger onError callback and close connection
+ * 6. Abort function can be called anytime to close connection manually
  */
 export function generateResponseFromMessageSSE({
   message,
@@ -211,47 +214,76 @@ export function generateResponseFromMessageSSE({
   onError,
   onComplete,
 }: GenerateResponseSSEParams & GenerateResponseSSECallbacks): SSEAbortFunction {
-  try {
-    // Build URL with query params
-    const url = new URL('https://pwai.vercel.app/api/generate-response');
-    if (message) url.searchParams.set('message', message);
-    if (context) url.searchParams.set('context', JSON.stringify(context));
-    if (spec) url.searchParams.set('spec', JSON.stringify(spec));
+  const abortController = new AbortController();
+  let isDone = false; // Track if stream completed successfully
 
-    // Create EventSource
-    const eventSource = new EventSource(url.toString());
+  // Use fetchEventSource for POST-based SSE
+  fetchEventSource('http://localhost:3000/api/generate-response', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      message,
+      context,
+      spec,
+    }),
+    signal: abortController.signal,
 
-    // Handle incoming messages
-    eventSource.onmessage = (event) => {
-      const data = event.data;
+    onopen: async (response) => {
+      if (response.ok) {
+        return; // Connection successful
+      }
+
+      // Handle HTTP errors
+      const error = await response.text();
+      throw new Error(error || `HTTP ${response.status}: ${response.statusText}`);
+    },
+
+    onmessage: (event) => {
+      const { data } = event;
 
       if (data === '[DONE]') {
-        eventSource.close();
+        isDone = true;
         onComplete?.();
+        abortController.abort(); // Abort after calling onComplete
         return;
       }
 
       onChunk(data);
-    };
+    },
 
-    // Handle errors
-    eventSource.onerror = (error) => {
+    onerror: (error) => {
+      // Don't handle error if we already completed successfully
+      if (isDone) {
+        throw error; // Throw to stop retrying
+      }
+
       console.error('SSE Error:', error);
-      eventSource.close();
-      onError?.(new Error('Stream connection error'));
-    };
+      abortController.abort();
 
-    // Return cleanup function
-    return () => {
-      eventSource.close();
-    };
-  } catch (error) {
-    // Handle URL construction or other initialization errors
-    console.error('SSE Initialization Error:', error);
-    const errorMessage =
-      error instanceof Error ? error.message : 'Failed to initialize SSE connection';
-    onError?.(new Error(errorMessage));
-    // Return a no-op abort function
-    return () => {};
-  }
+      const errorMessage = error instanceof Error ? error.message : 'Stream connection error';
+      onError?.(new Error(errorMessage));
+
+      // Throw to stop fetchEventSource from retrying
+      throw error;
+    },
+
+    // Disable automatic retries for clearer error handling
+    openWhenHidden: false,
+  }).catch((error) => {
+    // Handle any uncaught errors from fetchEventSource
+    // Ignore AbortError and errors after successful completion
+    if (error.name !== 'AbortError' && !isDone) {
+      console.error('SSE Initialization Error:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to initialize SSE connection';
+      onError?.(new Error(errorMessage));
+    }
+  });
+
+  // Return cleanup/abort function
+  return () => {
+    abortController.abort();
+  };
 }
