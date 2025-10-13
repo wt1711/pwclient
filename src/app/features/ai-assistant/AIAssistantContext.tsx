@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode, useMemo, useCallback } from 'react';
 import {
-  generateResponseFromNewBackend,
+  generateResponseFromMessage,
   getOpenAIConsultation,
   gradeMessage,
 } from '~/app/features/ai-assistant/utils/ai';
@@ -141,8 +141,8 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
         tone: toneValues,
       };
 
-      // Call new API client
-      const response = await generateResponseFromNewBackend({
+      // Call API client
+      const response = await generateResponseFromMessage({
         message,
         context: roomContext,
         spec,

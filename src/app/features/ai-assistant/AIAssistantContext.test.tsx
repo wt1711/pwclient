@@ -66,7 +66,7 @@ describe('AIAssistantContext - Story 1.2 Tests', () => {
   describe('regenerateResponse function', () => {
     it('should build spec object from selectedPersona and toneValues state', async () => {
       const mockResponse = 'Generated response text';
-      (aiUtils.generateResponseFromNewBackend as Mock).mockResolvedValue(mockResponse);
+      (aiUtils.generateResponseFromMessage as Mock).mockResolvedValue(mockResponse);
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
         <AIAssistantProvider isMobile={false}>{children}</AIAssistantProvider>
@@ -86,7 +86,7 @@ describe('AIAssistantContext - Story 1.2 Tests', () => {
       });
 
       // Verify the API was called with the correct spec
-      expect(aiUtils.generateResponseFromNewBackend).toHaveBeenCalledWith(
+      expect(aiUtils.generateResponseFromMessage).toHaveBeenCalledWith(
         expect.objectContaining({
           spec: expect.objectContaining({
             persona: personas[1],
@@ -96,9 +96,9 @@ describe('AIAssistantContext - Story 1.2 Tests', () => {
       );
     });
 
-    it('should call generateResponseFromNewBackend instead of old API', async () => {
-      const mockResponse = 'New backend response';
-      (aiUtils.generateResponseFromNewBackend as Mock).mockResolvedValue(mockResponse);
+    it('should call generateResponseFromMessage API', async () => {
+      const mockResponse = 'Generated response';
+      (aiUtils.generateResponseFromMessage as Mock).mockResolvedValue(mockResponse);
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
         <AIAssistantProvider isMobile={false}>{children}</AIAssistantProvider>
@@ -110,16 +110,13 @@ describe('AIAssistantContext - Story 1.2 Tests', () => {
         await result.current.regenerateResponse();
       });
 
-      // Verify new API was called
-      expect(aiUtils.generateResponseFromNewBackend).toHaveBeenCalled();
-
-      // Verify old API was NOT called
-      expect(aiUtils.generateResponseFromMessage).not.toHaveBeenCalled();
+      // Verify API was called
+      expect(aiUtils.generateResponseFromMessage).toHaveBeenCalled();
     });
 
-    it('should pass message, context, and spec to the new API', async () => {
+    it('should pass message, context, and spec to the API', async () => {
       const mockResponse = 'API response';
-      (aiUtils.generateResponseFromNewBackend as Mock).mockResolvedValue(mockResponse);
+      (aiUtils.generateResponseFromMessage as Mock).mockResolvedValue(mockResponse);
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
         <AIAssistantProvider isMobile={false}>{children}</AIAssistantProvider>
@@ -131,7 +128,7 @@ describe('AIAssistantContext - Story 1.2 Tests', () => {
         await result.current.regenerateResponse();
       });
 
-      expect(aiUtils.generateResponseFromNewBackend).toHaveBeenCalledWith({
+      expect(aiUtils.generateResponseFromMessage).toHaveBeenCalledWith({
         message: 'Hello there', // Last non-user message
         context: expect.arrayContaining([
           expect.objectContaining({
@@ -154,7 +151,7 @@ describe('AIAssistantContext - Story 1.2 Tests', () => {
 
     it('should update generatedResponse state with API response', async () => {
       const mockResponse = 'This is the generated response';
-      (aiUtils.generateResponseFromNewBackend as Mock).mockResolvedValue(mockResponse);
+      (aiUtils.generateResponseFromMessage as Mock).mockResolvedValue(mockResponse);
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
         <AIAssistantProvider isMobile={false}>{children}</AIAssistantProvider>
@@ -171,7 +168,7 @@ describe('AIAssistantContext - Story 1.2 Tests', () => {
 
     it('should call handleUseSuggestion with the response', async () => {
       const mockResponse = 'Response to insert';
-      (aiUtils.generateResponseFromNewBackend as Mock).mockResolvedValue(mockResponse);
+      (aiUtils.generateResponseFromMessage as Mock).mockResolvedValue(mockResponse);
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
         <AIAssistantProvider isMobile={false}>{children}</AIAssistantProvider>
@@ -194,7 +191,7 @@ describe('AIAssistantContext - Story 1.2 Tests', () => {
       const responsePromise = new Promise<string>((resolve) => {
         resolveResponse = resolve;
       });
-      (aiUtils.generateResponseFromNewBackend as Mock).mockReturnValue(responsePromise);
+      (aiUtils.generateResponseFromMessage as Mock).mockReturnValue(responsePromise);
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
         <AIAssistantProvider isMobile={false}>{children}</AIAssistantProvider>
@@ -223,7 +220,7 @@ describe('AIAssistantContext - Story 1.2 Tests', () => {
 
     it('should handle errors and display error message', async () => {
       const mockError = new Error('API error');
-      (aiUtils.generateResponseFromNewBackend as Mock).mockRejectedValue(mockError);
+      (aiUtils.generateResponseFromMessage as Mock).mockRejectedValue(mockError);
 
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {
         // Intentionally empty
@@ -252,7 +249,7 @@ describe('AIAssistantContext - Story 1.2 Tests', () => {
     });
 
     it('should clear loading state in finally block even on error', async () => {
-      (aiUtils.generateResponseFromNewBackend as Mock).mockRejectedValue(new Error('Test error'));
+      (aiUtils.generateResponseFromMessage as Mock).mockRejectedValue(new Error('Test error'));
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
         <AIAssistantProvider isMobile={false}>{children}</AIAssistantProvider>
@@ -270,7 +267,7 @@ describe('AIAssistantContext - Story 1.2 Tests', () => {
 
     it('should call deleteText before generating response', async () => {
       const mockResponse = 'Response';
-      (aiUtils.generateResponseFromNewBackend as Mock).mockResolvedValue(mockResponse);
+      (aiUtils.generateResponseFromMessage as Mock).mockResolvedValue(mockResponse);
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
         <AIAssistantProvider isMobile={false}>{children}</AIAssistantProvider>
@@ -307,7 +304,7 @@ describe('AIAssistantContext - Story 1.2 Tests', () => {
 
     it('should include selected persona in spec when generating response', async () => {
       const mockResponse = 'Response';
-      (aiUtils.generateResponseFromNewBackend as Mock).mockResolvedValue(mockResponse);
+      (aiUtils.generateResponseFromMessage as Mock).mockResolvedValue(mockResponse);
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
         <AIAssistantProvider isMobile={false}>{children}</AIAssistantProvider>
@@ -324,7 +321,7 @@ describe('AIAssistantContext - Story 1.2 Tests', () => {
         await result.current.regenerateResponse();
       });
 
-      const callArgs = (aiUtils.generateResponseFromNewBackend as Mock).mock.calls[0][0];
+      const callArgs = (aiUtils.generateResponseFromMessage as Mock).mock.calls[0][0];
       expect(callArgs.spec.persona).toBe(personas[2]);
     });
   });
@@ -351,7 +348,7 @@ describe('AIAssistantContext - Story 1.2 Tests', () => {
 
     it('should include tone values in spec when generating response', async () => {
       const mockResponse = 'Response';
-      (aiUtils.generateResponseFromNewBackend as Mock).mockResolvedValue(mockResponse);
+      (aiUtils.generateResponseFromMessage as Mock).mockResolvedValue(mockResponse);
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
         <AIAssistantProvider isMobile={false}>{children}</AIAssistantProvider>
@@ -369,7 +366,7 @@ describe('AIAssistantContext - Story 1.2 Tests', () => {
         await result.current.regenerateResponse();
       });
 
-      const callArgs = (aiUtils.generateResponseFromNewBackend as Mock).mock.calls[0][0];
+      const callArgs = (aiUtils.generateResponseFromMessage as Mock).mock.calls[0][0];
       expect(callArgs.spec.tone[property.id]).toBe(65);
     });
   });
@@ -377,7 +374,7 @@ describe('AIAssistantContext - Story 1.2 Tests', () => {
   describe('Generated response display', () => {
     it('should clean quotes from response before insertion', async () => {
       const mockResponse = '"Quoted response"';
-      (aiUtils.generateResponseFromNewBackend as Mock).mockResolvedValue(mockResponse);
+      (aiUtils.generateResponseFromMessage as Mock).mockResolvedValue(mockResponse);
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
         <AIAssistantProvider isMobile={false}>{children}</AIAssistantProvider>
@@ -394,7 +391,7 @@ describe('AIAssistantContext - Story 1.2 Tests', () => {
 
     it('should trim whitespace from response', async () => {
       const mockResponse = '  Response with spaces  ';
-      (aiUtils.generateResponseFromNewBackend as Mock).mockResolvedValue(mockResponse);
+      (aiUtils.generateResponseFromMessage as Mock).mockResolvedValue(mockResponse);
 
       const wrapper = ({ children }: { children: React.ReactNode }) => (
         <AIAssistantProvider isMobile={false}>{children}</AIAssistantProvider>

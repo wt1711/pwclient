@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { generateResponseFromNewBackend } from './ai';
+import { generateResponseFromMessage } from './ai';
 import type { Message } from './ai';
 
 // Mock data for tests
@@ -20,7 +20,7 @@ const mockContext: Message[] = [
   },
 ];
 
-describe('generateResponseFromNewBackend', () => {
+describe('generateResponseFromMessage', () => {
   let fetchMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
@@ -40,7 +40,7 @@ describe('generateResponseFromNewBackend', () => {
         json: async () => ({ text: 'Generated response' }),
       });
 
-      const result = await generateResponseFromNewBackend({
+      const result = await generateResponseFromMessage({
         message: 'Test message',
         context: mockContext,
         spec: { tone: 'friendly' },
@@ -67,7 +67,7 @@ describe('generateResponseFromNewBackend', () => {
         json: async () => ({ text: 'Response to message only' }),
       });
 
-      const result = await generateResponseFromNewBackend({
+      const result = await generateResponseFromMessage({
         message: 'Just a message',
       });
 
@@ -92,7 +92,7 @@ describe('generateResponseFromNewBackend', () => {
         json: async () => ({ text: 'Response from context' }),
       });
 
-      const result = await generateResponseFromNewBackend({
+      const result = await generateResponseFromMessage({
         context: mockContext,
       });
 
@@ -108,7 +108,7 @@ describe('generateResponseFromNewBackend', () => {
         json: async () => ({ text: 'Default response' }),
       });
 
-      const result = await generateResponseFromNewBackend({});
+      const result = await generateResponseFromMessage({});
 
       expect(fetchMock).toHaveBeenCalledWith(
         'https://pwai.vercel.app/api/generate-response',
@@ -131,7 +131,7 @@ describe('generateResponseFromNewBackend', () => {
         json: async () => ({ text: 'Default response' }),
       });
 
-      const result = await generateResponseFromNewBackend();
+      const result = await generateResponseFromMessage();
 
       expect(result).toBe('Default response');
     });
@@ -143,7 +143,7 @@ describe('generateResponseFromNewBackend', () => {
         json: async () => ({ text: responseText }),
       });
 
-      const result = await generateResponseFromNewBackend({
+      const result = await generateResponseFromMessage({
         message: 'Test',
       });
 
@@ -163,7 +163,7 @@ describe('generateResponseFromNewBackend', () => {
         includeEmoji: false,
       };
 
-      await generateResponseFromNewBackend({
+      await generateResponseFromMessage({
         message: 'Test',
         spec: complexSpec,
       });
@@ -181,7 +181,7 @@ describe('generateResponseFromNewBackend', () => {
         json: async () => ({ error: 'Invalid request payload' }),
       });
 
-      await expect(generateResponseFromNewBackend({ message: 'Test' })).rejects.toThrow(
+      await expect(generateResponseFromMessage({ message: 'Test' })).rejects.toThrow(
         'Invalid request payload'
       );
     });
@@ -193,7 +193,7 @@ describe('generateResponseFromNewBackend', () => {
         json: async () => ({ error: 'Internal server error' }),
       });
 
-      await expect(generateResponseFromNewBackend({ message: 'Test' })).rejects.toThrow(
+      await expect(generateResponseFromMessage({ message: 'Test' })).rejects.toThrow(
         'Internal server error'
       );
     });
@@ -208,7 +208,7 @@ describe('generateResponseFromNewBackend', () => {
         }),
       });
 
-      await expect(generateResponseFromNewBackend({ message: 'Test' })).rejects.toThrow(
+      await expect(generateResponseFromMessage({ message: 'Test' })).rejects.toThrow(
         'Validation failed'
       );
     });
@@ -220,7 +220,7 @@ describe('generateResponseFromNewBackend', () => {
         json: async () => ({}),
       });
 
-      await expect(generateResponseFromNewBackend({ message: 'Test' })).rejects.toThrow(
+      await expect(generateResponseFromMessage({ message: 'Test' })).rejects.toThrow(
         'Failed to generate response from server.'
       );
     });
@@ -234,7 +234,7 @@ describe('generateResponseFromNewBackend', () => {
         },
       });
 
-      await expect(generateResponseFromNewBackend({ message: 'Test' })).rejects.toThrow(
+      await expect(generateResponseFromMessage({ message: 'Test' })).rejects.toThrow(
         'Unknown error'
       );
     });
@@ -242,7 +242,7 @@ describe('generateResponseFromNewBackend', () => {
     it('should handle network errors', async () => {
       fetchMock.mockRejectedValue(new Error('Network error'));
 
-      await expect(generateResponseFromNewBackend({ message: 'Test' })).rejects.toThrow(
+      await expect(generateResponseFromMessage({ message: 'Test' })).rejects.toThrow(
         'Network error'
       );
     });
@@ -250,7 +250,7 @@ describe('generateResponseFromNewBackend', () => {
     it('should handle fetch timeout', async () => {
       fetchMock.mockRejectedValue(new Error('Request timeout'));
 
-      await expect(generateResponseFromNewBackend({ message: 'Test' })).rejects.toThrow(
+      await expect(generateResponseFromMessage({ message: 'Test' })).rejects.toThrow(
         'Request timeout'
       );
     });
@@ -261,7 +261,7 @@ describe('generateResponseFromNewBackend', () => {
         json: async () => ({}), // Missing 'text' field
       });
 
-      const result = await generateResponseFromNewBackend({
+      const result = await generateResponseFromMessage({
         message: 'Test',
       });
 
@@ -274,9 +274,7 @@ describe('generateResponseFromNewBackend', () => {
       const error = new Error('Test error');
       fetchMock.mockRejectedValue(error);
 
-      await expect(generateResponseFromNewBackend({ message: 'Test' })).rejects.toThrow(
-        'Test error'
-      );
+      await expect(generateResponseFromMessage({ message: 'Test' })).rejects.toThrow('Test error');
 
       expect(consoleErrorSpy).toHaveBeenCalledWith('Error generating response:', error);
 
@@ -293,21 +291,21 @@ describe('generateResponseFromNewBackend', () => {
     });
 
     it('should send correct Content-Type header', async () => {
-      await generateResponseFromNewBackend({ message: 'Test' });
+      await generateResponseFromMessage({ message: 'Test' });
 
       const [, options] = fetchMock.mock.calls[0];
       expect(options.headers['Content-Type']).toBe('application/json');
     });
 
     it('should use POST method', async () => {
-      await generateResponseFromNewBackend({ message: 'Test' });
+      await generateResponseFromMessage({ message: 'Test' });
 
       const [, options] = fetchMock.mock.calls[0];
       expect(options.method).toBe('POST');
     });
 
     it('should call correct endpoint URL', async () => {
-      await generateResponseFromNewBackend({ message: 'Test' });
+      await generateResponseFromMessage({ message: 'Test' });
 
       const [url] = fetchMock.mock.calls[0];
       expect(url).toBe('https://pwai.vercel.app/api/generate-response');
@@ -320,7 +318,7 @@ describe('generateResponseFromNewBackend', () => {
         spec: { tone: 'friendly' },
       };
 
-      await generateResponseFromNewBackend(payload);
+      await generateResponseFromMessage(payload);
 
       const [, options] = fetchMock.mock.calls[0];
       expect(options.body).toBe(JSON.stringify(payload));
@@ -336,7 +334,7 @@ describe('generateResponseFromNewBackend', () => {
     });
 
     it('should handle empty string message', async () => {
-      const result = await generateResponseFromNewBackend({ message: '' });
+      const result = await generateResponseFromMessage({ message: '' });
 
       expect(result).toBe('Response');
       const callBody = JSON.parse(fetchMock.mock.calls[0][1].body);
@@ -344,7 +342,7 @@ describe('generateResponseFromNewBackend', () => {
     });
 
     it('should handle empty context array', async () => {
-      const result = await generateResponseFromNewBackend({ context: [] });
+      const result = await generateResponseFromMessage({ context: [] });
 
       expect(result).toBe('Response');
       const callBody = JSON.parse(fetchMock.mock.calls[0][1].body);
@@ -352,7 +350,7 @@ describe('generateResponseFromNewBackend', () => {
     });
 
     it('should handle empty spec object', async () => {
-      const result = await generateResponseFromNewBackend({ spec: {} });
+      const result = await generateResponseFromMessage({ spec: {} });
 
       expect(result).toBe('Response');
       const callBody = JSON.parse(fetchMock.mock.calls[0][1].body);
@@ -361,7 +359,7 @@ describe('generateResponseFromNewBackend', () => {
 
     it('should handle very long message strings', async () => {
       const longMessage = 'a'.repeat(10000);
-      const result = await generateResponseFromNewBackend({ message: longMessage });
+      const result = await generateResponseFromMessage({ message: longMessage });
 
       expect(result).toBe('Response');
     });
@@ -374,13 +372,13 @@ describe('generateResponseFromNewBackend', () => {
         is_from_me: i % 2 === 0,
       }));
 
-      const result = await generateResponseFromNewBackend({ context: largeContext });
+      const result = await generateResponseFromMessage({ context: largeContext });
 
       expect(result).toBe('Response');
     });
 
     it('should handle null values gracefully', async () => {
-      const result = await generateResponseFromNewBackend({
+      const result = await generateResponseFromMessage({
         message: undefined,
         context: undefined,
         spec: undefined,
@@ -391,7 +389,7 @@ describe('generateResponseFromNewBackend', () => {
 
     it('should handle special characters in message', async () => {
       const specialMessage = 'Test with émojis 🚀 and spëcial çhars!';
-      const result = await generateResponseFromNewBackend({ message: specialMessage });
+      const result = await generateResponseFromMessage({ message: specialMessage });
 
       expect(result).toBe('Response');
       const callBody = JSON.parse(fetchMock.mock.calls[0][1].body);

@@ -56,40 +56,6 @@ export async function getOpenAIConsultation({
   }
 }
 
-export async function generateResponseFromMessage({
-  message,
-  context,
-  spec,
-}: {
-  message: string;
-  context: Message[];
-  spec: object;
-}): Promise<string> {
-  try {
-    const response = await fetch('https://wmaide-server.vercel.app/api/generate-response', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        message,
-        context,
-        spec,
-      }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to generate response from server.');
-    }
-
-    const data = await response.json();
-    return data.response;
-  } catch (error) {
-    return 'Xin lỗi, đã có lỗi khi tạo phản hồi.';
-  }
-}
-
 export async function gradeMessage({
   message,
   context,
@@ -123,9 +89,9 @@ export async function gradeMessage({
 }
 
 /**
- * Generates a response using the new AI backend service at pwai.vercel.app.
+ * Generates a response using the AI backend service at pwai.vercel.app.
  *
- * This function calls the new AI backend API with optional parameters for message,
+ * This function calls the AI backend API with optional parameters for message,
  * context, and response specifications. All parameters are optional, allowing the
  * API to be called with an empty payload if needed.
  *
@@ -137,14 +103,14 @@ export async function gradeMessage({
  *
  * @example
  * ```typescript
- * const response = await generateResponseFromNewBackend({
+ * const response = await generateResponseFromMessage({
  *   message: 'Hello',
  *   context: [{ sender: '@user:matrix.org', text: 'Hi', timestamp: '...', is_from_me: false }],
  *   spec: { tone: 'friendly' }
  * });
  * ```
  */
-export async function generateResponseFromNewBackend({
+export async function generateResponseFromMessage({
   message,
   context,
   spec,
