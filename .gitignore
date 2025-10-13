@@ -9,6 +9,9 @@ dist-electron-linux
 dist-react
 dist
 
+# Build artifacts
+*.tsbuildinfo
+
 .DS_Store
 .idea
 .vercel
