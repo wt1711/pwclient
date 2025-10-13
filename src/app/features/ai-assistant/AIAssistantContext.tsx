@@ -8,11 +8,8 @@ import React, {
   useRef,
   useEffect,
 } from 'react';
-import {
-  generateResponseFromMessageSSE,
-  getOpenAIConsultation,
-  gradeMessage,
-} from '~/app/features/ai-assistant/utils/ai';
+import { getOpenAIConsultation, gradeMessage } from '~/app/features/ai-assistant/utils/ai';
+import { startStream } from '~/app/features/ai-assistant/services/streaming-service';
 import { useRoom } from '~/app/hooks/useRoom';
 import { useMatrixClient } from '~/app/hooks/useMatrixClient';
 import { useRoomEditor } from '~/app/features/room/RoomEditorContext';
@@ -61,6 +58,9 @@ type AIAssistantContextType = {
 };
 
 const AIAssistantContext = createContext<AIAssistantContextType | undefined>(undefined);
+
+// AI API endpoint configuration
+const AI_ENDPOINT = 'https://pwai.vercel.app/api/generate-response';
 
 type AIAssistantProviderProps = {
   children: ReactNode;
@@ -181,38 +181,43 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
         tone: toneValues,
       };
 
-      // Call SSE API client with callbacks
-      const abort = generateResponseFromMessageSSE({
-        message,
-        context: roomContext,
-        spec,
-        onChunk: (chunk: string) => {
-          // Append chunk to state - functional update to avoid stale closure
-          setGeneratedResponse((prev) => prev + chunk);
+      // Call streaming service with callbacks
+      const abort = startStream(
+        {
+          endpoint: AI_ENDPOINT,
+          message,
+          context: roomContext,
+          spec,
         },
-        onError: (error: Error) => {
-          // eslint-disable-next-line no-console
-          console.error('Stream error:', error);
+        {
+          onChunk: (chunk: string) => {
+            // Append chunk to state - functional update to avoid stale closure
+            setGeneratedResponse((prev) => prev + chunk);
+          },
+          onError: (error: Error) => {
+            // eslint-disable-next-line no-console
+            console.error('Stream error:', error);
 
-          // Categorize error and set appropriate message
-          let userMessage = 'Sorry, something went wrong. Please try again.';
+            // Categorize error and set appropriate message
+            let userMessage = 'Sorry, something went wrong. Please try again.';
 
-          if (error.message.includes('Stream connection error')) {
-            userMessage = 'Connection lost. Please check your network and try again.';
-          } else if (error.message.includes('Failed to initialize SSE connection')) {
-            userMessage = 'Failed to connect to AI service. Please try again later.';
-          } else if (error.message.includes('network') || error.message.includes('fetch')) {
-            userMessage = 'Network error. Please check your connection.';
-          }
+            if (error.message.includes('Stream connection error')) {
+              userMessage = 'Connection lost. Please check your network and try again.';
+            } else if (error.message.includes('Failed to initialize SSE connection')) {
+              userMessage = 'Failed to connect to AI service. Please try again later.';
+            } else if (error.message.includes('network') || error.message.includes('fetch')) {
+              userMessage = 'Network error. Please check your connection.';
+            }
 
-          setErrorMessage(userMessage);
-          setIsGeneratingResponse(false);
-        },
-        onComplete: () => {
-          setIsGeneratingResponse(false);
-          setInitialMessageGenerated(true);
-        },
-      });
+            setErrorMessage(userMessage);
+            setIsGeneratingResponse(false);
+          },
+          onComplete: () => {
+            setIsGeneratingResponse(false);
+            setInitialMessageGenerated(true);
+          },
+        }
+      );
 
       // Store abort function for cleanup
       abortStreamRef.current = abort;
