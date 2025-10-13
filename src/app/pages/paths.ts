@@ -53,6 +53,9 @@ export type DirectCreateSearchParams = {
   userId?: string;
 };
 export const DIRECT_CREATE_PATH = `/direct/${_CREATE_PATH}`;
+
+// JWT verification page path (no sidebar)
+export const AUTH_CHECK_PAGE_PATH = '/auth-check/';
 export const DIRECT_ROOM_PATH = `/direct/${_ROOM_PATH}`;
 
 export const SPACE_PATH = '/:spaceIdOrAlias/';
@@ -87,7 +90,5 @@ export const SPACE_SETTINGS_PATH = '/space-settings/';
 
 export const ROOM_SETTINGS_PATH = '/room-settings/';
 
-// Instagram Chat paths
-export const INSTAGRAM_CHAT_PATH = '/instagram/chat/:id/';
-export const _INSTAGRAM_CHAT_PATH = 'instagram/:id/';
-export const HOME_INSTAGRAM_CHAT_PATH = `/home/${_INSTAGRAM_CHAT_PATH}`;
+export const DM_PATH = '/dm/';
+export const DM_DETAIL_PATH = ':roomIdOrAlias/:eventId?/';

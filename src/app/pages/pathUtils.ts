@@ -7,12 +7,10 @@ import {
   EXPLORE_PATH,
   EXPLORE_SERVER_PATH,
   HOME_CREATE_PATH,
-  HOME_INSTAGRAM_CHAT_PATH,
   HOME_JOIN_PATH,
   HOME_PATH,
   HOME_ROOM_PATH,
   HOME_SEARCH_PATH,
-  INSTAGRAM_CHAT_PATH,
   LOGIN_PATH,
   INBOX_INVITES_PATH,
   INBOX_NOTIFICATIONS_PATH,
@@ -24,6 +22,8 @@ import {
   SPACE_PATH,
   SPACE_ROOM_PATH,
   SPACE_SEARCH_PATH,
+  DM_PATH,
+  DM_DETAIL_PATH,
 } from './paths';
 import { trimLeadingSlash, trimTrailingSlash } from '../utils/common';
 import { HashRouterConfig } from '../hooks/useClientConfig';
@@ -100,9 +100,6 @@ export const getHomeRoomPath = (roomIdOrAlias: string, eventId?: string): string
 
   return generatePath(HOME_ROOM_PATH, params);
 };
-export const getHomeInstagramChatPath = (id: string): string => {
-  return generatePath(HOME_INSTAGRAM_CHAT_PATH, { id });
-};
 
 export const getDirectPath = (): string => DIRECT_PATH;
 export const getDirectCreatePath = (): string => DIRECT_CREATE_PATH;
@@ -161,9 +158,11 @@ export const getInboxPath = (): string => INBOX_PATH;
 export const getInboxNotificationsPath = (): string => INBOX_NOTIFICATIONS_PATH;
 export const getInboxInvitesPath = (): string => INBOX_INVITES_PATH;
 
-export const getInstagramChatPath = (id: string): string => {
+export const getDMRoomPath = (roomIdOrAlias: string, eventId?: string): string => {
   const params = {
-    id: encodeURIComponent(id),
+    roomIdOrAlias: encodeURIComponent(roomIdOrAlias),
+    eventId: eventId ? encodeURIComponent(eventId) : null,
   };
-  return generatePath(INSTAGRAM_CHAT_PATH, params);
+
+  return generatePath(DM_DETAIL_PATH, params);
 };

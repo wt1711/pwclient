@@ -2,7 +2,13 @@ import { Atom, useAtomValue } from 'jotai';
 import { selectAtom } from 'jotai/utils';
 import { MatrixClient } from 'matrix-js-sdk';
 import { useCallback, useMemo } from 'react';
-import { getAllParents, isRoom, isSpace, isUnsupportedRoom } from '../../utils/room';
+import {
+  getAllParents,
+  IsBotPrivateChat,
+  isRoom,
+  isSpace,
+  isUnsupportedRoom,
+} from '../../utils/room';
 import { compareRoomsEqual } from '../room-list/utils';
 import { RoomToParents } from '../../../types/matrix/room';
 
@@ -172,6 +178,27 @@ export const useUnsupportedRooms = (mx: MatrixClient, roomsAtom: RoomsAtom) => {
   const selector: RoomSelector = useCallback(
     (roomId) => isUnsupportedRoom(mx.getRoom(roomId)),
     [mx]
+  );
+  return useSelectedRooms(roomsAtom, selector);
+};
+
+export const useDirectMessageRooms = (
+  mx: MatrixClient,
+  roomsAtom: RoomsAtom,
+  mDirects: Set<string>,
+  roomToParents: RoomToParents
+) => {
+  const selector: RoomSelector = useCallback(
+    (roomId) => {
+      const room = mx.getRoom(roomId);
+      return (
+        isRoom(room) &&
+        !mDirects.has(roomId) &&
+        !roomToParents.has(roomId) &&
+        !IsBotPrivateChat(room?.name)
+      );
+    },
+    [mx, mDirects, roomToParents]
   );
   return useSelectedRooms(roomsAtom, selector);
 };

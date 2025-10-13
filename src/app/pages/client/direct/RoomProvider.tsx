@@ -13,6 +13,7 @@ export function DirectRouteRoomProvider({ children }: { children: ReactNode }) {
   const { roomIdOrAlias, eventId } = useParams();
   const roomId = useSelectedRoom();
   const room = mx.getRoom(roomId);
+  console.log('dadas', roomId, room, rooms);
 
   if (!room || !rooms.includes(room.roomId)) {
     return <JoinBeforeNavigate roomIdOrAlias={roomIdOrAlias!} eventId={eventId} />;

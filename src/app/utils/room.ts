@@ -447,6 +447,19 @@ export const reactionOrEditEvent = (mEvent: MatrixEvent) =>
   mEvent.getRelation()?.rel_type === RelationType.Annotation ||
   mEvent.getRelation()?.rel_type === RelationType.Replace;
 
+export const messageEventOnly = (mEvent: MatrixEvent) => {
+  const type = mEvent.getType();
+  const content = mEvent.getContent();
+  return (
+    (type === MessageEvent.RoomMessage ||
+      type === MessageEvent.RoomMessageEncrypted ||
+      type === MessageEvent.Sticker ||
+      type === MessageEvent.RoomRedaction ||
+      type === MessageEvent.Reaction) &&
+    content.msgtype !== MsgType.Notice
+  );
+};
+
 export const getMentionContent = (userIds: string[], room: boolean): IMentions => {
   const mMentions: IMentions = {};
   if (userIds.length > 0) {
@@ -526,4 +539,15 @@ export const guessPerfectParent = (
   });
 
   return perfectParent;
+};
+
+export const IsBotPrivateChat = (roomName: string | undefined) => {
+  if (roomName) {
+    // Common bot patterns
+    const botPatterns = [/Meta bot Room/i];
+
+    const isBot = botPatterns.some((pattern) => pattern.test(roomName));
+    if (isBot) return true;
+  }
+  return false;
 };

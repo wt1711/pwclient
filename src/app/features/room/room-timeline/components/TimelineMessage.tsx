@@ -67,8 +67,7 @@ export function TimelineMessage({
 
   const editedEvent = getEditedEvent(mEventId, mEvent, timelineSet);
   const getContent = (() =>
-    editedEvent?.getContent()['m.new_content'] ??
-    mEvent.getContent()) as GetContentCallback;
+    editedEvent?.getContent()['m.new_content'] ?? mEvent.getContent()) as GetContentCallback;
 
   const senderId = mEvent.getSender() ?? '';
   const senderPowerLevel = getPowerLevel(mEvent.getSender());

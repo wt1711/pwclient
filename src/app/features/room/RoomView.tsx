@@ -58,7 +58,15 @@ const shouldFocusMessageField = (evt: KeyboardEvent): boolean => {
   return true;
 };
 
-export function RoomView({ room, eventId }: { room: Room; eventId?: string }) {
+export function RoomView({
+  room,
+  eventId,
+  messageOnly,
+}: {
+  room: Room;
+  eventId?: string;
+  messageOnly?: boolean;
+}) {
   const roomInputRef = useRef<HTMLDivElement>(null);
   const roomViewRef = useRef<HTMLDivElement>(null);
 
@@ -112,6 +120,7 @@ export function RoomView({ room, eventId }: { room: Room; eventId?: string }) {
           editor={editor}
           getPowerLevelTag={getPowerLevelTag}
           accessibleTagColors={accessibleTagColors}
+          messageOnly={messageOnly}
         />
         <RoomViewTyping room={room} />
       </Box>

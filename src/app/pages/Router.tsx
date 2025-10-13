@@ -14,7 +14,6 @@ import {
   DIRECT_PATH,
   EXPLORE_PATH,
   HOME_PATH,
-  INSTAGRAM_CHAT_PATH,
   LOGIN_PATH,
   INBOX_PATH,
   REGISTER_PATH,
@@ -22,7 +21,6 @@ import {
   SPACE_PATH,
   _CREATE_PATH,
   _FEATURED_PATH,
-  _INSTAGRAM_CHAT_PATH,
   _INVITES_PATH,
   _JOIN_PATH,
   _LOBBY_PATH,
@@ -30,6 +28,9 @@ import {
   _ROOM_PATH,
   _SEARCH_PATH,
   _SERVER_PATH,
+  DM_PATH,
+  DM_DETAIL_PATH,
+  AUTH_CHECK_PAGE_PATH,
 } from './paths';
 import { isAuthenticated } from '../../client/state/auth';
 import {
@@ -43,6 +44,7 @@ import {
 } from './pathUtils';
 import { ClientBindAtoms, ClientLayout, ClientRoot } from './client';
 import { Home, HomeRouteRoomProvider, HomeSearch } from './client/home';
+import { DM } from './client/home';
 import { Direct, DirectCreate, DirectRouteRoomProvider } from './client/direct';
 import { RouteSpaceProvider, Space, SpaceRouteRoomProvider, SpaceSearch } from './client/space';
 import { Explore, FeaturedRooms, PublicRooms } from './client/explore';
@@ -63,7 +65,8 @@ import { AutoRestoreBackupOnVerification } from '../components/BackupRestore';
 import { RoomSettingsRenderer } from '../features/room-settings';
 import { ClientRoomsNotificationPreferences } from './client/ClientRoomsNotificationPreferences';
 import { SpaceSettingsRenderer } from '../features/space-settings';
-import { InstagramChat } from './client/instagram-chat/InstagramChat';
+import { DirectMessageDetail } from '../features/room/DirectMessageDetail';
+import JwtVerify from './auth/JwtVerify';
 
 export const createRouter = (clientConfig: ClientConfig, screenSize: ScreenSize) => {
   const { hashRouter } = clientConfig;
@@ -71,6 +74,8 @@ export const createRouter = (clientConfig: ClientConfig, screenSize: ScreenSize)
 
   const routes = createRoutesFromElements(
     <Route>
+      {/* JWT auth-check page without sidebar */}
+      <Route path={AUTH_CHECK_PAGE_PATH} element={<JwtVerify />} />
       <Route
         index
         loader={() => {
@@ -166,7 +171,6 @@ export const createRouter = (clientConfig: ClientConfig, screenSize: ScreenSize)
               </HomeRouteRoomProvider>
             }
           />
-          <Route path={_INSTAGRAM_CHAT_PATH} element={<InstagramChat />} />
         </Route>
         <Route
           path={DIRECT_PATH}
@@ -281,7 +285,70 @@ export const createRouter = (clientConfig: ClientConfig, screenSize: ScreenSize)
           <Route path={_NOTIFICATIONS_PATH} element={<Notifications />} />
           <Route path={_INVITES_PATH} element={<Invites />} />
         </Route>
+      </Route>
 
+      <Route
+        loader={() => {
+          if (!isAuthenticated()) {
+            const afterLoginPath = getAppPathFromHref(
+              getOriginBaseUrl(hashRouter),
+              window.location.href
+            );
+            if (afterLoginPath) setAfterLoginRedirectPath(afterLoginPath);
+            return redirect(getLoginPath());
+          }
+          return null;
+        }}
+        element={
+          <AuthRouteThemeManager>
+            <ClientRoot>
+              <ClientInitStorageAtom>
+                <ClientRoomsNotificationPreferences>
+                  <ClientBindAtoms>
+                    <ClientNonUIFeatures>
+                      <ClientLayout
+                        nav={
+                          <MobileFriendlyClientNav>
+                            <div />
+                          </MobileFriendlyClientNav>
+                        }
+                      >
+                        <Outlet />
+                      </ClientLayout>
+                      <ReceiveSelfDeviceVerification />
+                      <AutoRestoreBackupOnVerification />
+                    </ClientNonUIFeatures>
+                  </ClientBindAtoms>
+                </ClientRoomsNotificationPreferences>
+              </ClientInitStorageAtom>
+            </ClientRoot>
+          </AuthRouteThemeManager>
+        }
+      >
+        <Route
+          path={DM_PATH}
+          element={
+            <PageRoot
+              nav={
+                <MobileFriendlyPageNav path={DM_PATH}>
+                  <DM />
+                </MobileFriendlyPageNav>
+              }
+            >
+              <Outlet />
+            </PageRoot>
+          }
+        >
+          <Route path={_SEARCH_PATH} element={<HomeSearch />} />
+          <Route
+            path={DM_DETAIL_PATH}
+            element={
+              <HomeRouteRoomProvider>
+                <DirectMessageDetail />
+              </HomeRouteRoomProvider>
+            }
+          />
+        </Route>
       </Route>
       <Route path="/*" element={<p>Page not found</p>} />
     </Route>
