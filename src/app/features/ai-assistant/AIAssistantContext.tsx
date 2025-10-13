@@ -1,6 +1,15 @@
-import React, { createContext, useContext, useState, ReactNode, useMemo, useCallback } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useMemo,
+  useCallback,
+  useRef,
+  useEffect,
+} from 'react';
 import {
-  generateResponseFromMessage,
+  generateResponseFromMessageSSE,
   getOpenAIConsultation,
   gradeMessage,
 } from '~/app/features/ai-assistant/utils/ai';
@@ -34,6 +43,7 @@ type AIAssistantContextType = {
   toneValues: Record<string, number>;
   initialMessageGenerated: boolean;
   prediction: { emoji: string; grade: string; score: number } | null;
+  errorMessage: string | null;
 
   // Actions
   setInputValue: (value: string) => void;
@@ -47,6 +57,7 @@ type AIAssistantContextType = {
   handleSliderChange: (value: number) => void;
   handlePersonaChange: (persona: typeof personas[0]) => void;
   gradeEditorText: (text: string) => void;
+  setErrorMessage: (message: string | null) => void;
 };
 
 const AIAssistantContext = createContext<AIAssistantContextType | undefined>(undefined);
@@ -75,11 +86,25 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
     grade: string;
     score: number;
   } | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const room = useRoom();
   const mx = useMatrixClient();
   const { insertText, deleteText } = useRoomEditor();
   const setIsAiDrawer = useSetSetting(settingsAtom, 'isAiDrawerOpen');
   const { selectedMessage } = useRoomMessage();
+
+  // Ref to store SSE abort function for cleanup
+  const abortStreamRef = useRef<(() => void) | null>(null);
+
+  // Cleanup on unmount
+  useEffect(
+    () => () => {
+      if (abortStreamRef.current) {
+        abortStreamRef.current();
+      }
+    },
+    []
+  );
 
   const toggleAIAssistant = useCallback((isOpen?: boolean) => {
     setIsAIAssistantOpen((prev) => {
@@ -111,12 +136,27 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
     [insertText, deleteText, isMobile, setIsAiDrawer]
   );
 
+  // Call handleUseSuggestion when response is complete
+  useEffect(() => {
+    if (generatedResponse && !isGeneratingResponse && initialMessageGenerated) {
+      handleUseSuggestion(generatedResponse);
+    }
+  }, [generatedResponse, isGeneratingResponse, initialMessageGenerated, handleUseSuggestion]);
+
   const generateInitialResponse = useCallback(async () => {
     toggleAIAssistant(true);
   }, [toggleAIAssistant]);
 
   const regenerateResponse = useCallback(async () => {
+    // Cancel any existing stream
+    if (abortStreamRef.current) {
+      abortStreamRef.current();
+    }
+
+    // Reset state and clear previous errors
     setIsGeneratingResponse(true);
+    setGeneratedResponse(''); // Clear previous response
+    setErrorMessage(null); // Clear previous errors
     deleteText();
 
     try {
@@ -141,24 +181,58 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
         tone: toneValues,
       };
 
-      // Call API client
-      const response = await generateResponseFromMessage({
+      // Call SSE API client with callbacks
+      const abort = generateResponseFromMessageSSE({
         message,
         context: roomContext,
         spec,
+        onChunk: (chunk: string) => {
+          // Append chunk to state - functional update to avoid stale closure
+          setGeneratedResponse((prev) => prev + chunk);
+        },
+        onError: (error: Error) => {
+          // eslint-disable-next-line no-console
+          console.error('Stream error:', error);
+
+          // Categorize error and set appropriate message
+          let userMessage = 'Sorry, something went wrong. Please try again.';
+
+          if (error.message.includes('Stream connection error')) {
+            userMessage = 'Connection lost. Please check your network and try again.';
+          } else if (error.message.includes('Failed to initialize SSE connection')) {
+            userMessage = 'Failed to connect to AI service. Please try again later.';
+          } else if (error.message.includes('network') || error.message.includes('fetch')) {
+            userMessage = 'Network error. Please check your connection.';
+          }
+
+          setErrorMessage(userMessage);
+          setIsGeneratingResponse(false);
+        },
+        onComplete: () => {
+          setIsGeneratingResponse(false);
+          setInitialMessageGenerated(true);
+        },
       });
 
-      setGeneratedResponse(response);
-      handleUseSuggestion(response);
+      // Store abort function for cleanup
+      abortStreamRef.current = abort;
     } catch (error) {
-      setGeneratedResponse('Xin lỗi, đã có lỗi');
       // eslint-disable-next-line no-console
-      console.error('Error generating response:', error);
-    } finally {
+      console.error('Error starting stream:', error);
+
+      // Categorize initialization error
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      let userMessage = 'Failed to start generation. Please try again.';
+
+      if (errorMsg.includes('network') || errorMsg.includes('fetch')) {
+        userMessage = 'Network error. Please check your connection.';
+      }
+
+      setErrorMessage(userMessage);
       setIsGeneratingResponse(false);
       setInitialMessageGenerated(true);
     }
-  }, [room, mx, handleUseSuggestion, deleteText, selectedPersona, toneValues]);
+  }, [room, mx, deleteText, selectedPersona, toneValues]);
 
   const handleSliderChange = useCallback(
     (value: number) => {
@@ -276,6 +350,7 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
       toneValues,
       initialMessageGenerated,
       prediction,
+      errorMessage,
 
       // Actions
       setInputValue,
@@ -289,6 +364,7 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
       handleSliderChange,
       handlePersonaChange,
       gradeEditorText,
+      setErrorMessage,
     }),
     [
       inputValue,
@@ -312,6 +388,7 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
       handlePersonaChange,
       prediction,
       gradeEditorText,
+      errorMessage,
     ]
   );
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box } from 'folds';
+import { Box, Text, color, config } from 'folds';
 import { PersonaSelector } from '~/app/features/ai-assistant/gen-response/personal-selector/PersonaSelector';
 import { Slider } from '~/app/features/ai-assistant/gen-response/tone-slider/Slider';
 import { ToneSelector } from '~/app/features/ai-assistant/gen-response/tone-selector/ToneSelector';
@@ -7,7 +7,7 @@ import { useAIAssistant } from '~/app/features/ai-assistant/AIAssistantContext';
 import { useEscapeKey } from '~/app/features/ai-assistant/utils/utils';
 
 export function GeneratedResponseBox() {
-  const { isAIAssistantOpen, toggleAIAssistant } = useAIAssistant();
+  const { isAIAssistantOpen, toggleAIAssistant, errorMessage } = useAIAssistant();
 
   useEscapeKey(isAIAssistantOpen, () => toggleAIAssistant(false));
 
@@ -25,6 +25,27 @@ export function GeneratedResponseBox() {
       }}
     >
       <Box direction="Column" gap="200">
+        {errorMessage && (
+          <Box
+            direction="Row"
+            gap="200"
+            alignItems="Center"
+            style={{
+              padding: config.space.S300,
+              backgroundColor: color.Critical.Container,
+              borderRadius: config.radii.R400,
+            }}
+          >
+            <Text
+              size="T300"
+              style={{
+                color: color.Critical.OnContainer,
+              }}
+            >
+              ⚠️ {errorMessage}
+            </Text>
+          </Box>
+        )}
         <Slider />
         <ToneSelector />
         <PersonaSelector />
