@@ -14,7 +14,12 @@ import { isKeyHotkey } from 'is-hotkey';
 
 import { editableActiveElement, scrollToBottom } from '../../../utils/dom';
 import { DefaultPlaceholder, CompactPlaceholder, MessageBase } from '../../../components/message';
-import { canEditEvent, getLatestEditableEvt, reactionOrEditEvent } from '../../../utils/room';
+import {
+  canEditEvent,
+  getLatestEditableEvt,
+  messageEventOnly,
+  reactionOrEditEvent,
+} from '../../../utils/room';
 import { MessageLayout } from '../../../state/settings';
 import { useMatrixEventRenderer } from '../../../hooks/useMatrixEventRenderer';
 import { RoomIntro } from '../../../components/room-intro';
@@ -66,15 +71,16 @@ type RoomTimelineProps = {
   editor: Editor;
   getPowerLevelTag: GetPowerLevelTag;
   accessibleTagColors: Map<string, string>;
+  messageOnly?: boolean;
 };
 
 type RoomTimelineInternalProps = Omit<
   RoomTimelineProps,
-  'room' | 'getPowerLevelTag' | 'accessibleTagColors'
+  'room' | 'getPowerLevelTag' | 'accessibleTagColors' | 'messageOnly'
 >;
 
 const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProps>(
-  ({ eventId, roomInputRef, editor }, ref) => {
+  ({ eventId, roomInputRef, editor, messageOnly }, ref) => {
     const {
       room,
       messageLayout,
@@ -455,17 +461,18 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
         prevEvent.getType() === mEvent.getType() &&
         minuteDifference(prevEvent.getTs(), mEvent.getTs()) < 2;
 
-      const eventJSX = reactionOrEditEvent(mEvent)
-        ? null
-        : renderMatrixEvent(
-            mEvent.getType(),
-            typeof mEvent.getStateKey() === 'string',
-            mEventId,
-            mEvent,
-            item,
-            timelineSet,
-            collapsed
-          );
+      const eventJSX =
+        (messageOnly && !messageEventOnly(mEvent)) || reactionOrEditEvent(mEvent)
+          ? null
+          : renderMatrixEvent(
+              mEvent.getType(),
+              typeof mEvent.getStateKey() === 'string',
+              mEventId,
+              mEvent,
+              item,
+              timelineSet,
+              collapsed
+            );
       prevEvent = mEvent;
       isPrevRendered = !!eventJSX;
 
@@ -529,7 +536,7 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
                   }`,
                 }}
               >
-                <RoomIntro room={room} />
+                <RoomIntro room={room} showInfoOnly={messageOnly} />
               </div>
             )}
             {(canPaginateBack || !rangeAtStart) &&
@@ -564,9 +571,7 @@ const RoomTimelineInternal = forwardRef<HTMLDivElement, RoomTimelineInternalProp
                   </MessageBase>
                 </>
               ))}
-
             {getItems().map(eventRenderer)}
-
             {(!liveTimelineLinked || !rangeAtEnd) &&
               (messageLayout === MessageLayout.Compact ? (
                 <>

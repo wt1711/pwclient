@@ -1,8 +1,6 @@
-import React, { MouseEventHandler, forwardRef, useMemo, useRef, useState, useEffect } from 'react';
+import { MouseEventHandler, forwardRef, useMemo, useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Avatar,
-  Badge,
   Box,
   Button,
   Icon,
@@ -12,7 +10,6 @@ import {
   MenuItem,
   PopOut,
   RectCords,
-  Spinner,
   Text,
   config,
   toRem,
@@ -31,7 +28,7 @@ import {
   NavItemContent,
   NavLink,
 } from '../../../components/nav';
-import { getExplorePath, getHomeRoomPath, getHomeSearchPath } from '../../pathUtils';
+import { getDMRoomPath, getExplorePath } from '../../pathUtils';
 import { getCanonicalAliasOrRoomId } from '../../../utils/matrix';
 import { useSelectedRoom } from '../../../hooks/router/useSelectedRoom';
 import { useHomeSearchSelected } from '../../../hooks/router/useHomeSelected';
@@ -55,11 +52,12 @@ import {
   getRoomNotificationMode,
   useRoomsNotificationPreferencesContext,
 } from '../../../hooks/useRoomsNotificationPreferences';
+import { useDMRooms } from './useDMRooms';
 
-type HomeMenuProps = {
+type DMMenuProps = {
   requestClose: () => void;
 };
-const HomeMenu = forwardRef<HTMLDivElement, HomeMenuProps>(({ requestClose }, ref) => {
+const DMMenu = forwardRef<HTMLDivElement, DMMenuProps>(({ requestClose }, ref) => {
   const orphanRooms = useHomeRooms();
   const [hideActivity] = useSetting(settingsAtom, 'hideActivity');
   const unread = useRoomsUnread(orphanRooms, roomToUnreadAtom);
@@ -90,16 +88,6 @@ const HomeMenu = forwardRef<HTMLDivElement, HomeMenuProps>(({ requestClose }, re
             Mark as Read
           </Text>
         </MenuItem>
-        <MenuItem
-          onClick={handleJoinAddress}
-          size="300"
-          radii="300"
-          after={<Icon size="100" src={Icons.Link} />}
-        >
-          <Text style={{ flexGrow: 1 }} as="span" size="T300" truncate>
-            Join with Address
-          </Text>
-        </MenuItem>
       </Box>
     </Menu>
   );
@@ -122,7 +110,7 @@ function HomeHeader() {
         <Box alignItems="Center" grow="Yes" gap="300">
           <Box grow="Yes">
             <Text size="H4" truncate>
-              Home
+              Direct messages
             </Text>
           </Box>
           <Box>
@@ -149,7 +137,7 @@ function HomeHeader() {
               escapeDeactivates: stopPropagation,
             }}
           >
-            <HomeMenu requestClose={() => setMenuAnchor(undefined)} />
+            <DMMenu requestClose={() => setMenuAnchor(undefined)} />
           </FocusTrap>
         }
       />
@@ -157,7 +145,7 @@ function HomeHeader() {
   );
 }
 
-function HomeEmpty() {
+function DMEmpty() {
   const navigate = useNavigate();
 
   return (
@@ -200,11 +188,11 @@ function HomeEmpty() {
 
 const DEFAULT_CATEGORY_ID = makeNavCategoryId('home', 'room');
 
-export function Home() {
+export function DM() {
   const mx = useMatrixClient();
   useNavToActivePathMapper('home');
   const scrollRef = useRef<HTMLDivElement>(null);
-  const rooms = useHomeRooms();
+  const rooms = useDMRooms();
   const notificationPreferences = useRoomsNotificationPreferencesContext();
   const roomToUnread = useAtomValue(roomToUnreadAtom);
 
@@ -240,7 +228,7 @@ export function Home() {
     <PageNav>
       <HomeHeader />
       {noRoomToDisplay ? (
-        <HomeEmpty />
+        <DMEmpty />
       ) : (
         <PageNavContent scrollRef={scrollRef}>
           <Box direction="Column" gap="300">
@@ -325,7 +313,7 @@ export function Home() {
                       <RoomNavItem
                         room={room}
                         selected={selected}
-                        linkPath={getHomeRoomPath(getCanonicalAliasOrRoomId(mx, roomId))}
+                        linkPath={getDMRoomPath(getCanonicalAliasOrRoomId(mx, roomId))}
                         notificationMode={getRoomNotificationMode(
                           notificationPreferences,
                           room.roomId

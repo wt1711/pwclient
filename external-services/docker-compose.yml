@@ -30,7 +30,6 @@ services:
       - .env.local
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     restart: unless-stopped
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U ${DB_USER:-instagram_user} -d ${DB_NAME:-instagram_chat}']
@@ -76,6 +75,8 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       CORS_ALLOW_ORIGIN: '*'
+      MATRIX_HOST: ${MATRIX_HOST:-matrix.org}
+      RANDOM_KEY: ${RANDOM_KEY:-change-this-to-a-long-random-secret}
     ports:
       - '3000:3000'
       - '8088:8088'
@@ -87,7 +88,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    command: sh -c "npm install && npm run dev:full"
+    command: sh -c "npm install && npm run dev"
 
 volumes:
   redis_data:

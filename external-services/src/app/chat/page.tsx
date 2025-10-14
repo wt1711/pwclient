@@ -55,7 +55,7 @@ export default function ChatPage() {
       // Load messages immediately
       loadMessages(selectedContact.id);
       setIsPolling(true);
-      
+
       // Set up polling every 3 seconds
       pollingIntervalRef.current = setInterval(() => {
         loadMessages(selectedContact.id, true);
@@ -92,7 +92,7 @@ export default function ChatPage() {
       const token = localStorage.getItem('instagram_session');
       const response = await fetch('/api/contacts', {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -117,17 +117,17 @@ export default function ChatPage() {
       const token = localStorage.getItem('instagram_session');
       const response = await fetch(`/api/messages/${contactId}`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
       if (response.ok) {
         const data = await response.json();
         const newMessages = data.messages || [];
-        
+
         // If polling, only update if there are new messages
         if (isPolling) {
-          setMessages(prevMessages => {
+          setMessages((prevMessages) => {
             if (JSON.stringify(prevMessages) !== JSON.stringify(newMessages)) {
               return newMessages;
             }
@@ -163,7 +163,7 @@ export default function ChatPage() {
       status: 'sending',
     };
 
-    setMessages(prev => [...prev, message]);
+    setMessages((prev) => [...prev, message]);
     setNewMessage('');
     setLoading(true);
     setError('');
@@ -174,7 +174,7 @@ export default function ChatPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           recipientId: selectedContact.id,
@@ -183,18 +183,14 @@ export default function ChatPage() {
       });
 
       if (response.ok) {
-        setMessages(prev =>
-          prev.map(msg =>
-            msg.id === messageId ? { ...msg, status: 'sent' } : msg
-          )
+        setMessages((prev) =>
+          prev.map((msg) => (msg.id === messageId ? { ...msg, status: 'sent' } : msg))
         );
       } else if (response.status === 401) {
         const data = await response.json();
         setError(data.error || 'Session expired. Please log in again.');
-        setMessages(prev =>
-          prev.map(msg =>
-            msg.id === messageId ? { ...msg, status: 'failed' } : msg
-          )
+        setMessages((prev) =>
+          prev.map((msg) => (msg.id === messageId ? { ...msg, status: 'failed' } : msg))
         );
         // Auto-redirect to login after a short delay
         setTimeout(() => {
@@ -204,18 +200,14 @@ export default function ChatPage() {
       } else {
         const data = await response.json();
         setError(data.error || 'Failed to send message');
-        setMessages(prev =>
-          prev.map(msg =>
-            msg.id === messageId ? { ...msg, status: 'failed' } : msg
-          )
+        setMessages((prev) =>
+          prev.map((msg) => (msg.id === messageId ? { ...msg, status: 'failed' } : msg))
         );
       }
     } catch (err) {
       setError('Network error. Please try again.');
-      setMessages(prev =>
-        prev.map(msg =>
-          msg.id === messageId ? { ...msg, status: 'failed' } : msg
-        )
+      setMessages((prev) =>
+        prev.map((msg) => (msg.id === messageId ? { ...msg, status: 'failed' } : msg))
       );
     } finally {
       setLoading(false);
@@ -229,15 +221,15 @@ export default function ChatPage() {
       const token = localStorage.getItem('instagram_session');
       const response = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
       if (response.ok) {
         const data = await response.json();
         const newContacts = data.users || [];
-        setContacts(prev => {
-          const existingIds = new Set(prev.map(c => c.id));
+        setContacts((prev) => {
+          const existingIds = new Set(prev.map((c) => c.id));
           const uniqueNew = newContacts.filter((c: Contact) => !existingIds.has(c.id));
           return [...prev, ...uniqueNew];
         });
@@ -256,9 +248,10 @@ export default function ChatPage() {
     setSelectedContact(contact);
   };
 
-  const filteredContacts = contacts.filter(contact =>
-    contact.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    contact.fullName?.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredContacts = contacts.filter(
+    (contact) =>
+      contact.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      contact.fullName?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -319,7 +312,8 @@ export default function ChatPage() {
               <p>No contacts found</p>
               <p className="text-sm">Search for users to start chatting</p>
             </div>
-          ) : !error && (
+          ) : (
+            !error &&
             filteredContacts.map((contact) => (
               <div
                 key={contact.id}
@@ -409,19 +403,31 @@ export default function ChatPage() {
                   >
                     <p>{message.text}</p>
                     <div className="flex items-center justify-between mt-1">
-                      <p className={`text-xs ${
-                        message.sender === 'user' ? 'text-purple-200' : 'text-gray-500'
-                      }`}>
-                        {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      <p
+                        className={`text-xs ${
+                          message.sender === 'user' ? 'text-purple-200' : 'text-gray-500'
+                        }`}
+                      >
+                        {new Date(message.timestamp).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
                       </p>
                       {message.sender === 'user' && message.status && (
-                        <span className={`text-xs ml-2 ${
-                          message.status === 'sending' ? 'text-purple-300' :
-                          message.status === 'sent' ? 'text-purple-200' :
-                          'text-red-300'
-                        }`}>
-                          {message.status === 'sending' ? '⏳' :
-                           message.status === 'sent' ? '✓' : '✗'}
+                        <span
+                          className={`text-xs ml-2 ${
+                            message.status === 'sending'
+                              ? 'text-purple-300'
+                              : message.status === 'sent'
+                              ? 'text-purple-200'
+                              : 'text-red-300'
+                          }`}
+                        >
+                          {message.status === 'sending'
+                            ? '⏳'
+                            : message.status === 'sent'
+                            ? '✓'
+                            : '✗'}
                         </span>
                       )}
                     </div>

@@ -44,6 +44,9 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
+-- Ensure idempotency: drop existing trigger if it already exists
+DROP TRIGGER IF EXISTS update_payments_updated_at ON payments;
+
 CREATE TRIGGER update_payments_updated_at 
     BEFORE UPDATE ON payments 
     FOR EACH ROW 
