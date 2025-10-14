@@ -22,10 +22,13 @@ vi.mock('~/app/hooks/useMatrixClient', () => ({
   }),
 }));
 
+const mockInsertText = vi.fn();
+const mockDeleteText = vi.fn();
+
 vi.mock('~/app/features/room/RoomEditorContext', () => ({
   useRoomEditor: () => ({
-    insertText: vi.fn(),
-    deleteText: vi.fn(),
+    insertText: mockInsertText,
+    deleteText: mockDeleteText,
   }),
 }));
 
@@ -62,6 +65,8 @@ describe('AIAssistantContext with Streaming Service', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockInsertText.mockClear();
+    mockDeleteText.mockClear();
   });
 
   afterEach(() => {
@@ -354,6 +359,142 @@ describe('AIAssistantContext with Streaming Service', () => {
       });
 
       expect(result.current.errorMessage).toBe(null);
+    });
+  });
+
+  describe('Final Text Transfer Integration', () => {
+    it('should call handleUseSuggestion with final text when stream completes', async () => {
+      let capturedCallbacks: StreamingServiceCallbacks | null = null;
+
+      mockStartStream.mockImplementation((params, callbacks) => {
+        capturedCallbacks = callbacks;
+        return vi.fn();
+      });
+
+      const { result } = renderHook(() => useAIAssistant(), { wrapper });
+
+      await act(async () => {
+        result.current.regenerateResponse();
+      });
+
+      // Simulate streaming chunks
+      await act(async () => {
+        capturedCallbacks?.onChunk('Hello');
+      });
+
+      await act(async () => {
+        capturedCallbacks?.onChunk(' World');
+      });
+
+      expect(result.current.generatedResponse).toBe('Hello World');
+
+      // Simulate stream completion
+      await act(async () => {
+        capturedCallbacks?.onComplete?.();
+      });
+
+      // Verify handleUseSuggestion was called with the final text
+      // Since handleUseSuggestion calls deleteText and insertText, we can verify those calls
+      expect(mockDeleteText).toHaveBeenCalled();
+      expect(mockInsertText).toHaveBeenCalledWith('Hello World');
+      expect(result.current.isGeneratingResponse).toBe(false);
+
+      // Verify "Thinking." was inserted initially, then replaced with chunks
+      expect(mockInsertText).toHaveBeenCalledWith('Thinking.');
+      // Note: "Hello" is not inserted separately - it's part of the final "Hello World" transfer
+      expect(mockInsertText).toHaveBeenCalledWith(' World');
+    });
+
+    it('should handle complete flow: request → thinking → streaming → completion → input transfer', async () => {
+      let capturedCallbacks: StreamingServiceCallbacks | null = null;
+
+      mockStartStream.mockImplementation((params, callbacks) => {
+        capturedCallbacks = callbacks;
+        return vi.fn();
+      });
+
+      const { result } = renderHook(() => useAIAssistant(), { wrapper });
+
+      // Step 1: Start generation (should show thinking state)
+      await act(async () => {
+        result.current.regenerateResponse();
+      });
+
+      expect(result.current.isGeneratingResponse).toBe(true);
+      expect(result.current.generatedResponse).toBe('');
+
+      // Step 2: First chunk arrives (thinking indicator should disappear, streaming starts)
+      await act(async () => {
+        capturedCallbacks?.onChunk('Hello');
+      });
+
+      expect(result.current.generatedResponse).toBe('Hello');
+      expect(result.current.isGeneratingResponse).toBe(true);
+
+      // Step 3: More chunks arrive (streaming continues)
+      await act(async () => {
+        capturedCallbacks?.onChunk(' World');
+      });
+
+      await act(async () => {
+        capturedCallbacks?.onChunk('!');
+      });
+
+      expect(result.current.generatedResponse).toBe('Hello World!');
+      expect(result.current.isGeneratingResponse).toBe(true);
+
+      // Step 4: Stream completes (final text transfer)
+      await act(async () => {
+        capturedCallbacks?.onComplete?.();
+      });
+
+      expect(result.current.isGeneratingResponse).toBe(false);
+      // Verify handleUseSuggestion was called by checking the room editor calls
+      expect(mockDeleteText).toHaveBeenCalled();
+      expect(mockInsertText).toHaveBeenCalledWith('Hello World!');
+
+      // Verify "Thinking." was inserted initially, then replaced with chunks
+      expect(mockInsertText).toHaveBeenCalledWith('Thinking.');
+      // Note: "Hello" is not inserted separately - it's part of the final "Hello World" transfer
+      expect(mockInsertText).toHaveBeenCalledWith(' World');
+      expect(mockInsertText).toHaveBeenCalledWith('!');
+    });
+
+    it('should handle error during complete flow', async () => {
+      let capturedCallbacks: StreamingServiceCallbacks | null = null;
+
+      mockStartStream.mockImplementation((params, callbacks) => {
+        capturedCallbacks = callbacks;
+        return vi.fn();
+      });
+
+      const { result } = renderHook(() => useAIAssistant(), { wrapper });
+
+      // Start generation
+      await act(async () => {
+        result.current.regenerateResponse();
+      });
+
+      // Simulate some chunks
+      await act(async () => {
+        capturedCallbacks?.onChunk('Hello');
+      });
+
+      // Simulate error
+      await act(async () => {
+        capturedCallbacks?.onError?.(new Error('Network error'));
+      });
+
+      // Verify error handling
+      expect(result.current.errorMessage).toBeTruthy();
+      expect(result.current.isGeneratingResponse).toBe(false);
+      // deleteText is called at the start of regenerateResponse, during first chunk, during thinking animation, and on error
+      expect(mockDeleteText).toHaveBeenCalledTimes(4); // Called at start, during first chunk, during thinking animation, and on error
+      // insertText is called with "Thinking." initially, then during streaming (onChunk)
+      expect(mockInsertText).toHaveBeenCalledWith('Thinking.'); // Initial call
+      // Note: "Hello" is not inserted separately - it's part of the final "Hello World" transfer // Called during streaming
+      // The key test: handleUseSuggestion should not be called on error, so we should only have the initial, animated thinking, and streaming calls
+      expect(mockInsertText).toHaveBeenCalledTimes(3); // "Thinking." + animated thinking + streaming call, not the final transfer
     });
   });
 });

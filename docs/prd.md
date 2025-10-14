@@ -114,5 +114,11 @@ No changes are anticipated for the existing build and deployment process.
 
     - Refactor the `GeneratedResponseBox.tsx` component to be a simple "dumb" component that just subscribes to the `AIAssistantContext` and displays the `isStreaming` state (as a spinner) and the `responseText`.
 
-4.  **Story 3.4: Trigger Final Input Update and Cleanup**
-    - Ensure that when the stream is finished, the final, complete `responseText` is passed to the `handleUseSuggestion` function. Finally, remove all remnants of the old prototype code.
+4.  **Story 3.4: Implement Final UI State Management**
+    - **As a** User, **I want** to see a clear "Thinking..." indicator when a request starts, and I want the final generated text to reliably appear in the input box when the stream finishes, **so that** the entire AI generation process is visually clear and robust.
+    - **Acceptance Criteria**:
+      1.  An initial loading indicator (e.g., "Thinking...") appears immediately when a response is requested.
+      2.  This indicator is replaced by the streaming text as it arrives.
+      3.  When the stream is finished, the final, complete text is correctly passed to the `handleUseSuggestion` function.
+      4.  The call to `handleUseSuggestion` must not interfere with or break the real-time rendering that occurred during the stream.
+      5.  All old prototype code is removed as part of this final step.
