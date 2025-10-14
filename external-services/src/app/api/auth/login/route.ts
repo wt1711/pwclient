@@ -1,7 +1,7 @@
 import { generateJWT } from '@/lib/jwt';
 import MatrixClient from '../../../../lib/matrix';
 import { NextRequest, NextResponse } from 'next/server';
-import pg, { Pool } from 'pg';
+import { Pool } from 'pg';
 import { generateRandomString } from '@/lib/utils';
 import { encryptSecret } from '@/lib/crypto';
 
@@ -37,10 +37,10 @@ export async function POST(request: NextRequest) {
     if (dbUserQuery.rows.length > 0) {
       dbUser = dbUserQuery.rows[0];
       // Update stored encrypted password on each successful login
-      await client.query(
-        'UPDATE matrix_user SET encrypted_password = $1 WHERE id = $2',
-        [encryptedPassword, dbUser.id]
-      );
+      await client.query('UPDATE matrix_user SET encrypted_password = $1 WHERE id = $2', [
+        encryptedPassword,
+        dbUser.id,
+      ]);
     } else {
       const insertUserQuery = await client.query(
         'INSERT INTO matrix_user (id, matrix_user_id, home_server, encrypted_password) VALUES ($1, $2, $3, $4) RETURNING id',
@@ -80,7 +80,7 @@ const corsHeaders = {
   'Access-Control-Allow-Credentials': 'true',
 };
 
-export async function OPTIONS(request: NextRequest) {
+export async function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
     headers: corsHeaders,

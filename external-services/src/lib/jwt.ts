@@ -7,12 +7,8 @@ interface MatrixJWTPayload {
   accessToken: string;
 }
 
-export function generateJWT(payload: MatrixJWTPayload, expiresIn?: string) {
-  return jwt.sign(
-    payload,
-    process.env.JWT_SECRET || 'matrix-jwt-secret-here',
-    expiresIn ? { expiresIn } : {}
-  );
+export function generateJWT(payload: MatrixJWTPayload) {
+  return jwt.sign(payload, process.env.JWT_SECRET || 'matrix-jwt-secret-here');
 }
 
 export function verifyJWT(token: string) {

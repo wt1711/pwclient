@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
 // CORS headers
 const corsHeaders = {
@@ -8,11 +8,11 @@ const corsHeaders = {
   'Access-Control-Allow-Credentials': 'true',
 };
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   return NextResponse.json({ status: 'ok' }, { headers: corsHeaders });
 }
 
-export async function OPTIONS(request: NextRequest) {
+export async function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
     headers: corsHeaders,

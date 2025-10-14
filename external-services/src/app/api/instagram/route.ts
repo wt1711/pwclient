@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getPostgresPool } from '../../../lib/db';
 import { checkAuth } from '@/lib/utils';
 import { Pool } from 'pg';
 
@@ -71,7 +70,7 @@ export async function GET(request: NextRequest) {
 }
 
 // Handle preflight OPTIONS request
-export async function OPTIONS(request: NextRequest) {
+export async function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
     headers: corsHeaders,

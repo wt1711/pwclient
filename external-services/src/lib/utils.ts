@@ -1,5 +1,4 @@
 import crypto from 'crypto';
-import MatrixClient from './matrix';
 import { verifyJWT } from './jwt';
 import pg from 'pg';
 import { MATRIX_HOMESERVER } from '@/constants';

@@ -72,7 +72,7 @@ export default function ChatPage() {
       }
       setIsPolling(false);
     };
-  }, [selectedContact]);
+  }, [selectedContact]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Cleanup polling on component unmount
   useEffect(() => {
@@ -205,6 +205,7 @@ export default function ChatPage() {
         );
       }
     } catch (err) {
+      console.error('Send message failed:', err);
       setError('Network error. Please try again.');
       setMessages((prev) =>
         prev.map((msg) => (msg.id === messageId ? { ...msg, status: 'failed' } : msg))
@@ -325,6 +326,7 @@ export default function ChatPage() {
                 <div className="flex items-center">
                   <div className="relative">
                     {contact.profilePicUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={contact.profilePicUrl}
                         alt={contact.username}
@@ -360,6 +362,7 @@ export default function ChatPage() {
             <div className="p-4 bg-white border-b border-gray-200">
               <div className="flex items-center">
                 {selectedContact.profilePicUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={selectedContact.profilePicUrl}
                     alt={selectedContact.username}

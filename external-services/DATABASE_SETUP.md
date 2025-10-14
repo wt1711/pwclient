@@ -43,12 +43,14 @@ npm run dev
 ## Database Services
 
 ### Redis (Session Storage)
+
 - **Port**: 6379
 - **Purpose**: Stores user sessions with automatic expiration
 - **Data**: Session tokens, user authentication state
 - **Persistence**: Data persists across container restarts
 
 ### PostgreSQL (Persistent Data)
+
 - **Port**: 5432
 - **Database**: `instagram_chat`
 - **Username**: `instagram_user`
@@ -58,6 +60,7 @@ npm run dev
 ## Database Schema
 
 The PostgreSQL database includes these tables:
+
 - `users` - Instagram user information
 - `sessions` - Session metadata and expiration
 - `contacts` - User contact lists
@@ -70,11 +73,6 @@ The following environment variables are configured in `.env.local`:
 ```env
 # JWT Secret
 JWT_SECRET=your-super-secret-jwt-key-here
-
-# Redis Configuration
-REDIS_URL=redis://localhost:6379
-REDIS_HOST=localhost
-REDIS_PORT=6379
 
 # PostgreSQL Configuration
 DATABASE_URL=postgresql://instagram_user:instagram_password@localhost:5432/instagram_chat
@@ -115,19 +113,21 @@ docker-compose restart
 ### Connection Issues
 
 1. **Redis Connection Failed**:
+
    ```bash
    # Check if Redis is running
    docker-compose ps redis
-   
+
    # View Redis logs
    docker-compose logs redis
    ```
 
 2. **PostgreSQL Connection Failed**:
+
    ```bash
    # Check if PostgreSQL is running
    docker-compose ps postgres
-   
+
    # View PostgreSQL logs
    docker-compose logs postgres
    ```
@@ -156,6 +156,7 @@ docker-compose up -d
 ## Migration from In-Memory Sessions
 
 The application has been updated to:
+
 - Store session data in Redis instead of memory
 - Maintain Instagram client instances in a memory cache
 - Provide better error handling for expired sessions

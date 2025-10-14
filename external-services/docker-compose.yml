@@ -66,7 +66,6 @@ services:
       - .env.local
     environment:
       DATABASE_URL: postgresql://instagram_user:instagram_password@postgres:5432/instagram_chat
-      REDIS_URL: redis://redis:6379
       DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: ${DB_NAME:-instagram_chat}

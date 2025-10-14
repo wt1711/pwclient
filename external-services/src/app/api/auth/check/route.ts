@@ -10,7 +10,6 @@ const pool = new Pool({
 
 export async function GET(req: NextRequest) {
   // Enable CORS
-  const origin = req.headers.get('origin') || '*';
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
@@ -54,6 +53,7 @@ export async function GET(req: NextRequest) {
       { status: 200, headers: corsHeaders }
     );
   } catch (err) {
+    console.error('Token verification error:', err);
     return NextResponse.json(
       { message: 'Token verification failed' },
       { status: 401, headers: corsHeaders }
@@ -69,7 +69,7 @@ const corsHeaders = {
   'Access-Control-Allow-Credentials': 'true',
 };
 
-export async function OPTIONS(request: NextRequest) {
+export async function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
     headers: corsHeaders,

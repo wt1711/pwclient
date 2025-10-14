@@ -1,6 +1,5 @@
 import { Pool } from 'pg';
 import Redis from 'ioredis';
-import crypto from 'crypto';
 
 // PostgreSQL connection
 let pool: Pool | null = null;

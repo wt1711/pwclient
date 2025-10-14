@@ -35,6 +35,7 @@ export default function LoginPage() {
         setError(data.error || 'Login failed');
       }
     } catch (err) {
+      console.error('Login error:', err);
       setError('Network error. Please try again.');
     } finally {
       setLoading(false);
@@ -133,8 +134,9 @@ export default function LoginPage() {
         {/* Disclaimer */}
         <div className="mt-6 text-center">
           <p className="text-purple-100 text-xs">
-             This app is for educational purposes only. Please use responsibly and follow Instagram&apos;s terms of service.
-           </p>
+            This app is for educational purposes only. Please use responsibly and follow
+            Instagram&apos;s terms of service.
+          </p>
         </div>
       </div>
     </div>

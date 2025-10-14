@@ -3,14 +3,14 @@ import Stripe from 'stripe';
 
 // CORS headers
 const corsHeaders = {
-  'Access-Control-Allow-Origin': (process.env.CORS_ALLOW_ORIGIN ?? 'http://localhost:5173'),
+  'Access-Control-Allow-Origin': process.env.CORS_ALLOW_ORIGIN ?? 'http://localhost:5173',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
   'Access-Control-Allow-Credentials': 'true',
 };
 
 // Handle preflight OPTIONS request
-export async function OPTIONS(request: NextRequest) {
+export async function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
     headers: corsHeaders,
@@ -22,10 +22,7 @@ export async function POST(request: NextRequest) {
     const { amount, currency = 'usd', description, metadata } = await request.json();
 
     if (!amount || amount <= 0) {
-      return NextResponse.json(
-        { error: 'Invalid amount' },
-        { status: 400, headers: corsHeaders }
-      );
+      return NextResponse.json({ error: 'Invalid amount' }, { status: 400, headers: corsHeaders });
     }
 
     // Initialize Stripe
@@ -43,12 +40,15 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({
-      clientSecret: paymentIntent.client_secret,
-      paymentIntentId: paymentIntent.id,
-    }, {
-      headers: corsHeaders
-    });
+    return NextResponse.json(
+      {
+        clientSecret: paymentIntent.client_secret,
+        paymentIntentId: paymentIntent.id,
+      },
+      {
+        headers: corsHeaders,
+      }
+    );
   } catch (error) {
     console.error('Error creating payment intent:', error);
     return NextResponse.json(

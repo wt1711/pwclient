@@ -47,36 +47,6 @@ services:
         max-size: '10m'
         max-file: '3'
 
-  # Redis Cache
-  redis:
-    image: redis:7-alpine
-    container_name: ${REDIS_CONTAINER_NAME:-pwclient-redis}
-    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
-    volumes:
-      - redis_data:/data
-      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
-    restart: unless-stopped
-    networks:
-      - backend-network
-    healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-          cpus: '0.5'
-        reservations:
-          memory: 256M
-          cpus: '0.25'
-    logging:
-      driver: 'json-file'
-      options:
-        max-size: '5m'
-        max-file: '3'
-
   # PostgreSQL Database
   postgres:
     image: postgres:15-alpine
