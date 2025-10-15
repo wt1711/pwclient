@@ -2,11 +2,10 @@
 
 ## **1.1 Change Log**
 
-| Date       | Version | Description                                                      | Author    |
-| :--------- | :------ | :--------------------------------------------------------------- | :-------- |
-| 2025-10-13 | 1.0     | Initial PRD for `gen-response` refactor.                         | BMad Team |
-| 2025-10-13 | 1.1     | Updated for SSE streaming API; replaced Epic 1 with Epic 2.      | BMad Team |
-| 2025-10-14 | 1.2     | Replaced Epic 2 with a new architectural refactor epic (Epic 3). | BMad Team |
+| Date       | Version | Description                                               | Author |
+| :--------- | :------ | :-------------------------------------------------------- | :----- |
+| 2025-10-13 | 1.0     | Initial PRD for `gen-response` refactor.                  | BMad   |
+| 2025-10-13 | 1.1     | Updated for SSE streaming API; replaced Epic 1 w/ Epic 2. | BMad   |
 
 ## **1.2 Existing Project Overview**
 

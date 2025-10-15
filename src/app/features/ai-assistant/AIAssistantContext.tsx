@@ -8,11 +8,9 @@ import React, {
   useRef,
   useEffect,
 } from 'react';
-import {
-  generateResponseFromMessageSSE,
-  getOpenAIConsultation,
-  gradeMessage,
-} from '~/app/features/ai-assistant/utils/ai';
+import { useThinkingDots } from '~/app/features/ai-assistant/hooks/useThinkingDots';
+import { getOpenAIConsultation, gradeMessage } from '~/app/features/ai-assistant/utils/ai';
+import { startStream } from '~/app/features/ai-assistant/services/streaming-service';
 import { useRoom } from '~/app/hooks/useRoom';
 import { useMatrixClient } from '~/app/hooks/useMatrixClient';
 import { useRoomEditor } from '~/app/features/room/RoomEditorContext';
@@ -62,6 +60,9 @@ type AIAssistantContextType = {
 
 const AIAssistantContext = createContext<AIAssistantContextType | undefined>(undefined);
 
+// AI API endpoint configuration
+const AI_ENDPOINT = 'https://pwai.vercel.app/api/generate-response';
+
 type AIAssistantProviderProps = {
   children: ReactNode;
   isMobile: boolean;
@@ -95,6 +96,35 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
 
   // Ref to store SSE abort function for cleanup
   const abortStreamRef = useRef<(() => void) | null>(null);
+  // Ref to track current generated response for completion callback
+  const generatedResponseRef = useRef<string>('');
+  // Ref to track if we're in the thinking state
+  const isThinkingRef = useRef<boolean>(false);
+
+  // Animated thinking dots
+  const thinkingText = useThinkingDots(isGeneratingResponse && generatedResponse === '', 500);
+
+  // Update ref when generatedResponse changes
+  useEffect(() => {
+    generatedResponseRef.current = generatedResponse;
+  }, [generatedResponse]);
+
+  // Update thinking text in input box when it changes
+  useEffect(() => {
+    if (
+      isGeneratingResponse &&
+      generatedResponse === '' &&
+      isThinkingRef.current &&
+      !isProcessingFirstChunkRef.current
+    ) {
+      // Replace current content with updated thinking text
+      deleteText();
+      insertText(thinkingText);
+    }
+  }, [thinkingText, isGeneratingResponse, generatedResponse, deleteText, insertText]);
+
+  // Ref to track if we're currently processing the first chunk
+  const isProcessingFirstChunkRef = useRef<boolean>(false);
 
   // Cleanup on unmount
   useEffect(
@@ -136,12 +166,8 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
     [insertText, deleteText, isMobile, setIsAiDrawer]
   );
 
-  // Call handleUseSuggestion when response is complete
-  useEffect(() => {
-    if (generatedResponse && !isGeneratingResponse && initialMessageGenerated) {
-      handleUseSuggestion(generatedResponse);
-    }
-  }, [generatedResponse, isGeneratingResponse, initialMessageGenerated, handleUseSuggestion]);
+  // Note: Real-time streaming now inserts text directly into room editor during onChunk
+  // No need for post-completion insertion since text is already in the editor
 
   const generateInitialResponse = useCallback(async () => {
     toggleAIAssistant(true);
@@ -158,6 +184,10 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
     setGeneratedResponse(''); // Clear previous response
     setErrorMessage(null); // Clear previous errors
     deleteText();
+
+    // Set thinking state and insert initial thinking text
+    isThinkingRef.current = true;
+    insertText('Thinking.');
 
     try {
       // Get the actual room conversation from timeline
@@ -181,38 +211,70 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
         tone: toneValues,
       };
 
-      // Call SSE API client with callbacks
-      const abort = generateResponseFromMessageSSE({
-        message,
-        context: roomContext,
-        spec,
-        onChunk: (chunk: string) => {
-          // Append chunk to state - functional update to avoid stale closure
-          setGeneratedResponse((prev) => prev + chunk);
+      // Call streaming service with callbacks
+      const abort = startStream(
+        {
+          endpoint: AI_ENDPOINT,
+          message,
+          context: roomContext,
+          spec,
         },
-        onError: (error: Error) => {
-          // eslint-disable-next-line no-console
-          console.error('Stream error:', error);
+        {
+          onChunk: (chunk: string) => {
+            // Append chunk to state - functional update to avoid stale closure
+            setGeneratedResponse((prev) => prev + chunk);
 
-          // Categorize error and set appropriate message
-          let userMessage = 'Sorry, something went wrong. Please try again.';
+            // For the first chunk, clear thinking state and replace with actual content
+            // For subsequent chunks, just append
+            if (generatedResponseRef.current === '') {
+              // First chunk - sequential process to avoid race conditions
+              isThinkingRef.current = false;
+              isProcessingFirstChunkRef.current = true;
 
-          if (error.message.includes('Stream connection error')) {
-            userMessage = 'Connection lost. Please check your network and try again.';
-          } else if (error.message.includes('Failed to initialize SSE connection')) {
-            userMessage = 'Failed to connect to AI service. Please try again later.';
-          } else if (error.message.includes('network') || error.message.includes('fetch')) {
-            userMessage = 'Network error. Please check your connection.';
-          }
+              // Step 1: Clear the input box completely
+              deleteText();
 
-          setErrorMessage(userMessage);
-          setIsGeneratingResponse(false);
-        },
-        onComplete: () => {
-          setIsGeneratingResponse(false);
-          setInitialMessageGenerated(true);
-        },
-      });
+              // Step 2: Use setTimeout to ensure the clear operation completes before inserting
+              setTimeout(() => {
+                insertText(chunk);
+                isProcessingFirstChunkRef.current = false;
+              }, 0);
+            } else {
+              // Subsequent chunks - just append
+              insertText(chunk);
+            }
+          },
+          onError: (error: Error) => {
+            // eslint-disable-next-line no-console
+            console.error('Stream error:', error);
+
+            // Categorize error and set appropriate message
+            let userMessage = 'Sorry, something went wrong. Please try again.';
+
+            if (error.message.includes('Stream connection error')) {
+              userMessage = 'Connection lost. Please check your network and try again.';
+            } else if (error.message.includes('Failed to initialize SSE connection')) {
+              userMessage = 'Failed to connect to AI service. Please try again later.';
+            } else if (error.message.includes('network') || error.message.includes('fetch')) {
+              userMessage = 'Network error. Please check your connection.';
+            }
+
+            setErrorMessage(userMessage);
+            setIsGeneratingResponse(false);
+            // Clear thinking state and text on error
+            isThinkingRef.current = false;
+            isProcessingFirstChunkRef.current = false;
+            deleteText();
+          },
+          onComplete: () => {
+            setIsGeneratingResponse(false);
+            setInitialMessageGenerated(true);
+            // Call handleUseSuggestion with the final generated response
+            // This ensures the complete text is transferred to the input box
+            handleUseSuggestion(generatedResponseRef.current);
+          },
+        }
+      );
 
       // Store abort function for cleanup
       abortStreamRef.current = abort;
@@ -231,8 +293,12 @@ export function AIAssistantProvider({ children, isMobile }: AIAssistantProviderP
       setErrorMessage(userMessage);
       setIsGeneratingResponse(false);
       setInitialMessageGenerated(true);
+      // Clear thinking state and text on initialization error
+      isThinkingRef.current = false;
+      isProcessingFirstChunkRef.current = false;
+      deleteText();
     }
-  }, [room, mx, deleteText, selectedPersona, toneValues]);
+  }, [room, mx, deleteText, insertText, selectedPersona, toneValues]);
 
   const handleSliderChange = useCallback(
     (value: number) => {

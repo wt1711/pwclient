@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Text, color, config } from 'folds';
+import { Box, Text, Spinner, color, config } from 'folds';
 import { PersonaSelector } from '~/app/features/ai-assistant/gen-response/personal-selector/PersonaSelector';
 import { Slider } from '~/app/features/ai-assistant/gen-response/tone-slider/Slider';
 import { ToneSelector } from '~/app/features/ai-assistant/gen-response/tone-selector/ToneSelector';
@@ -7,7 +7,13 @@ import { useAIAssistant } from '~/app/features/ai-assistant/AIAssistantContext';
 import { useEscapeKey } from '~/app/features/ai-assistant/utils/utils';
 
 export function GeneratedResponseBox() {
-  const { isAIAssistantOpen, toggleAIAssistant, errorMessage } = useAIAssistant();
+  const {
+    isAIAssistantOpen,
+    toggleAIAssistant,
+    isGeneratingResponse,
+    generatedResponse,
+    errorMessage,
+  } = useAIAssistant();
 
   useEscapeKey(isAIAssistantOpen, () => toggleAIAssistant(false));
 
@@ -44,6 +50,30 @@ export function GeneratedResponseBox() {
             >
               ⚠️ {errorMessage}
             </Text>
+          </Box>
+        )}
+        {isGeneratingResponse && (
+          <Box
+            direction="Row"
+            justifyContent="Center"
+            style={{
+              padding: config.space.S300,
+            }}
+          >
+            <Spinner size="300" />
+          </Box>
+        )}
+        {generatedResponse && (
+          <Box
+            style={{
+              padding: config.space.S300,
+              backgroundColor: color.Surface.Container,
+              borderRadius: config.radii.R400,
+              maxHeight: '200px',
+              overflowY: 'auto',
+            }}
+          >
+            <Text size="T300">{generatedResponse}</Text>
           </Box>
         )}
         <Slider />
