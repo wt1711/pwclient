@@ -61,7 +61,7 @@ type AIAssistantContextType = {
 const AIAssistantContext = createContext<AIAssistantContextType | undefined>(undefined);
 
 // AI API endpoint configuration
-const AI_ENDPOINT = 'https://pwai.vercel.app/api/generate-response';
+const AI_ENDPOINT = 'https://pwai.vercel.app/api/generate-response-fast';
 
 type AIAssistantProviderProps = {
   children: ReactNode;
